@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Vehicle, Currency, UserPreferences, MarketRegion } from '../types';
 import { formatPrice, formatPriceRange } from '../services/currency';
 import { AccessibleDialog } from './AccessibleDialog';
+import { VehicleImage } from './VehicleImage';
 import { X, Scale, Sparkles, Loader2 } from 'lucide-react';
 
 interface ComparisonModalProps {
@@ -62,7 +63,7 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
           <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 flex items-center justify-center text-[var(--color-accent-text)] shrink-0"><Scale className="w-5 h-5" aria-hidden="true" /></div>
           <div className="min-w-0">
             <h2 id="comparison-title" className="text-lg sm:text-xl font-extrabold text-[var(--color-text)] tracking-tight">{isGreek ? 'Σύγκριση οχημάτων' : 'Side-by-side comparison'}</h2>
-            <p className="text-sm text-[var(--color-text-muted)]">{isGreek ? `${vehicles.length} οχήματα με βάση το προφίλ σου` : `${vehicles.length} vehicles based on your profile`}</p>
+            <p className="text-[15px] text-[var(--color-text-muted)]">{isGreek ? `${vehicles.length} οχήματα με βάση το προφίλ σου` : `${vehicles.length} vehicles based on your profile`}</p>
           </div>
         </div>
         <button type="button" onClick={onClose} className="touch-target rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)] hover:text-[var(--color-text)] flex items-center justify-center" aria-label={isGreek ? 'Κλείσιμο σύγκρισης' : 'Close comparison'}><X className="w-5 h-5" aria-hidden="true" /></button>
@@ -73,7 +74,7 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
           <div className="text-center py-14">
             <Scale className="w-11 h-11 text-[var(--color-text-muted)] mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-bold text-[var(--color-text)]">{isGreek ? 'Δεν έχουν επιλεγεί οχήματα' : 'No vehicles selected'}</h3>
-            <p className="text-sm text-[var(--color-text-muted)] mt-2">{isGreek ? 'Επίλεξε έως 3 αυτοκίνητα από τις προτάσεις ή τον κατάλογο.' : 'Select up to 3 cars from recommendations or the catalog.'}</p>
+            <p className="text-[15px] text-[var(--color-text-muted)] mt-2">{isGreek ? 'Επίλεξε έως 3 αυτοκίνητα από τις προτάσεις ή τον κατάλογο.' : 'Select up to 3 cars from recommendations or the catalog.'}</p>
           </div>
         ) : (
           <>
@@ -81,16 +82,16 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
               {vehicles.map((v) => (
                 <article key={v.id} className="relative surface-card p-4 overflow-hidden">
                   <button type="button" onClick={() => onRemoveVehicle(v.id)} className="touch-target absolute top-2 right-2 rounded-xl bg-black/55 text-white flex items-center justify-center" aria-label={isGreek ? `Αφαίρεση ${v.make} ${v.model} από τη σύγκριση` : `Remove ${v.make} ${v.model} from comparison`}><X className="w-4 h-4" aria-hidden="true" /></button>
-                  <img src={v.imageUrl} alt="" loading="lazy" className="aspect-[16/10] w-full rounded-xl object-cover bg-[var(--color-surface-subtle)] mb-3" />
-                  <p className="text-xs text-[var(--color-text-muted)]">{v.generation} · {v.years}</p>
+                  <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-[var(--color-surface-subtle)] mb-3"><VehicleImage vehicle={v} decorative marketRegion={marketRegion} /></div>
+                  <p className="text-[13px] text-[var(--color-text-muted)]">{v.generation} · {v.years}</p>
                   <h3 className="text-base font-extrabold text-[var(--color-text)]">{v.make} {v.model}</h3>
-                  <p className="text-sm font-bold text-[var(--color-accent-text)] mt-1">{isGreek ? 'Καλή αγορά έως' : 'Good buy up to'} {formatPrice(v.goodBuyPrice, currency)}</p>
+                  <p className="text-[15px] font-bold text-[var(--color-accent-text)] mt-1">{isGreek ? 'Καλή αγορά έως' : 'Good buy up to'} {formatPrice(v.goodBuyPrice, currency)}</p>
                 </article>
               ))}
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]" aria-label={isGreek ? 'Πίνακας σύγκρισης' : 'Comparison table'}>
-              <div className="min-w-max text-sm">
+              <div className="min-w-max text-[15px]">
                 {[
                   [isGreek ? 'Ενδεικτική τιμή αγοράς' : 'Reference market price', (v: Vehicle) => formatPriceRange(v.typicalPriceMin, v.typicalPriceMax, currency)],
                   [isGreek ? 'Αξιοπιστία' : 'Reliability', (v: Vehicle) => `${v.reliabilityRating} / 5`],
@@ -110,10 +111,10 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
 
             <section className="p-5 sm:p-6 rounded-2xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/25" aria-labelledby="advisor-verdict-title">
               <div className="flex items-center justify-between gap-3">
-                <h3 id="advisor-verdict-title" className="flex items-center gap-2 text-[var(--color-accent-text)] font-extrabold text-sm uppercase tracking-wider"><Sparkles className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Ποιο ταιριάζει καλύτερα;' : 'Which one fits best?'}</h3>
+                <h3 id="advisor-verdict-title" className="flex items-center gap-2 text-[var(--color-accent-text)] font-extrabold text-[15px] uppercase tracking-wider"><Sparkles className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Ποιο ταιριάζει καλύτερα;' : 'Which one fits best?'}</h3>
                 {loadingAi && <Loader2 className="w-4 h-4 text-[var(--color-accent-text)] animate-spin" aria-label={isGreek ? 'Ανάλυση σε εξέλιξη' : 'Analysis in progress'} />}
               </div>
-              <div className="mt-3 text-sm text-[var(--color-text)] leading-relaxed" aria-live="polite">
+              <div className="mt-3 text-[15px] text-[var(--color-text)] leading-relaxed" aria-live="polite">
                 {aiAnalysis ? (
                   <div className="space-y-3">
                     {aiAnalysis.headline && <p className="font-bold">{aiAnalysis.headline}</p>}

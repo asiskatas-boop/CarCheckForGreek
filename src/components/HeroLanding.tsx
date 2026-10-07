@@ -39,48 +39,57 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
 
   return (
     <div className="relative overflow-hidden bg-[var(--color-canvas)] text-[var(--color-text)]">
-      <section className="relative w-full min-h-[500px] sm:min-h-[580px] md:min-h-[620px] overflow-hidden bg-slate-950" aria-labelledby="hero-title">
-        <img
-          src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=82"
-          srcSet="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=78 900w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80 1400w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=82 1800w"
-          sizes="100vw"
-          alt={isGreek ? 'Αυτοκίνητο σε ανοιχτό δρόμο' : 'Car on an open road'}
-          className="absolute inset-0 w-full h-full object-cover object-center brightness-75"
-          fetchPriority="high"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-950/30" />
-
-        <div className="relative z-10 min-h-[500px] sm:min-h-[580px] md:min-h-[620px] max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-end pb-10 sm:pb-14">
-          <div className="max-w-4xl">
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold tracking-wide text-red-200 mb-3">
+      <section className="relative w-full border-b border-[var(--color-border)] bg-[var(--color-surface)]" aria-labelledby="hero-title">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 lg:py-20 grid lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)] gap-10 lg:gap-14 items-center">
+          <div className="max-w-3xl">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold tracking-wide text-[var(--color-accent-text)] mb-4">
               <span>{isGreek ? 'Σύμβουλος αγοράς αυτοκινήτου' : 'Independent vehicle advisor'}</span>
               <span aria-hidden="true">·</span>
-              <span>{isGreek ? 'Budget από 1.500€' : 'Budget from €1,500'}</span>
+              <span>{isGreek ? 'Ελλάδα & Ευρώπη' : 'Greece & Europe'}</span>
               <span aria-hidden="true">·</span>
-              <span>{isGreek ? 'Ελληνικά κόστη & περιορισμοί' : 'Market costs & constraints'}</span>
+              <span>{isGreek ? 'Έλεγχος πηγών πριν την αγορά' : 'Source checks before you buy'}</span>
             </p>
 
-            <h1 id="hero-title" className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.06]">
-              {isGreek ? 'Βρες το σωστό αυτοκίνητο για τη ζωή και το budget σου.' : 'Find the right car for your life and budget.'}
+            <h1 id="hero-title" className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-[var(--color-text)] leading-[1.08]">
+              {isGreek ? 'Βρες το σωστό αυτοκίνητο χωρίς να χαθείς στις αγγελίες.' : 'Find the right car without getting lost in listings.'}
             </h1>
 
-            <p className="mt-5 text-base sm:text-lg text-slate-200 max-w-2xl leading-relaxed">
+            <p className="mt-5 text-base sm:text-lg text-[var(--color-text-muted)] max-w-2xl leading-relaxed">
               {isGreek
-                ? 'Απάντησε σε 4 σύντομες ερωτήσεις. Το CarCheck συνδυάζει budget, χρήση, αξιοπιστία, κόστος και ελληνικούς παράγοντες για να περιορίσει τις επιλογές σου.'
-                : 'Answer four short questions. CarCheck combines budget, use, reliability, ownership cost, and market constraints to narrow your choices.'}
+                ? 'Απάντησε σε 4 σύντομες ερωτήσεις και σύγκρινε λίγες, σχετικές επιλογές. Το CarCheck οργανώνει budget, χρήση, κόστος, αξιοπιστία και ελληνικούς περιορισμούς σε μία ήρεμη εικόνα.'
+                : 'Answer four short questions and compare a small set of relevant choices. CarCheck organizes budget, use, ownership cost, reliability, and market constraints into one calm view.'}
             </p>
 
             <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <button type="button" onClick={onStartDiscovery} className="min-h-12 inline-flex items-center justify-center gap-2.5 px-7 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-bold shadow-lg transition-colors group">
+              <button type="button" onClick={onStartDiscovery} className="min-h-12 inline-flex items-center justify-center gap-2.5 px-7 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors group">
                 <span>{isGreek ? 'Βρες το αυτοκίνητό μου' : 'Find my car'}</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                <ArrowRight className="w-4 h-4 motion-safe:group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
               </button>
-              <button type="button" onClick={onBrowseAll} className="min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-white/10 backdrop-blur-md border border-white/30 text-white text-sm font-semibold hover:bg-white/20 transition-colors">
+              <button type="button" onClick={onBrowseAll} className="min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] text-[var(--color-text)] text-[15px] font-semibold hover:border-[var(--color-border-strong)] transition-colors">
                 <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
-                <span>{isGreek ? 'Περιήγηση σε όλα τα οχήματα' : 'Browse all vehicles'}</span>
+                <span>{isGreek ? 'Περιήγηση στα μοντέλα' : 'Browse vehicles'}</span>
               </button>
             </div>
           </div>
+
+          <aside className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-canvas)] p-6 sm:p-7" aria-label={isGreek ? 'Τι θα δεις' : 'What you will see'}>
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-accent-soft)] text-[var(--color-accent-text)]">
+              <CarFront className="h-7 w-7" aria-hidden="true" />
+            </div>
+            <h2 className="mt-5 text-xl font-extrabold tracking-tight text-[var(--color-text)]">{isGreek ? 'Λιγότερος θόρυβος. Περισσότερη βεβαιότητα.' : 'Less noise. More confidence.'}</h2>
+            <div className="mt-5 space-y-4">
+              {[
+                [isGreek ? 'Καθαρό shortlist' : 'Focused shortlist', isGreek ? 'Λίγες επιλογές με ξεκάθαρο γιατί.' : 'A few choices with a clear reason why.'],
+                [isGreek ? 'Εικόνες ανά μοντέλο' : 'Model-specific imagery', isGreek ? 'Χωρίς άσχετες stock φωτογραφίες.' : 'No unrelated stock photos presented as the car.'],
+                [isGreek ? 'Πηγές με ημερομηνία' : 'Source-aware data', isGreek ? 'Οι κρίσιμες τιμές πρέπει να έχουν πηγή και ημερομηνία.' : 'Critical values should carry a source and retrieval date.']
+              ].map(([title, body]) => (
+                <div key={title} className="flex gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-success)]" aria-hidden="true" />
+                  <div><p className="text-[15px] font-bold text-[var(--color-text)]">{title}</p><p className="mt-0.5 text-[14px] leading-relaxed text-[var(--color-text-muted)]">{body}</p></div>
+                </div>
+              ))}
+            </div>
+          </aside>
         </div>
       </section>
 

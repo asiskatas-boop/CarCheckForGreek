@@ -6,7 +6,9 @@ import {
   Globe2,
   Sparkles,
   CarFront,
-  Store
+  Store,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Currency, MarketRegion } from '../types';
 
@@ -20,6 +22,8 @@ interface NavbarProps {
   setCurrency: (currency: Currency) => void;
   marketRegion: MarketRegion;
   setMarketRegion: (region: MarketRegion) => void;
+  theme: 'light' | 'dark';
+  onToggleTheme: () => void;
   onResetDiscovery: () => void;
 }
 
@@ -33,6 +37,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   setCurrency,
   marketRegion,
   setMarketRegion,
+  theme,
+  onToggleTheme,
   onResetDiscovery
 }) => {
   const isGreek = marketRegion === 'greece';
@@ -139,6 +145,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               ))}
             </div>
+
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className="touch-target hidden sm:inline-flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              aria-label={isGreek ? (theme === 'dark' ? 'Χρήση φωτεινού θέματος' : 'Χρήση σκοτεινού θέματος') : (theme === 'dark' ? 'Use light theme' : 'Use dark theme')}
+              title={isGreek ? (theme === 'dark' ? 'Φωτεινό θέμα' : 'Σκοτεινό θέμα') : (theme === 'dark' ? 'Light theme' : 'Dark theme')}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
+            </button>
 
             {compareCount > 0 && (
               <button

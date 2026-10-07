@@ -112,6 +112,30 @@ export interface InspectionCheckItem {
   tip: string;
 }
 
+export type DataSourceKind = 'authoritative' | 'commercial' | 'marketplace' | 'reference';
+
+export interface DataProvenance {
+  provider: string;
+  kind: DataSourceKind;
+  sourceRecordId?: string;
+  sourceUrl?: string;
+  market?: string;
+  retrievedAt: string;
+  effectiveFrom?: string;
+  effectiveTo?: string;
+  methodology?: string;
+}
+
+export interface VehicleProvenance {
+  specifications?: DataProvenance;
+  pricing?: DataProvenance;
+  taxation?: DataProvenance;
+  emissions?: DataProvenance;
+  safety?: DataProvenance;
+  recalls?: DataProvenance;
+  image?: DataProvenance;
+}
+
 export interface Vehicle {
   id: string;
   make: string;
@@ -159,6 +183,7 @@ export interface Vehicle {
   knownIssues: string[];
   inspectionChecklist: InspectionCheckItem[];
   defaultExplanation: string;
+  provenance?: VehicleProvenance;
 }
 
 export type RecommendationCategory =
@@ -205,6 +230,7 @@ export interface MarketplaceListing {
   carGrClassifiedId?: string; // Real Car.gr classified ID e.g. "#33481920"
   carGrDirectUrl?: string;
   publishedDate: string;
+  provenance?: DataProvenance;
 }
 
 export interface SavedGarageItem {

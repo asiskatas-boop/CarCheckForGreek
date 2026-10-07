@@ -32,3 +32,18 @@ Implemented from the uploaded UI/UX Pro Max guidance and the CarCheck audit.
 - A secondary local type check with dependency stubs passes, including component prop contracts and internal project types.
 - Static audit confirms no customer-facing old blue action accent remains, no structural emoji remains, and no clickable `<div>` remains in production customer components.
 - A normal `npm run lint` / `npm run build` could not be completed in this environment because dependencies are not installed and npm registry requests fail with DNS `EAI_AGAIN`. Run `npm install && npm run lint && npm run build` in a networked development environment before deployment.
+
+## Data accuracy, imagery and readability pass — 2026-10-07
+
+- Replaced customer-facing hand-picked Unsplash vehicle photos with `VehicleImage`, an IMAGIN.studio CDN integration keyed by model identity/year and Greek country context.
+- Added responsive image `srcSet` and an explicit labelled fallback so an unrelated stock car is never silently shown as the selected model.
+- Removed the generic stock-photo hero and replaced it with a calmer, text-first landing layout.
+- Defaulted the app to a warm off-white light theme; retained a softened charcoal dark mode and theme toggle.
+- Increased dense supporting text from ~11–14px to ~12–15px across core buying flows and narrowed major reading layouts to `max-w-6xl`.
+- Reduced colored visual noise in vehicle details by consolidating status and surface colors onto semantic design tokens.
+- Removed visible fake seller-name emphasis and seller filtering from the reference-listing demo.
+- Removed stale Car.gr classified-count / saved benchmark claims from customer-facing vehicle cards/details; current market searches remain linked for verification.
+- Added `DataTrustNote` to catalog, recommendation, marketplace and vehicle-detail flows so seed data cannot be mistaken for a live commercial feed.
+- Added `DataProvenance`, `VehicleProvenance` and `dataSourcePolicy.ts` to support provider IDs, market, timestamps and methodology per data domain.
+- Added `VITE_VERIFIED_VEHICLE_DATA` production gate and `VITE_IMAGIN_CUSTOMER_KEY` configuration.
+- Corrected the Greek road-tax helper to apply the published band rate to the full certified CO2 value rather than using a progressive/marginal calculation.

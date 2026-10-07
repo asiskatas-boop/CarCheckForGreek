@@ -45,6 +45,15 @@ export default function App() {
     return 'advisor';
   });
   const [discoveryState, setDiscoveryState] = useState<'hero' | 'questionnaire' | 'results'>('hero');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const stored = localStorage.getItem('carcheck_theme');
+      if (stored === 'light' || stored === 'dark') return stored;
+    } catch {
+      // Fall through to the calmer light default.
+    }
+    return 'light';
+  });
 
   const [marketRegion, setMarketRegion] = useState<MarketRegion>(() => {
     try {
@@ -124,11 +133,13 @@ export default function App() {
     searchQuery: ''
   });
 
-  // CarCheck intentionally ships as a dark-first automotive interface.
+  // Respect an explicit theme choice. Light is the default to reduce glare and visual density;
+  // the dark palette remains available with softer contrast rather than pure black/white.
   useEffect(() => {
-    document.documentElement.classList.add('dark');
-    localStorage.setItem('carcheck_theme', 'dark');
-  }, []);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('carcheck_theme', theme);
+    document.documentElement.style.colorScheme = theme;
+  }, [theme]);
 
   // Keep the primary views bookmarkable and make browser Back/Forward useful without adding a routing dependency.
   useEffect(() => {
@@ -399,6 +410,8 @@ export default function App() {
         setCurrency={setCurrency}
         marketRegion={marketRegion}
         setMarketRegion={setMarketRegion}
+        theme={theme}
+        onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}
         onResetDiscovery={() => {
           setDiscoveryState('questionnaire');
           setCurrentTab('advisor');

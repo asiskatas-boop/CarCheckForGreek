@@ -3,7 +3,9 @@ import { Currency, Vehicle, MarketRegion } from '../types';
 import { formatPrice } from '../services/currency';
 import { MARKETPLACE_LISTINGS } from '../data/listings';
 import { VEHICLES } from '../data/vehicles';
-import { MapPin, Bookmark, ChevronRight, Search, ExternalLink, RotateCcw, Info } from 'lucide-react';
+import { MapPin, Bookmark, ChevronRight, Search, ExternalLink, RotateCcw, Info, ImageOff } from 'lucide-react';
+import { VehicleImage } from './VehicleImage';
+import { DataTrustNote } from './DataTrustNote';
 
 interface MarketplaceListingsProps {
   currency: Currency;
@@ -20,11 +22,6 @@ const ratingLabel = (rating: string, isGreek: boolean) => {
   if (rating === 'Excellent Price') return 'Εξαιρετική τιμή';
   if (rating === 'Good Price') return 'Καλή τιμή';
   return 'Τυπική τιμή';
-};
-
-const sellerLabel = (sellerType: string, isGreek: boolean) => {
-  if (!isGreek) return sellerType === 'Verified Dealer' ? 'Dealer' : 'Private seller';
-  return sellerType === 'Verified Dealer' ? 'Έμπορος' : 'Ιδιώτης';
 };
 
 const greekDealSummary = (rating: string) => {
@@ -45,48 +42,46 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
   const isGreek = marketRegion === 'greece';
   const [selectedRating, setSelectedRating] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSeller, setSelectedSeller] = useState<'all' | 'dealer' | 'private'>('all');
 
   const filteredListings = MARKETPLACE_LISTINGS.filter((listing) => {
     if (filterVehicleId && listing.vehicleId !== filterVehicleId) return false;
     if (selectedRating !== 'all' && listing.dealRating !== selectedRating) return false;
-    if (selectedSeller === 'dealer' && listing.sellerType !== 'Verified Dealer') return false;
-    if (selectedSeller === 'private' && listing.sellerType !== 'Private Seller') return false;
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      if (![listing.title, listing.location, listing.sellerName].some((value) => value.toLowerCase().includes(query))) return false;
+      if (![listing.title, listing.location].some((value) => value.toLowerCase().includes(query))) return false;
     }
     return true;
   });
 
   const resetFilters = () => {
     setSelectedRating('all');
-    setSelectedSeller('all');
     setSearchQuery('');
     onClearVehicleFilter?.();
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       <div className="mb-6 flex flex-col lg:flex-row lg:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-text)] tracking-tight">
             {isGreek ? 'Ενδεικτικές Αγγελίες & Σύγκριση Τιμής' : 'Reference Listings & Price Comparison'}
           </h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1 max-w-3xl">
+          <p className="text-[15px] text-[var(--color-text-muted)] mt-1 max-w-3xl">
             {isGreek
               ? 'Στιγμιότυπα αγγελιών από τη βάση του CarCheck για σύγκριση με ενδεικτικές τιμές αγοράς. Δεν αποτελούν ζωντανή ροή διαθεσιμότητας.'
               : 'Listing snapshots from the CarCheck dataset for comparison against reference market values. This is not a live availability feed.'}
           </p>
         </div>
-        <div className="flex items-start gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-3 text-xs text-[var(--color-text-muted)] max-w-md">
+        <div className="flex items-start gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-3 text-[13px] text-[var(--color-text-muted)] max-w-md">
           <Info className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
           <span>{isGreek ? 'Άνοιξε την αρχική πηγή για τρέχουσα τιμή και διαθεσιμότητα πριν επικοινωνήσεις με πωλητή.' : 'Open the original source to confirm current price and availability before contacting a seller.'}</span>
         </div>
       </div>
 
+      <div className="mb-5"><DataTrustNote marketRegion={marketRegion} compact /></div>
+
       {filterVehicleId && (
-        <div className="mb-4 flex flex-wrap items-center gap-3 p-3 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 text-sm text-[var(--color-accent-text)]">
+        <div className="mb-4 flex flex-wrap items-center gap-3 p-3 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 text-[15px] text-[var(--color-accent-text)]">
           <span className="font-semibold">{isGreek ? 'Φιλτραρισμένο για το συγκεκριμένο μοντέλο' : 'Filtered for this vehicle'}</span>
           <button type="button" onClick={onClearVehicleFilter} className="min-h-9 px-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text)] font-bold underline underline-offset-4">
             {isGreek ? 'Προβολή όλων' : 'Show all'}
@@ -94,18 +89,18 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
         </div>
       )}
 
-      <section aria-label={isGreek ? 'Φίλτρα αγγελιών' : 'Listing filters'} className="mb-6 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto_auto] gap-4 items-end">
-        <label className="text-sm font-semibold text-[var(--color-text)]">
+      <section aria-label={isGreek ? 'Φίλτρα αγγελιών' : 'Listing filters'} className="mb-6 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-4 items-end">
+        <label className="text-[15px] font-semibold text-[var(--color-text)]">
           <span className="block mb-1.5">{isGreek ? 'Αναζήτηση αγγελιών' : 'Search listings'}</span>
           <span className="relative block">
             <Search className="w-4 h-4 text-[var(--color-text-muted)] absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
-            <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={isGreek ? 'Μοντέλο, περιοχή ή πωλητής…' : 'Model, location, or seller…'} className="w-full min-h-11 pl-9 pr-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]" />
+            <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={isGreek ? 'Μοντέλο ή περιοχή…' : 'Model or location…'} className="w-full min-h-11 pl-9 pr-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]" />
           </span>
         </label>
 
         <fieldset>
-          <legend className="text-sm font-semibold text-[var(--color-text)] mb-1.5">{isGreek ? 'Αξιολόγηση τιμής' : 'Deal rating'}</legend>
-          <div className="flex flex-wrap items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-1 text-xs gap-1">
+          <legend className="text-[15px] font-semibold text-[var(--color-text)] mb-1.5">{isGreek ? 'Αξιολόγηση τιμής' : 'Deal rating'}</legend>
+          <div className="flex flex-wrap items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-1 text-[13px] gap-1">
             {['all', 'Excellent Price', 'Good Price'].map((rating) => (
               <button type="button" key={rating} onClick={() => setSelectedRating(rating)} aria-pressed={selectedRating === rating} className={`min-h-9 px-3 rounded-lg transition-colors font-semibold ${selectedRating === rating ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
                 {rating === 'all' ? (isGreek ? 'Όλες' : 'All') : ratingLabel(rating, isGreek)}
@@ -114,30 +109,16 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
           </div>
         </fieldset>
 
-        <fieldset>
-          <legend className="text-sm font-semibold text-[var(--color-text)] mb-1.5">{isGreek ? 'Πωλητής' : 'Seller'}</legend>
-          <div className="flex flex-wrap items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-1 text-xs gap-1">
-            {[
-              { id: 'all', label: isGreek ? 'Όλοι' : 'All' },
-              { id: 'dealer', label: isGreek ? 'Έμποροι' : 'Dealers' },
-              { id: 'private', label: isGreek ? 'Ιδιώτες' : 'Private' }
-            ].map((seller) => (
-              <button type="button" key={seller.id} onClick={() => setSelectedSeller(seller.id as typeof selectedSeller)} aria-pressed={selectedSeller === seller.id} className={`min-h-9 px-3 rounded-lg transition-colors font-semibold ${selectedSeller === seller.id ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
-                {seller.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
       </section>
 
-      <div className="mb-4 text-sm text-[var(--color-text-muted)]" aria-live="polite">{isGreek ? `${filteredListings.length} αγγελίες στο αποθηκευμένο δείγμα` : `${filteredListings.length} listings in the saved dataset`}</div>
+      <div className="mb-4 text-[15px] text-[var(--color-text-muted)]" aria-live="polite">{isGreek ? `${filteredListings.length} αγγελίες στο αποθηκευμένο δείγμα` : `${filteredListings.length} listings in the saved dataset`}</div>
 
       {filteredListings.length === 0 ? (
         <div className="surface-card py-14 px-6 text-center">
           <Search className="w-8 h-8 mx-auto text-[var(--color-text-muted)]" aria-hidden="true" />
           <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">{isGreek ? 'Δεν βρέθηκαν αγγελίες' : 'No listings found'}</h2>
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">{isGreek ? 'Άλλαξε φίλτρα ή εμφάνισε ξανά όλο το αποθηκευμένο δείγμα.' : 'Change the filters or show the full saved dataset again.'}</p>
-          <button type="button" onClick={resetFilters} className="mt-5 min-h-11 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-bold inline-flex items-center gap-2">
+          <p className="mt-2 text-[15px] text-[var(--color-text-muted)]">{isGreek ? 'Άλλαξε φίλτρα ή εμφάνισε ξανά όλο το αποθηκευμένο δείγμα.' : 'Change the filters or show the full saved dataset again.'}</p>
+          <button type="button" onClick={resetFilters} className="mt-5 min-h-11 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold inline-flex items-center gap-2">
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
             {isGreek ? 'Καθαρισμός φίλτρων' : 'Clear filters'}
           </button>
@@ -151,28 +132,34 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
               <article key={listing.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
                 <div>
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
-                    <img src={listing.imageUrl} alt={listing.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent pointer-events-none" />
-                    <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-sm">{ratingLabel(listing.dealRating, isGreek)}</div>
+                    {targetVehicle ? (
+                      <VehicleImage vehicle={targetVehicle} year={listing.year} alt={listing.title} marketRegion={marketRegion} showReferenceLabel />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-[var(--color-image-fallback)] text-[var(--color-text-muted)]" role="img" aria-label={listing.title}>
+                        <ImageOff className="h-7 w-7" aria-hidden="true" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md px-3 py-1.5 rounded-lg text-[13px] font-bold text-white shadow-sm">{ratingLabel(listing.dealRating, isGreek)}</div>
                     <button type="button" onClick={() => onToggleSaveListing(listing.id)} aria-pressed={isSaved} aria-label={isGreek ? `${isSaved ? 'Αφαίρεση' : 'Αποθήκευση'} αγγελίας ${listing.title}` : `${isSaved ? 'Remove' : 'Save'} listing ${listing.title}`} className={`absolute top-3 right-3 touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-slate-950/80 text-white hover:bg-slate-900'}`}>
                       <Bookmark className="w-4 h-4" aria-hidden="true" />
                     </button>
-                    <div className="absolute bottom-3 left-3 right-3 text-white text-sm font-medium truncate">{sellerLabel(listing.sellerType, isGreek)} · {listing.sellerName}</div>
+                    <div className="absolute bottom-3 left-3 right-3 text-white text-[15px] font-medium truncate">{isGreek ? 'Δείγμα αγοράς' : 'Market sample'} · {listing.location}</div>
                   </div>
 
                   <div className="p-5">
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--color-text-muted)] mb-1"><span>{listing.year}</span><span aria-hidden="true">·</span><span>{listing.mileageKm.toLocaleString(isGreek ? 'el-GR' : 'en-GB')} km</span><span aria-hidden="true">·</span><span>{listing.transmission}</span></div>
+                    <div className="flex flex-wrap items-center gap-2 text-[15px] text-[var(--color-text-muted)] mb-1"><span>{listing.year}</span><span aria-hidden="true">·</span><span>{listing.mileageKm.toLocaleString(isGreek ? 'el-GR' : 'en-GB')} km</span><span aria-hidden="true">·</span><span>{listing.transmission}</span></div>
                     <h2 className="text-lg font-bold text-[var(--color-text)] tracking-tight leading-snug">{listing.title}</h2>
                     <div className="mt-2 text-xl font-extrabold text-[var(--color-text)]">{formatPrice(listing.price, currency)}</div>
-                    <div className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] mt-1"><MapPin className="w-4 h-4" aria-hidden="true" /><span>{listing.location}</span></div>
-                    <div className="mt-4 p-3 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] text-sm text-[var(--color-text-muted)] leading-relaxed">{isGreek ? greekDealSummary(listing.dealRating) : listing.dealExplanation}</div>
-                    <div className="mt-3 flex flex-wrap gap-1.5">{listing.keyEquipment.slice(0, 3).map((item) => <span key={item} className="text-xs px-2 py-1 rounded-lg bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]">{item}</span>)}</div>
+                    <div className="flex items-center gap-1.5 text-[15px] text-[var(--color-text-muted)] mt-1"><MapPin className="w-4 h-4" aria-hidden="true" /><span>{listing.location}</span></div>
+                    <div className="mt-4 p-3 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] text-[15px] text-[var(--color-text-muted)] leading-relaxed">{isGreek ? greekDealSummary(listing.dealRating) : listing.dealExplanation}</div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">{listing.keyEquipment.slice(0, 3).map((item) => <span key={item} className="text-[13px] px-2 py-1 rounded-lg bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]">{item}</span>)}</div>
                   </div>
                 </div>
 
                 <div className="p-5 pt-0 border-t border-[var(--color-border)] mt-2 flex flex-wrap items-center gap-2">
-                  {targetVehicle && <button type="button" onClick={() => onOpenVehicleDetails(targetVehicle)} className="min-h-11 flex-1 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] text-sm font-bold hover:bg-[var(--color-surface-subtle)] transition-colors"><span>{isGreek ? 'Οδηγός μοντέλου' : 'Model guide'}</span><ChevronRight className="w-4 h-4" aria-hidden="true" /></button>}
-                  {listing.carGrDirectUrl && <a href={listing.carGrDirectUrl} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-bold transition-colors"><span>{isGreek ? 'Έλεγχος στην πηγή' : 'Check source'}</span><ExternalLink className="w-4 h-4" aria-hidden="true" /></a>}
+                  {targetVehicle && <button type="button" onClick={() => onOpenVehicleDetails(targetVehicle)} className="min-h-11 flex-1 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] text-[15px] font-bold hover:bg-[var(--color-surface-subtle)] transition-colors"><span>{isGreek ? 'Οδηγός μοντέλου' : 'Model guide'}</span><ChevronRight className="w-4 h-4" aria-hidden="true" /></button>}
+                  {listing.carGrDirectUrl && <a href={listing.carGrDirectUrl} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors"><span>{isGreek ? 'Έλεγχος στην πηγή' : 'Check source'}</span><ExternalLink className="w-4 h-4" aria-hidden="true" /></a>}
                 </div>
               </article>
             );

@@ -15,6 +15,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { GET_LISTINGS_FOR_VEHICLE } from '../data/listings';
+import { DataTrustNote } from './DataTrustNote';
 
 interface RecommendationResultsProps {
   recommendations: ScoredRecommendation[];
@@ -118,15 +119,15 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       {/* Profile Bar */}
       <div className="mb-6 p-4 surface-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-accent-text)] mb-2">
+          <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-wider text-[var(--color-accent-text)] mb-2">
             <Sparkles className="w-4 h-4" aria-hidden="true" />
             <span>{isGreek ? 'Το προφίλ οδήγησής σου' : 'Your driving profile'}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-text-muted)]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-[var(--color-text-muted)]">
             <span>{isGreek ? 'Budget' : 'Budget'}: <strong className="text-[var(--color-text)]">{labelFor(userPreferences.budgetId, isGreek)}</strong></span>
             <span>{isGreek ? 'Χρήση' : 'Use'}: <strong className="text-[var(--color-text)]">{userPreferences.usages.map((v) => labelFor(v, isGreek)).join(', ') || (isGreek ? 'Γενική' : 'General')}</strong></span>
             <span>{isGreek ? 'Προτεραιότητες' : 'Priorities'}: <strong className="text-[var(--color-text)]">{userPreferences.priorities.map((v) => labelFor(v, isGreek)).join(', ') || (isGreek ? 'Ισορροπημένα' : 'Balanced')}</strong></span>
@@ -134,10 +135,10 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <button type="button" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-controls="smart-filters-panel" className={`min-h-11 px-4 rounded-xl text-sm font-semibold border flex items-center gap-2 ${showFilters || smartFilters.makes.length > 0 || smartFilters.fuelTypes.length > 0 ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-text)]' : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)]'}`}>
+          <button type="button" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-controls="smart-filters-panel" className={`min-h-11 px-4 rounded-xl text-[15px] font-semibold border flex items-center gap-2 ${showFilters || smartFilters.makes.length > 0 || smartFilters.fuelTypes.length > 0 ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-text)]' : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)]'}`}>
             <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Έξυπνα φίλτρα' : 'Smart filters'}
           </button>
-          <button type="button" onClick={onRestartDiscovery} className="min-h-11 px-4 rounded-xl text-sm font-semibold border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] flex items-center gap-2">
+          <button type="button" onClick={onRestartDiscovery} className="min-h-11 px-4 rounded-xl text-[15px] font-semibold border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] flex items-center gap-2">
             <RotateCcw className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Νέες απαντήσεις' : 'Redo questions'}
           </button>
         </div>
@@ -147,7 +148,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
       {showFilters && (
         <div id="smart-filters-panel" className="mb-6 p-5 surface-card space-y-4 animate-fadeIn">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text)]">
+            <h4 className="text-[13px] font-bold uppercase tracking-wider text-[var(--color-text)]">
               {isGreek ? 'Φίλτρα προτεινόμενων οχημάτων' : 'Filter recommended vehicles'}
             </h4>
             {(smartFilters.makes.length > 0 || smartFilters.fuelTypes.length > 0 || smartFilters.maxPriceEUR) && (
@@ -162,7 +163,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                     maxPriceEUR: undefined
                   })
                 }
-                className="min-h-11 px-2 text-sm text-rose-400 hover:underline"
+                className="min-h-11 px-2 text-[15px] text-rose-400 hover:underline"
               >
                 {isGreek ? 'Καθαρισμός φίλτρων' : 'Reset filters'}
               </button>
@@ -172,7 +173,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Filter by Make */}
             <div>
-              <span className="text-xs text-[var(--color-text-muted)] font-semibold block mb-2">{isGreek ? 'Κατασκευαστές' : 'Manufacturers'}</span>
+              <span className="text-[13px] text-[var(--color-text-muted)] font-semibold block mb-2">{isGreek ? 'Κατασκευαστές' : 'Manufacturers'}</span>
               <div className="flex flex-wrap gap-1.5">
                 {allMakes.map((m) => {
                   const active = smartFilters.makes.includes(m);
@@ -180,7 +181,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                     <button
                       key={m}
                       onClick={() => toggleFilterMake(m)}
-                      aria-pressed={active} className={`min-h-10 px-3 rounded-full text-xs font-semibold border ${active ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-text)]' : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)]'}`}
+                      aria-pressed={active} className={`min-h-10 px-3 rounded-full text-[13px] font-semibold border ${active ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-text)]' : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)]'}`}
                     >
                       {m}
                     </button>
@@ -191,7 +192,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
 
             {/* Filter by Fuel Type */}
             <div>
-              <span className="text-xs text-[var(--color-text-muted)] font-semibold block mb-2">{isGreek ? 'Καύσιμο / κίνηση' : 'Powertrain / fuel'}</span>
+              <span className="text-[13px] text-[var(--color-text-muted)] font-semibold block mb-2">{isGreek ? 'Καύσιμο / κίνηση' : 'Powertrain / fuel'}</span>
               <div className="flex flex-wrap gap-1.5">
                 {allFuelTypes.map((fuel) => {
                   const active = smartFilters.fuelTypes.includes(fuel as any);
@@ -199,7 +200,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                     <button
                       key={fuel}
                       onClick={() => toggleFilterFuel(fuel)}
-                      aria-pressed={active} className={`min-h-10 px-3 rounded-full text-xs font-semibold border ${active ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-text)]' : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)]'}`}
+                      aria-pressed={active} className={`min-h-10 px-3 rounded-full text-[13px] font-semibold border ${active ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent-text)]' : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)]'}`}
                     >
                       {fuel}
                     </button>
@@ -210,6 +211,8 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
           </div>
         </div>
       )}
+
+      <div className="mb-5"><DataTrustNote marketRegion={marketRegion} compact /></div>
 
       {/* Conversational Refiner Bar */}
       <ConversationalRefiner
@@ -226,7 +229,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
             <h2 className="text-xl sm:text-2xl font-extrabold text-[var(--color-text)] tracking-tight">
               {isGreek ? 'Προτάσεις για εσένα' : 'Curated recommendations'}
             </h2>
-            <p className="text-xs text-[var(--color-text-muted)]">
+            <p className="text-[13px] text-[var(--color-text-muted)]">
               <span aria-live="polite">{isGreek ? `${filteredRecommendations.length} οχήματα που ταιριάζουν στο προφίλ σου` : `${filteredRecommendations.length} tailored vehicles matching your profile`}</span>
             </p>
           </div>
@@ -237,7 +240,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
             <h4 className="text-base font-bold text-[var(--color-text)]">
               {isGreek ? 'Δεν βρέθηκαν ακριβείς αντιστοιχίες' : 'No exact matches with active filters'}
             </h4>
-            <p className="text-sm text-[var(--color-text-muted)] mt-2 mb-4">
+            <p className="text-[15px] text-[var(--color-text-muted)] mt-2 mb-4">
               {isGreek ? 'Καθάρισε κάποια φίλτρα ή ζήτησε από τον σύμβουλο να διευρύνει την αναζήτηση.' : 'Clear specific filters or ask the advisor to broaden the search.'}
             </p>
             <button
@@ -250,7 +253,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                   searchQuery: ''
                 })
               }
-              className="min-h-11 px-4 rounded-xl bg-[var(--color-accent)] text-white text-sm font-semibold"
+              className="min-h-11 px-4 rounded-xl bg-[var(--color-accent)] text-white text-[15px] font-semibold"
             >
               {isGreek ? 'Καθαρισμός φίλτρων' : 'Clear filters'}
             </button>
