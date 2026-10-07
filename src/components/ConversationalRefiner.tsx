@@ -1,151 +1,83 @@
 import React, { useState } from 'react';
-import { Sparkles, Send, Loader2, MessageSquare, Bot } from 'lucide-react';
-import { UserPreferences } from '../types';
+import { Sparkles, Send, Loader2, Bot } from 'lucide-react';
+import { MarketRegion, SmartFilterState, UserPreferences } from '../types';
 
 interface ConversationalRefinerProps {
   currentPreferences: UserPreferences;
-  onApplyRefinements: (result: {
-    advisorResponse: string;
-    filterOverrides?: any;
-  }) => void;
+  marketRegion?: MarketRegion;
+  onApplyRefinements: (result: { advisorResponse: string; filterOverrides?: Partial<SmartFilterState> }) => void;
   lastAdvisorMessage?: string;
 }
 
 export const ConversationalRefiner: React.FC<ConversationalRefinerProps> = ({
-  currentPreferences,
-  onApplyRefinements,
-  lastAdvisorMessage
+  currentPreferences, marketRegion = 'greece', onApplyRefinements, lastAdvisorMessage
 }) => {
-  const [input, setInput] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const suggestedPrompts = [
-    'Something cheaper',
-    'I want something sportier',
-    'Only SUVs',
-    "I don't want diesel",
-    'Show me electric cars',
-    'I need more luggage space',
-    'Anything under €15,000?',
-    'I want something more premium'
-  ];
+  const isGreek = marketRegion === 'greece';
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const suggestedPrompts = isGreek
+    ? ['Κάτι φθηνότερο', 'Κάτι πιο σπορ', 'Μόνο SUV', 'Δεν θέλω diesel', 'Δείξε μου ηλεκτρικά']
+    : ['Something cheaper', 'Something sportier', 'Only SUVs', "I don't want diesel", 'Show electric cars'];
 
   const handleSend = async (messageToSend?: string) => {
     const text = (messageToSend || input).trim();
     if (!text || isLoading) return;
-
     setIsLoading(true);
     try {
       const res = await fetch('/api/chat-refine', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userMessage: text,
-          currentPreferences
-        })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userMessage: text, currentPreferences, marketRegion })
       });
-
-      if (!res.ok) {
-        throw new Error('Refinement failed');
-      }
-
+      if (!res.ok) throw new Error('Refinement failed');
       const data = await res.json();
       onApplyRefinements({
-        advisorResponse: data.advisorResponse || "Updated recommendations based on your request.",
+        advisorResponse: data.advisorResponse || (isGreek ? 'Οι προτάσεις ενημερώθηκαν με βάση το αίτημά σου.' : 'Recommendations updated based on your request.'),
         filterOverrides: data.filterOverrides
       });
       setInput('');
-    } catch (err) {
-      console.error(err);
-      // Fallback
+    } catch (error) {
+      console.error(error);
       onApplyRefinements({
-        advisorResponse: `Understood: "${text}". I have adjusted the recommendation profile accordingly.`,
-        filterOverrides: {
-          searchQuery: text
-        }
+        advisorResponse: isGreek ? `Κατάλαβα: «${text}». Προσάρμοσα τα φίλτρα όσο ήταν δυνατό.` : `Understood: “${text}”. I adjusted the filters where possible.`,
+        filterOverrides: { searchQuery: text }
       });
       setInput('');
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
   return (
-    <div className="rounded-2xl border border-[#e5e5ea] dark:border-[#2d2d30] bg-white/80 dark:bg-[#1d1d1f]/80 p-4 sm:p-5 backdrop-blur-md shadow-xs mb-8">
-      {/* Advisor Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-[#0066cc]/10 border border-[#0066cc]/20 flex items-center justify-center text-[#0066cc] dark:text-[#2997ff]">
-            <Bot className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-xs font-bold text-[#1d1d1f] dark:text-white uppercase tracking-wider">
-              Conversational Refinement
-            </h4>
-            <p className="text-[11px] text-[#86868b]">
-              Tell CarCheck what to tweak without restarting your answers
-            </p>
-          </div>
+    <section className="surface-card p-4 sm:p-5 mb-8" aria-labelledby="refiner-title">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)]/12 border border-[var(--color-accent)]/30 flex items-center justify-center text-[var(--color-accent-text)]"><Bot className="w-5 h-5" aria-hidden="true" /></div>
+        <div>
+          <h3 id="refiner-title" className="text-sm font-bold text-[var(--color-text)]">{isGreek ? 'Προσαρμογή με τον σύμβουλο' : 'Refine with the advisor'}</h3>
+          <p className="text-sm text-[var(--color-text-muted)]">{isGreek ? 'Πες τι θέλεις να αλλάξει χωρίς να ξεκινήσεις ξανά.' : 'Tell CarCheck what to change without restarting.'}</p>
         </div>
       </div>
 
-      {/* Advisor note if exists */}
       {lastAdvisorMessage && (
-        <div className="mb-3.5 p-3 rounded-xl bg-[#0066cc]/10 border border-[#0066cc]/20 text-xs text-[#0066cc] dark:text-[#2997ff] flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 shrink-0 mt-0.5" />
-          <p className="leading-relaxed font-medium">{lastAdvisorMessage}</p>
+        <div role="status" aria-live="polite" aria-atomic="true" className="mb-4 p-3 rounded-xl bg-[var(--color-accent)]/8 border border-[var(--color-accent)]/25 text-sm text-[var(--color-text)] flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 shrink-0 mt-0.5 text-[var(--color-accent-text)]" aria-hidden="true" /><p className="leading-relaxed">{lastAdvisorMessage}</p>
         </div>
       )}
 
-      {/* Input row */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSend();
-        }}
-        className="flex items-center gap-2"
-      >
-        <div className="relative flex-1">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder='Ask like a friend: "Something cheaper", "Only SUVs", "I don&apos;t want diesel"...'
-            disabled={isLoading}
-            className="w-full pl-3.5 pr-10 py-2.5 rounded-full border border-[#e5e5ea] dark:border-[#2d2d30] bg-[#f5f5f7] dark:bg-[#272729] text-[#1d1d1f] dark:text-white placeholder:text-[#86868b] text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-all"
-          />
+      <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-end gap-2">
+        <div className="flex-1">
+          <label htmlFor="advisor-refinement" className="text-sm font-semibold text-[var(--color-text)]">{isGreek ? 'Τι θέλεις να αλλάξεις;' : 'What would you like to change?'}</label>
+          <input id="advisor-refinement" type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isGreek ? 'π.χ. «κάτι φθηνότερο», «μόνο SUV»…' : 'e.g. “something cheaper”, “only SUVs”…'} disabled={isLoading} className="mt-1 min-h-11 w-full px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-canvas)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]" />
         </div>
-
-        <button
-          type="submit"
-          disabled={!input.trim() || isLoading}
-          className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-xs shrink-0"
-        >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Send className="w-4 h-4" />
-          )}
+        <button type="submit" disabled={!input.trim() || isLoading} aria-label={isLoading ? (isGreek ? 'Ενημέρωση προτάσεων' : 'Updating recommendations') : (isGreek ? 'Αποστολή στον σύμβουλο' : 'Send to advisor')} className="touch-target min-w-11 px-4 rounded-xl bg-[var(--color-accent)] hover:brightness-110 disabled:opacity-40 text-white flex items-center justify-center">
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Send className="w-4 h-4" aria-hidden="true" />}
         </button>
       </form>
 
-      {/* Quick click suggestions */}
-      <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-        <span className="text-[11px] text-[#86868b] mr-1 hidden sm:inline">
-          Quick suggestions:
-        </span>
-        {suggestedPrompts.slice(0, 5).map((promptText) => (
-          <button
-            key={promptText}
-            type="button"
-            disabled={isLoading}
-            onClick={() => handleSend(promptText)}
-            className="px-3 py-1 rounded-full border border-[#e5e5ea] dark:border-[#2d2d30] bg-[#f5f5f7] dark:bg-[#272729] text-[11px] font-medium text-[#86868b] hover:border-[#0066cc] hover:text-[#0066cc] dark:hover:text-[#2997ff] transition-colors cursor-pointer"
-          >
-            "{promptText}"
+      <div className="mt-3 flex items-center gap-2 flex-wrap" aria-label={isGreek ? 'Γρήγορες προτάσεις' : 'Quick suggestions'}>
+        {suggestedPrompts.map((promptText) => (
+          <button key={promptText} type="button" disabled={isLoading} onClick={() => handleSend(promptText)} className="min-h-10 px-3 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-xs font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-accent-text)] hover:border-[var(--color-accent)]">
+            {promptText}
           </button>
         ))}
       </div>
-    </div>
+    </section>
   );
 };

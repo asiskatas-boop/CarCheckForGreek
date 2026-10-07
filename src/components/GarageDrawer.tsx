@@ -1,19 +1,10 @@
 import React, { useState } from 'react';
-import { Vehicle, Currency, MarketplaceListing } from '../types';
+import { Vehicle, Currency, MarketRegion } from '../types';
 import { VEHICLES } from '../data/vehicles';
 import { MARKETPLACE_LISTINGS } from '../data/listings';
-import { formatPrice, formatPriceRange } from '../services/currency';
-import {
-  X,
-  Bookmark,
-  Star,
-  Trash2,
-  Scale,
-  Edit3,
-  Check,
-  ChevronRight,
-  Car
-} from 'lucide-react';
+import { formatPrice } from '../services/currency';
+import { AccessibleDialog } from './AccessibleDialog';
+import { X, Bookmark, Star, Trash2, Scale, Edit3, Check, Car, ArrowRight } from 'lucide-react';
 
 interface GarageDrawerProps {
   isOpen: boolean;
@@ -23,270 +14,155 @@ interface GarageDrawerProps {
   onRemoveVehicle: (id: string) => void;
   onRemoveListing: (id: string) => void;
   currency: Currency;
+  marketRegion?: MarketRegion;
   onOpenDetails: (vehicle: Vehicle) => void;
   onStartComparison: (vehicles: Vehicle[]) => void;
 }
 
 export const GarageDrawer: React.FC<GarageDrawerProps> = ({
-  isOpen,
-  onClose,
-  savedVehicleIds,
-  savedListingIds,
-  onRemoveVehicle,
-  onRemoveListing,
-  currency,
-  onOpenDetails,
-  onStartComparison
+  isOpen, onClose, savedVehicleIds, savedListingIds, onRemoveVehicle, onRemoveListing,
+  currency, marketRegion = 'greece', onOpenDetails, onStartComparison
 }) => {
+  const isGreek = marketRegion === 'greece';
   const [notes, setNotes] = useState<Record<string, string>>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_garage_notes');
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
+    try { return JSON.parse(localStorage.getItem('carcheck_garage_notes') || '{}'); } catch { return {}; }
   });
-
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [noteDraft, setNoteDraft] = useState<string>('');
-
+  const [noteDraft, setNoteDraft] = useState('');
   const [favorites, setFavorites] = useState<Record<string, boolean>>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_garage_favorites');
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
+    try { return JSON.parse(localStorage.getItem('carcheck_garage_favorites') || '{}'); } catch { return {}; }
   });
+
+  const savedVehicles = VEHICLES.filter((v) => savedVehicleIds.includes(v.id));
+  const savedListings = MARKETPLACE_LISTINGS.filter((l) => savedListingIds.includes(l.id));
 
   const handleSaveNote = (id: string) => {
-    const updated = { ...notes, [id]: noteDraft };
+    const updated = { ...notes, [id]: noteDraft.trim() };
     setNotes(updated);
     localStorage.setItem('carcheck_garage_notes', JSON.stringify(updated));
     setEditingNoteId(null);
   };
-
   const toggleFavorite = (id: string) => {
     const updated = { ...favorites, [id]: !favorites[id] };
     setFavorites(updated);
     localStorage.setItem('carcheck_garage_favorites', JSON.stringify(updated));
   };
 
-  if (!isOpen) return null;
-
-  const savedVehicles = VEHICLES.filter((v) => savedVehicleIds.includes(v.id));
-  const savedListings = MARKETPLACE_LISTINGS.filter((l) => savedListingIds.includes(l.id));
-
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col justify-between">
-          {/* Header */}
-          <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-                <Bookmark className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  Saved Garage
-                </h3>
-                <p className="text-xs text-slate-500">
-                  {savedVehicles.length} car{savedVehicles.length === 1 ? '' : 's'} · {savedListings.length} listing{savedListings.length === 1 ? '' : 's'}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+    <AccessibleDialog
+      open={isOpen}
+      onClose={onClose}
+      labelledBy="garage-title"
+      overlayClassName="justify-end"
+      panelClassName="h-full w-full max-w-md bg-[var(--color-surface)] border-l border-[var(--color-border)] shadow-2xl flex flex-col"
+    >
+      <header className="p-5 border-b border-[var(--color-border)] flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 flex items-center justify-center text-[var(--color-accent-text)] shrink-0">
+            <Bookmark className="w-5 h-5" aria-hidden="true" />
           </div>
-
-          {/* Body */}
-          <div className="p-5 overflow-y-auto space-y-6 flex-1">
-            {savedVehicles.length === 0 && savedListings.length === 0 ? (
-              <div className="text-center py-16 px-4">
-                <Car className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Your Garage is empty
-                </h4>
-                <p className="text-xs text-slate-500 mt-1">
-                  Save vehicle recommendations or individual marketplace listings to build your personal shortlist.
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Saved Vehicles Section */}
-                {savedVehicles.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Saved Vehicles ({savedVehicles.length})
-                      </span>
-                      {savedVehicles.length >= 2 && (
-                        <button
-                          onClick={() => {
-                            onStartComparison(savedVehicles.slice(0, 3));
-                            onClose();
-                          }}
-                          className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 hover:underline cursor-pointer"
-                        >
-                          <Scale className="w-3.5 h-3.5" />
-                          <span>Compare All</span>
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="space-y-3">
-                      {savedVehicles.map((v) => {
-                        const isFav = !!favorites[v.id];
-                        const note = notes[v.id] || '';
-                        const isEditing = editingNoteId === v.id;
-
-                        return (
-                          <div
-                            key={v.id}
-                            className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-2.5"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-center gap-3">
-                                <div className="w-14 h-11 rounded-lg overflow-hidden bg-slate-200 shrink-0">
-                                  <img
-                                    src={v.imageUrl}
-                                    alt={v.model}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                                <div>
-                                  <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                                    {v.make} {v.model}
-                                  </div>
-                                  <div className="text-[11px] text-slate-500">
-                                    Under {formatPrice(v.goodBuyPrice, currency)}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() => toggleFavorite(v.id)}
-                                  className={`p-1.5 rounded-md transition-colors cursor-pointer ${
-                                    isFav ? 'text-amber-400' : 'text-slate-400 hover:text-slate-600'
-                                  }`}
-                                  title="Mark as favorite"
-                                >
-                                  <Star className="w-4 h-4 fill-current" />
-                                </button>
-                                <button
-                                  onClick={() => onRemoveVehicle(v.id)}
-                                  className="p-1.5 rounded-md text-slate-400 hover:text-rose-500 cursor-pointer"
-                                  title="Remove from garage"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Personal Note */}
-                            <div className="text-xs">
-                              {isEditing ? (
-                                <div className="flex items-center gap-1.5">
-                                  <input
-                                    type="text"
-                                    value={noteDraft}
-                                    onChange={(e) => setNoteDraft(e.target.value)}
-                                    placeholder="Add inspection or test drive note..."
-                                    className="flex-1 px-2.5 py-1 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                  />
-                                  <button
-                                    onClick={() => handleSaveNote(v.id)}
-                                    className="p-1 bg-emerald-600 text-white rounded-lg cursor-pointer"
-                                  >
-                                    <Check className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center justify-between text-slate-500">
-                                  <span className="italic truncate max-w-[240px]">
-                                    {note ? `“${note}”` : 'No notes added'}
-                                  </span>
-                                  <button
-                                    onClick={() => {
-                                      setEditingNoteId(v.id);
-                                      setNoteDraft(note);
-                                    }}
-                                    className="text-[11px] text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer"
-                                  >
-                                    <Edit3 className="w-3 h-3" />
-                                    <span>{note ? 'Edit' : '+ Note'}</span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-
-                            <button
-                              onClick={() => {
-                                onOpenDetails(v);
-                                onClose();
-                              }}
-                              className="w-full py-1.5 text-center text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-emerald-500 transition-colors border-t border-slate-200/60 dark:border-slate-700/60 pt-2 block"
-                            >
-                              View Specs & Checklist →
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Saved Marketplace Listings */}
-                {savedListings.length > 0 && (
-                  <div className="space-y-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                      Saved Listings ({savedListings.length})
-                    </span>
-
-                    <div className="space-y-3">
-                      {savedListings.map((l) => (
-                        <div
-                          key={l.id}
-                          className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-2"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                                {l.title}
-                              </div>
-                              <div className="text-[11px] text-slate-500">
-                                {l.mileageKm.toLocaleString()} km · {l.location}
-                              </div>
-                              <div className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
-                                {formatPrice(l.price, currency)}
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => onRemoveListing(l.id)}
-                              className="p-1.5 rounded-md text-slate-400 hover:text-rose-500 cursor-pointer"
-                              title="Remove listing"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+          <div className="min-w-0">
+            <h2 id="garage-title" className="text-base font-extrabold text-[var(--color-text)]">
+              {isGreek ? 'Το Garage μου' : 'Saved Garage'}
+            </h2>
+            <p className="text-sm text-[var(--color-text-muted)]">
+              {isGreek
+                ? `${savedVehicles.length} οχήματα · ${savedListings.length} αγγελίες`
+                : `${savedVehicles.length} vehicles · ${savedListings.length} listings`}
+            </p>
           </div>
         </div>
+        <button type="button" onClick={onClose} className="touch-target rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)] hover:text-[var(--color-text)] flex items-center justify-center" aria-label={isGreek ? 'Κλείσιμο Garage' : 'Close garage'}>
+          <X className="w-5 h-5" aria-hidden="true" />
+        </button>
+      </header>
+
+      <div className="p-5 overflow-y-auto space-y-7 flex-1">
+        {savedVehicles.length === 0 && savedListings.length === 0 ? (
+          <div className="text-center py-16 px-4">
+            <Car className="w-11 h-11 text-[var(--color-text-muted)] mx-auto mb-4" aria-hidden="true" />
+            <h3 className="text-base font-bold text-[var(--color-text)]">{isGreek ? 'Το Garage είναι άδειο' : 'Your Garage is empty'}</h3>
+            <p className="text-sm text-[var(--color-text-muted)] mt-2 leading-relaxed">
+              {isGreek ? 'Αποθήκευσε προτάσεις ή ενδεικτικές αγγελίες για να δημιουργήσεις τη δική σου shortlist.' : 'Save recommendations or reference listings to build your personal shortlist.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            {savedVehicles.length > 0 && (
+              <section aria-labelledby="garage-vehicles-title" className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 id="garage-vehicles-title" className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+                    {isGreek ? `Αποθηκευμένα οχήματα (${savedVehicles.length})` : `Saved vehicles (${savedVehicles.length})`}
+                  </h3>
+                  {savedVehicles.length >= 2 && (
+                    <button type="button" onClick={() => { onStartComparison(savedVehicles.slice(0, 3)); onClose(); }} className="min-h-11 px-2 text-sm font-semibold text-[var(--color-accent-text)] flex items-center gap-2 hover:underline">
+                      <Scale className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Σύγκριση' : 'Compare'}
+                    </button>
+                  )}
+                </div>
+                {savedVehicles.map((v) => {
+                  const note = notes[v.id] || '';
+                  const isEditing = editingNoteId === v.id;
+                  const isFav = !!favorites[v.id];
+                  return (
+                    <article key={v.id} className="surface-card p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img src={v.imageUrl} alt="" loading="lazy" className="w-16 h-12 rounded-xl object-cover bg-[var(--color-surface-subtle)] shrink-0" />
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-bold text-[var(--color-text)] truncate">{v.make} {v.model}</h4>
+                            <p className="text-xs text-[var(--color-text-muted)]">{isGreek ? 'Καλή αγορά έως' : 'Good buy up to'} {formatPrice(v.goodBuyPrice, currency)}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <button type="button" onClick={() => toggleFavorite(v.id)} aria-pressed={isFav} aria-label={isGreek ? 'Σήμανση ως αγαπημένο' : 'Mark as favorite'} className={`touch-target rounded-xl flex items-center justify-center ${isFav ? 'text-amber-400' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}><Star className="w-4 h-4" fill={isFav ? 'currentColor' : 'none'} aria-hidden="true" /></button>
+                          <button type="button" onClick={() => onRemoveVehicle(v.id)} aria-label={isGreek ? 'Αφαίρεση από το Garage' : 'Remove from garage'} className="touch-target rounded-xl text-[var(--color-text-muted)] hover:text-rose-400 flex items-center justify-center"><Trash2 className="w-4 h-4" aria-hidden="true" /></button>
+                        </div>
+                      </div>
+
+                      {isEditing ? (
+                        <div className="flex items-end gap-2">
+                          <div className="flex-1">
+                            <label htmlFor={`garage-note-${v.id}`} className="text-xs font-semibold text-[var(--color-text-muted)]">{isGreek ? 'Προσωπική σημείωση' : 'Personal note'}</label>
+                            <input id={`garage-note-${v.id}`} value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} placeholder={isGreek ? 'π.χ. έλεγχος, test drive…' : 'e.g. inspection, test drive…'} className="mt-1 min-h-11 w-full px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-canvas)] text-sm text-[var(--color-text)]" />
+                          </div>
+                          <button type="button" onClick={() => handleSaveNote(v.id)} aria-label={isGreek ? 'Αποθήκευση σημείωσης' : 'Save note'} className="touch-target px-3 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center"><Check className="w-4 h-4" aria-hidden="true" /></button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between gap-3 text-sm text-[var(--color-text-muted)]">
+                          <span className="italic truncate">{note ? `“${note}”` : (isGreek ? 'Δεν έχει προστεθεί σημείωση' : 'No note added')}</span>
+                          <button type="button" onClick={() => { setEditingNoteId(v.id); setNoteDraft(note); }} className="min-h-11 px-2 text-[var(--color-accent-text)] font-semibold flex items-center gap-1.5 shrink-0"><Edit3 className="w-4 h-4" aria-hidden="true" />{note ? (isGreek ? 'Επεξεργασία' : 'Edit') : (isGreek ? 'Σημείωση' : 'Add note')}</button>
+                        </div>
+                      )}
+
+                      <button type="button" onClick={() => { onOpenDetails(v); onClose(); }} className="min-h-11 w-full border-t border-[var(--color-border)] pt-3 text-sm font-semibold text-[var(--color-text)] hover:text-[var(--color-accent-text)] flex items-center justify-between">
+                        {isGreek ? 'Στοιχεία & checklist ελέγχου' : 'Specs & inspection checklist'}<ArrowRight className="w-4 h-4" aria-hidden="true" />
+                      </button>
+                    </article>
+                  );
+                })}
+              </section>
+            )}
+
+            {savedListings.length > 0 && (
+              <section aria-labelledby="garage-listings-title" className="space-y-3">
+                <h3 id="garage-listings-title" className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">{isGreek ? `Αποθηκευμένες αγγελίες (${savedListings.length})` : `Saved listings (${savedListings.length})`}</h3>
+                {savedListings.map((l) => (
+                  <article key={l.id} className="surface-card p-4 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-bold text-[var(--color-text)]">{l.title}</h4>
+                      <p className="text-xs text-[var(--color-text-muted)] mt-1">{l.mileageKm.toLocaleString(isGreek ? 'el-GR' : 'en-US')} km · {l.location}</p>
+                      <p className="text-base font-extrabold text-[var(--color-text)] mt-1">{formatPrice(l.price, currency)}</p>
+                      <p className="text-[11px] text-[var(--color-text-muted)] mt-1">{isGreek ? 'Αποθηκευμένο δείγμα αγγελίας — επιβεβαίωσε διαθεσιμότητα στην πηγή.' : 'Saved listing snapshot — verify availability at the source.'}</p>
+                    </div>
+                    <button type="button" onClick={() => onRemoveListing(l.id)} aria-label={isGreek ? 'Αφαίρεση αγγελίας' : 'Remove listing'} className="touch-target rounded-xl text-[var(--color-text-muted)] hover:text-rose-400 flex items-center justify-center shrink-0"><Trash2 className="w-4 h-4" aria-hidden="true" /></button>
+                  </article>
+                ))}
+              </section>
+            )}
+          </>
+        )}
       </div>
-    </div>
+    </AccessibleDialog>
   );
 };

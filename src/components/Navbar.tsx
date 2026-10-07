@@ -1,13 +1,12 @@
 import React from 'react';
 import {
-  Compass,
   Bookmark,
   Scale,
-  Sun,
-  Moon,
   RotateCcw,
-  Globe,
-  Download
+  Globe2,
+  Sparkles,
+  CarFront,
+  Store
 } from 'lucide-react';
 import { Currency, MarketRegion } from '../types';
 
@@ -21,10 +20,7 @@ interface NavbarProps {
   setCurrency: (currency: Currency) => void;
   marketRegion: MarketRegion;
   setMarketRegion: (region: MarketRegion) => void;
-  isDarkMode: boolean;
-  setIsDarkMode: (val: boolean) => void;
   onResetDiscovery: () => void;
-  onOpenExportScreens: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -37,162 +33,194 @@ export const Navbar: React.FC<NavbarProps> = ({
   setCurrency,
   marketRegion,
   setMarketRegion,
-  isDarkMode,
-  setIsDarkMode,
-  onResetDiscovery,
-  onOpenExportScreens
+  onResetDiscovery
 }) => {
+  const isGreek = marketRegion === 'greece';
+  const navItems = [
+    { id: 'advisor' as const, label: isGreek ? 'Σύμβουλος' : 'Advisor', icon: Sparkles },
+    { id: 'all-cars' as const, label: isGreek ? 'Μοντέλα' : 'Vehicles', icon: CarFront },
+    { id: 'marketplace' as const, label: isGreek ? 'Αγγελίες' : 'Listings', icon: Store }
+  ];
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#e5e5ea] dark:border-[#2d2d30] bg-white/85 dark:bg-[#161617]/90 backdrop-blur-md transition-colors text-[#1d1d1f] dark:text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-6 sm:gap-8">
-          <button
-            onClick={() => setCurrentTab('advisor')}
-            className="flex items-center gap-2.5 text-left group cursor-pointer"
-          >
-            <div className="w-7 h-7 rounded-full bg-[#0066cc] flex items-center justify-center text-white font-bold tracking-tight text-xs shadow-xs group-hover:bg-[#0071e3] transition-colors">
-              CC
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-lg tracking-[-0.28px] text-[#1d1d1f] dark:text-white">
-                  Car<span className="text-[#0066cc] dark:text-[#2997ff]">Check</span>
+    <>
+      <header className="sticky top-0 z-40 w-full border-b border-[var(--color-border)] bg-[var(--color-surface)]/92 backdrop-blur-md text-[var(--color-text)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-6 sm:gap-8 min-w-0">
+            <button
+              type="button"
+              onClick={() => setCurrentTab('advisor')}
+              className="touch-target flex items-center gap-2.5 text-left group shrink-0"
+              aria-label={isGreek ? 'CarCheck — μετάβαση στον σύμβουλο αγοράς' : 'CarCheck — go to advisor'}
+            >
+              <span className="w-9 h-9 rounded-xl bg-[var(--color-accent)] flex items-center justify-center text-[var(--color-accent-on)] font-extrabold tracking-tight text-xs shadow-sm transition-colors group-hover:bg-[var(--color-accent-hover)]">
+                CC
+              </span>
+              <span className="hidden xs:block sm:block">
+                <span className="font-bold text-lg tracking-tight text-[var(--color-text)]">
+                  Car<span className="text-[var(--color-accent-text)]">Check</span>
                 </span>
-                <span className="text-[10px] font-semibold tracking-wide bg-[#f5f5f7] dark:bg-[#272729] text-[#6e6e73] dark:text-[#a1a1a6] px-2 py-0.5 rounded-full border border-black/5 dark:border-white/10">
-                  {marketRegion === 'greece' ? '🇬🇷 Ελλάδα' : 'Smart Advisor'}
+                <span className="hidden lg:block text-[11px] text-[var(--color-text-muted)] leading-tight">
+                  {isGreek ? 'Σύμβουλος αγοράς αυτοκινήτου' : 'Independent vehicle advisor'}
                 </span>
-              </div>
-            </div>
-          </button>
+              </span>
+            </button>
 
-          {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-1">
-            {[
-              { id: 'advisor', label: marketRegion === 'greece' ? 'Σύμβουλος Αγοράς' : 'Smart Advisor' },
-              { id: 'all-cars', label: marketRegion === 'greece' ? 'Όλα τα Μοντέλα' : 'All Vehicles' },
-              { id: 'marketplace', label: marketRegion === 'greece' ? 'Αγγελίες Car.gr' : 'Available Cars' }
-            ].map((item) => (
+            <nav className="hidden md:flex items-center gap-1" aria-label={isGreek ? 'Κύρια πλοήγηση' : 'Primary navigation'}>
+              {navItems.map((item) => (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => setCurrentTab(item.id)}
+                  aria-current={currentTab === item.id ? 'page' : undefined}
+                  className={`min-h-11 px-4 text-sm font-semibold rounded-xl transition-colors ${
+                    currentTab === item.id
+                      ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent-text)]'
+                      : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)] hover:text-[var(--color-text)]'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div
+              className="flex items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-1 text-xs font-semibold"
+              role="group"
+              aria-label={isGreek ? 'Περιοχή αγοράς' : 'Market region'}
+            >
               <button
-                key={item.id}
-                onClick={() => setCurrentTab(item.id as any)}
-                className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
-                  currentTab === item.id
-                    ? 'bg-[#f5f5f7] dark:bg-[#272729] text-[#0066cc] dark:text-[#2997ff] font-semibold'
-                    : 'text-[#6e6e73] dark:text-[#a1a1a6] hover:text-[#1d1d1f] dark:hover:text-white'
+                type="button"
+                onClick={() => setMarketRegion('global')}
+                aria-pressed={marketRegion === 'global'}
+                className={`min-h-11 px-2.5 rounded-lg transition-colors ${
+                  marketRegion === 'global'
+                    ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
+                    : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
                 }`}
+                title={isGreek ? 'Ευρωπαϊκή αγορά' : 'European market'}
               >
-                {item.label}
+                EU
               </button>
-            ))}
-          </nav>
+              <button
+                type="button"
+                onClick={() => setMarketRegion('greece')}
+                aria-pressed={marketRegion === 'greece'}
+                className={`min-h-11 px-2.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                  marketRegion === 'greece'
+                    ? 'bg-[var(--color-accent)] text-white shadow-sm'
+                    : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                }`}
+                title="Ελληνική αγορά: τέλη, τεκμήρια, Δακτύλιος και ενδεικτικά δεδομένα αγγελιών"
+              >
+                <Globe2 className="w-3.5 h-3.5" aria-hidden="true" />
+                <span className="hidden sm:inline">Ελλάδα</span>
+                <span className="sm:hidden">GR</span>
+              </button>
+            </div>
+
+            <div className="hidden lg:flex items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-1 text-xs font-semibold" role="group" aria-label={isGreek ? 'Νόμισμα' : 'Currency'}>
+              {(['EUR', 'USD', 'GBP'] as Currency[]).map((curr) => (
+                <button
+                  type="button"
+                  key={curr}
+                  onClick={() => setCurrency(curr)}
+                  aria-pressed={currency === curr}
+                  className={`min-w-11 min-h-11 rounded-lg transition-colors ${
+                    currency === curr
+                      ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
+                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                  }`}
+                  aria-label={curr}
+                >
+                  {curr === 'EUR' ? '€' : curr === 'USD' ? '$' : '£'}
+                </button>
+              ))}
+            </div>
+
+            {compareCount > 0 && (
+              <button
+                type="button"
+                onClick={openCompareModal}
+                className="touch-target inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-xs font-bold transition-colors"
+                aria-label={`${isGreek ? 'Σύγκριση' : 'Compare'} ${compareCount}`}
+              >
+                <Scale className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{isGreek ? 'Σύγκριση' : 'Compare'}</span>
+                <span>{compareCount}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab('garage')}
+              className="touch-target relative hidden md:inline-flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              aria-label={isGreek ? `Αποθηκευμένα (${savedCount})` : `Saved garage (${savedCount})`}
+            >
+              <Bookmark className="w-4 h-4" aria-hidden="true" />
+              {savedCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-[var(--color-accent)] text-white font-bold text-[10px] rounded-full flex items-center justify-center" aria-hidden="true">
+                  {savedCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={onResetDiscovery}
+              className="touch-target hidden sm:inline-flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              aria-label={isGreek ? 'Νέα αναζήτηση αυτοκινήτου' : 'Restart discovery'}
+              title={isGreek ? 'Νέα αναζήτηση' : 'Restart discovery'}
+            >
+              <RotateCcw className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
+      </header>
 
-        {/* Right side controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Greek Market vs Global Market Switcher */}
-          <div className="flex items-center rounded-full border border-[#e5e5ea] dark:border-[#2d2d30] bg-[#f5f5f7] dark:bg-[#272729] p-0.5 text-xs font-medium">
-            <button
-              onClick={() => setMarketRegion('global')}
-              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-                marketRegion === 'global'
-                  ? 'bg-white dark:bg-[#38383a] text-[#1d1d1f] dark:text-white shadow-xs font-semibold'
-                  : 'text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white'
-              }`}
-              title="Global European market analysis"
-            >
-              🇪🇺 EU
-            </button>
-            <button
-              onClick={() => setMarketRegion('greece')}
-              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1 ${
-                marketRegion === 'greece'
-                  ? 'bg-[#0066cc] text-white shadow-xs font-semibold'
-                  : 'text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white'
-              }`}
-              title="Greek market analysis: Car.gr, Τέλη κυκλοφορίας, Δακτύλιος, ΚΤΕΟ, Τεκμήρια"
-            >
-              <span>🇬🇷</span>
-              <span className="hidden sm:inline">Ελλάδα</span>
-            </button>
-          </div>
-
-          {/* Currency selector */}
-          <div className="hidden sm:flex items-center rounded-full border border-[#e5e5ea] dark:border-[#2d2d30] bg-[#f5f5f7] dark:bg-[#272729] p-0.5 text-xs font-medium">
-            {(['EUR', 'USD', 'GBP'] as Currency[]).map((curr) => (
+      <nav
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-[var(--color-border)] bg-[var(--color-surface)]/96 backdrop-blur-md px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
+        aria-label={isGreek ? 'Κύρια πλοήγηση κινητού' : 'Mobile primary navigation'}
+      >
+        <div className="grid grid-cols-4 max-w-lg mx-auto gap-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = currentTab === item.id;
+            return (
               <button
-                key={curr}
-                onClick={() => setCurrency(curr)}
-                className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${
-                  currency === curr
-                    ? 'bg-white dark:bg-[#38383a] text-[#1d1d1f] dark:text-white shadow-xs font-semibold'
-                    : 'text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white'
+                type="button"
+                key={item.id}
+                onClick={() => setCurrentTab(item.id)}
+                aria-current={active ? 'page' : undefined}
+                className={`min-h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-xs font-bold transition-colors ${
+                  active
+                    ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent-text)]'
+                    : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)]'
                 }`}
               >
-                {curr === 'EUR' ? '€' : curr === 'USD' ? '$' : '£'}
+                <Icon className="w-5 h-5" aria-hidden="true" />
+                <span>{item.label}</span>
               </button>
-            ))}
-          </div>
-
-          {/* Compare Button */}
-          {compareCount > 0 && (
-            <button
-              onClick={openCompareModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] active:scale-95 text-white text-xs font-semibold tracking-wide transition-all cursor-pointer shadow-xs"
-              title="Compare selected vehicles"
-            >
-              <Scale className="w-3.5 h-3.5" />
-              <span>{marketRegion === 'greece' ? 'Σύγκριση' : 'Compare'} ({compareCount})</span>
-            </button>
-          )}
-
-          {/* Export Screens / Portfolio button */}
+            );
+          })}
           <button
-            onClick={onOpenExportScreens}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#0066cc]/30 bg-[#0066cc]/10 hover:bg-[#0066cc]/20 text-[#0066cc] dark:text-[#2997ff] text-xs font-semibold transition-all cursor-pointer"
-            title={marketRegion === 'greece' ? 'Εξαγωγή όλων των οθονών σε PDF / HTML' : 'Export all screens to PDF / HTML'}
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>{marketRegion === 'greece' ? 'Εξαγωγή Οθονών' : 'Export Screens'}</span>
-          </button>
-
-          <button
-            onClick={onOpenExportScreens}
-            className="sm:hidden p-2 rounded-full border border-[#e5e5ea] dark:border-[#2d2d30] bg-[#f5f5f7] dark:bg-[#272729] text-[#0066cc] dark:text-[#2997ff] transition-colors cursor-pointer"
-            title="Export Screens"
-          >
-            <Download className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Garage link */}
-          <button
+            type="button"
             onClick={() => setCurrentTab('garage')}
-            className={`relative p-2 rounded-full border transition-all cursor-pointer ${
-              currentTab === 'garage'
-                ? 'border-[#0066cc] bg-[#0066cc] text-white'
-                : 'border-[#e5e5ea] dark:border-[#2d2d30] bg-[#f5f5f7] dark:bg-[#272729] text-[#6e6e73] dark:text-[#a1a1a6] hover:text-[#1d1d1f] dark:hover:text-white'
-            }`}
-            title="Saved Garage Shortlist"
+            className="relative min-h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-[11px] font-bold text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)] transition-colors"
+            aria-label={isGreek ? `Αποθηκευμένα (${savedCount})` : `Saved (${savedCount})`}
           >
-            <Bookmark className="w-4 h-4" />
+            <Bookmark className="w-5 h-5" aria-hidden="true" />
+            <span>{isGreek ? 'Garage' : 'Saved'}</span>
             {savedCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#0066cc] text-white font-bold text-[10px] rounded-full flex items-center justify-center">
+              <span className="absolute top-1.5 right-[24%] min-w-4 h-4 px-1 bg-[var(--color-accent)] text-white text-[9px] rounded-full flex items-center justify-center" aria-hidden="true">
                 {savedCount}
               </span>
             )}
           </button>
-
-          {/* Reset Questionnaire */}
-          <button
-            onClick={onResetDiscovery}
-            className="p-2 rounded-full border border-[#e5e5ea] dark:border-[#2d2d30] bg-[#f5f5f7] dark:bg-[#272729] text-[#6e6e73] dark:text-[#a1a1a6] hover:text-[#1d1d1f] dark:hover:text-white transition-colors cursor-pointer"
-            title="Restart Discovery"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
         </div>
-      </div>
-    </header>
+      </nav>
+    </>
   );
 };
-

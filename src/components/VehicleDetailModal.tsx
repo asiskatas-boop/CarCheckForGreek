@@ -17,6 +17,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { GET_LISTINGS_FOR_VEHICLE } from '../data/listings';
+import { AccessibleDialog } from './AccessibleDialog';
 
 interface VehicleDetailModalProps {
   vehicle: Vehicle | null;
@@ -48,6 +49,28 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
   if (!vehicle) return null;
 
   const listings = GET_LISTINGS_FOR_VEHICLE(vehicle.id);
+  const tabs = [
+    { id: 'overview' as const, label: isGreek ? 'Επισκόπηση & Τεχνικά' : 'Overview & Specs' },
+    { id: 'inspection' as const, label: isGreek ? `Checklist Ελέγχου (${vehicle.inspectionChecklist.length})` : `Inspection Checklist (${vehicle.inspectionChecklist.length})` },
+    { id: 'issues' as const, label: isGreek ? 'Γνωστά Θέματα & Χρονιές' : 'Known Issues & Years' },
+    { id: 'listings' as const, label: isGreek ? `Ενδεικτικές Αγγελίες (${listings.length})` : `Reference Listings (${listings.length})` }
+  ];
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, tabId: typeof tabs[number]['id']) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const currentIndex = tabs.findIndex((tab) => tab.id === tabId);
+    const nextIndex = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+      ? tabs.length - 1
+      : event.key === 'ArrowRight'
+      ? (currentIndex + 1) % tabs.length
+      : (currentIndex - 1 + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+    setActiveTab(nextTab.id);
+    document.getElementById(`vehicle-tab-${nextTab.id}`)?.focus();
+  };
 
   const toggleChecklistItem = (comp: string) => {
     setCheckedChecklistItems((prev) => ({
@@ -57,8 +80,13 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
-      <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+    <AccessibleDialog
+      open={Boolean(vehicle)}
+      onClose={onClose}
+      labelledBy="vehicle-detail-title"
+      overlayClassName="overflow-y-auto flex items-center justify-center p-3 sm:p-6 animate-fadeIn"
+      panelClassName="relative w-full max-w-4xl bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
+    >
         {/* Modal Top Bar */}
         <div className="relative h-64 sm:h-80 w-full overflow-hidden shrink-0 bg-slate-950">
           <img
@@ -71,8 +99,8 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-slate-950/70 hover:bg-slate-900 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700/60"
-            title="Close dialog"
+            className="absolute top-4 right-4 touch-target rounded-xl flex items-center justify-center bg-slate-950/70 hover:bg-slate-900 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700/60"
+            aria-label={isGreek ? 'Κλείσιμο λεπτομερειών οχήματος' : 'Close vehicle details'}
           >
             <X className="w-5 h-5" />
           </button>
@@ -80,14 +108,14 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
           {/* Top Title Overlay */}
           <div className="absolute bottom-5 left-5 right-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-white">
             <div>
-              <div className="flex items-center gap-2 text-xs font-medium text-[#2997ff] mb-1">
+              <div className="flex items-center gap-2 text-xs font-medium text-[var(--color-accent-text)] mb-1">
                 <span>{vehicle.generation}</span>
                 <span aria-hidden="true">·</span>
                 <span>{vehicle.years}</span>
                 <span aria-hidden="true">·</span>
                 <span>{vehicle.bodyStyle}</span>
               </div>
-              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.28px]">
+              <h2 id="vehicle-detail-title" className="text-2xl sm:text-4xl font-extrabold tracking-tight">
                 {vehicle.make} {vehicle.model}
               </h2>
             </div>
@@ -95,46 +123,54 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onToggleCompare(vehicle.id)}
-                className={`px-3.5 py-2 rounded-full text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer ${
+                aria-pressed={isCompared}
+                className={`min-h-11 px-3.5 rounded-xl text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer ${
                   isCompared
-                    ? 'bg-[#0066cc] text-white'
+                    ? 'bg-[var(--color-accent)] text-white'
                     : 'bg-white/10 hover:bg-white/20 text-white'
                 }`}
               >
                 <Scale className="w-4 h-4" />
-                <span>{isCompared ? 'Compared' : 'Compare'}</span>
+                <span>{isCompared ? (isGreek ? 'Στη σύγκριση' : 'Compared') : (isGreek ? 'Σύγκριση' : 'Compare')}</span>
               </button>
 
               <button
                 onClick={() => onToggleSave(vehicle.id)}
-                className={`px-3.5 py-2 rounded-full text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer ${
+                aria-pressed={isSaved}
+                className={`min-h-11 px-3.5 rounded-xl text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer ${
                   isSaved
-                    ? 'bg-[#0066cc] text-white'
+                    ? 'bg-[var(--color-accent)] text-white'
                     : 'bg-white/10 hover:bg-white/20 text-white'
                 }`}
               >
                 <Bookmark className="w-4 h-4" />
-                <span>{isSaved ? 'In Garage' : 'Save'}</span>
+                <span>{isSaved ? (isGreek ? 'Στο Garage' : 'In Garage') : (isGreek ? 'Αποθήκευση' : 'Save')}</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Tab Controls */}
-        <div className="px-5 border-b border-[#e5e5ea] dark:border-[#2d2d30] bg-[#f5f5f7] dark:bg-[#1d1d1f] flex items-center gap-2 sm:gap-4 overflow-x-auto shrink-0">
-          {[
-            { id: 'overview', label: 'Overview & Specs' },
-            { id: 'inspection', label: `Inspection Checklist (${vehicle.inspectionChecklist.length})` },
-            { id: 'issues', label: 'Known Issues & Years to Avoid' },
-            { id: 'listings', label: `Available Cars (${listings.length})` }
-          ].map((tab) => (
+        <div
+          role="tablist"
+          aria-label={isGreek ? 'Ενότητες οχήματος' : 'Vehicle sections'}
+          className="px-5 border-b border-[var(--color-border)] bg-[var(--color-surface-subtle)] flex items-center gap-2 sm:gap-4 overflow-x-auto shrink-0"
+        >
+          {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`py-3.5 px-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
+              id={`vehicle-tab-${tab.id}`}
+              role="tab"
+              type="button"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`vehicle-panel-${tab.id}`}
+              tabIndex={activeTab === tab.id ? 0 : -1}
+              onClick={() => setActiveTab(tab.id)}
+              onKeyDown={(event) => handleTabKeyDown(event, tab.id)}
+              className={`min-h-12 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'border-[#0066cc] text-[#0066cc] dark:text-[#2997ff]'
-                  : 'border-transparent text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-white'
+                  ? 'border-[var(--color-accent)] text-[var(--color-accent-text)]'
+                  : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
               }`}
             >
               {tab.label}
@@ -143,25 +179,25 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
         </div>
 
         {/* Scrollable Tab Content */}
-        <div className="p-5 sm:p-7 overflow-y-auto space-y-6">
+        <div id={`vehicle-panel-${activeTab}`} role="tabpanel" aria-labelledby={`vehicle-tab-${activeTab}`} tabIndex={0} className="p-5 sm:p-7 overflow-y-auto space-y-6">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-6 animate-fadeIn">
-              {/* Car.gr Live Greek Benchmark Strip */}
+              {/* Car.gr saved market reference strip */}
               {isGreek && (
-                <div className="p-4 rounded-2xl bg-[#f5f5f7] dark:bg-[#272729] border border-[#e5e5ea] dark:border-[#38383a] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 rounded-2xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#1d1d1f] dark:text-white">Car.gr Live Market Data</span>
+                      <span className="text-xs font-bold text-[var(--color-text)]">{isGreek ? 'Αναφορά αγοράς Car.gr' : 'Car.gr market reference'}</span>
                       {vehicle.carGrClassifiedCount && (
-                        <span className="text-xs font-medium text-[#0066cc] dark:text-[#2997ff] bg-[#0066cc]/10 dark:bg-[#0066cc]/20 px-2 py-0.5 rounded-full">
-                          {vehicle.carGrClassifiedCount}
+                        <span className="text-xs font-medium text-[var(--color-accent-text)] bg-[var(--color-accent)]/10 px-2 py-0.5 rounded-full">
+                          {isGreek ? 'Αποθηκευμένο δείγμα αγοράς' : 'Saved market sample'}
                         </span>
                       )}
                     </div>
                     {vehicle.carGrPriceBenchmark && (
-                      <div className="text-xs text-[#86868b] mt-1">
-                        Τρέχον εύρος τιμών αγοράς στην Ελλάδα: <strong className="text-[#1d1d1f] dark:text-white">{vehicle.carGrPriceBenchmark}</strong>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-1">
+                        Ενδεικτικό εύρος τιμών στην αποθηκευμένη αναφορά: <strong className="text-[var(--color-text)]">{vehicle.carGrPriceBenchmark}</strong>
                       </div>
                     )}
                   </div>
@@ -169,7 +205,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                     href={vehicle.carGrSearchUrl || 'https://www.car.gr'}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-4 py-2 rounded-full text-xs font-semibold bg-[#0066cc] hover:bg-[#0071e3] text-white transition-colors flex items-center justify-center gap-1.5 shrink-0"
+                    className="px-4 py-2 rounded-full text-xs font-semibold bg-[var(--color-accent)] hover:brightness-110 text-white transition-colors flex items-center justify-center gap-1.5 shrink-0"
                   >
                     <span>Άνοιγμα αγγελιών στο Car.gr</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -178,40 +214,40 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
               )}
 
               {/* Pricing Intelligence Banner */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-[#f5f5f7] dark:bg-[#272729] border border-[#e5e5ea] dark:border-[#38383a]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)]">
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider text-[#86868b] font-semibold">
-                    Typical Market Price
+                  <span className="text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold">
+                    {isGreek ? 'Ενδεικτική Τιμή Αγοράς' : 'Reference Market Price'}
                   </span>
-                  <div className="text-lg font-bold text-[#1d1d1f] dark:text-white mt-0.5">
+                  <div className="text-lg font-bold text-[var(--color-text)] mt-0.5">
                     {formatPriceRange(vehicle.typicalPriceMin, vehicle.typicalPriceMax, currency)}
                   </div>
-                  <p className="text-[11px] text-[#86868b] mt-0.5">
-                    Verified {vehicle.marketPriceType} market estimate
+                  <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
+                    {isGreek ? `Ενδεικτική εκτίμηση (${vehicle.marketPriceType})` : `Reference ${vehicle.marketPriceType} market estimate`}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider text-[#0066cc] dark:text-[#2997ff] font-semibold">
-                    "Good Buy" Threshold
+                  <span className="text-[11px] uppercase tracking-wider text-[var(--color-accent-text)] font-semibold">
+                    {isGreek ? 'Στόχος «Καλής Αγοράς»' : 'Good-Buy Target'}
                   </span>
-                  <div className="text-lg font-extrabold text-[#0066cc] dark:text-[#2997ff] mt-0.5">
-                    Under {formatPrice(vehicle.goodBuyPrice, currency)}
+                  <div className="text-lg font-extrabold text-[var(--color-accent-text)] mt-0.5">
+                    {isGreek ? 'Έως' : 'Up to'} {formatPrice(vehicle.goodBuyPrice, currency)}
                   </div>
-                  <p className="text-[11px] text-[#86868b] mt-0.5">
-                    Solid value for condition & mileage
+                  <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
+                    {isGreek ? 'Στόχος αξίας για καλή κατάσταση και χιλιόμετρα' : 'Value target for condition & mileage'}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider text-[#03904a] font-semibold">
-                    "Excellent Buy"
+                  <span className="text-[11px] uppercase tracking-wider text-[var(--color-success)] font-semibold">
+                    {isGreek ? 'Εξαιρετικός Στόχος' : 'Excellent-Buy Target'}
                   </span>
-                  <div className="text-lg font-extrabold text-[#03904a] mt-0.5">
-                    Under {formatPrice(vehicle.excellentBuyPrice, currency)}
+                  <div className="text-lg font-extrabold text-[var(--color-success)] mt-0.5">
+                    {isGreek ? 'Έως' : 'Up to'} {formatPrice(vehicle.excellentBuyPrice, currency)}
                   </div>
-                  <p className="text-[11px] text-[#86868b] mt-0.5">
-                    Below market average bargain
+                  <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
+                    {isGreek ? 'Χαμηλότερα από το ενδεικτικό εύρος' : 'Below the reference market range'}
                   </p>
                 </div>
               </div>
@@ -219,11 +255,11 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
               {/* Technical Specifications Matrix */}
               <div>
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
-                  Key Technical Specifications
+                  {isGreek ? 'Βασικά Τεχνικά Χαρακτηριστικά' : 'Key Technical Specifications'}
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
-                    <span className="text-slate-500 font-medium">Power & Engine</span>
+                    <span className="text-slate-500 font-medium">{isGreek ? 'Ισχύς & Κινητήρας' : 'Power & Engine'}</span>
                     <div className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
                       {vehicle.horsepower} hp
                     </div>
@@ -233,70 +269,70 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                   <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
                     <span className="text-slate-500 font-medium">0–100 km/h (62 mph)</span>
                     <div className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
-                      {vehicle.acceleration0to100} seconds
+                      {vehicle.acceleration0to100} {isGreek ? 'δευτ.' : 'seconds'}
                     </div>
-                    <span className="text-[11px] text-slate-500">{vehicle.drivetrain} Drivetrain</span>
+                    <span className="text-[11px] text-slate-500">{vehicle.drivetrain} · {isGreek ? 'κίνηση' : 'drivetrain'}</span>
                   </div>
 
                   <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
-                    <span className="text-slate-500 font-medium">Fuel / Energy Economy</span>
+                    <span className="text-slate-500 font-medium">{isGreek ? 'Κατανάλωση Καυσίμου / Ενέργειας' : 'Fuel / Energy Economy'}</span>
                     <div className="font-bold text-slate-900 dark:text-white mt-1 text-sm">
                       {vehicle.fuelEconomy}
                     </div>
-                    <span className="text-[11px] text-slate-500">Real-world average</span>
+                    <span className="text-[11px] text-slate-500">{isGreek ? 'Ενδεικτική πραγματική κατανάλωση' : 'Reference real-world average'}</span>
                   </div>
 
-                  <div className="p-3 rounded-none border border-[#303030] bg-[#242424]">
-                    <span className="text-[#969696] font-medium">Boot & Seating</span>
+                  <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)]">
+                    <span className="text-[var(--color-text-muted)] font-medium">{isGreek ? 'Πορτμπαγκάζ & Θέσεις' : 'Boot & Seating'}</span>
                     <div className="font-bold text-white mt-1 text-sm">
-                      {vehicle.cargoCapacityLiters} L ({vehicle.seats} Seats)
+                      {vehicle.cargoCapacityLiters} L · {vehicle.seats} {isGreek ? 'θέσεις' : 'seats'}
                     </div>
-                    <span className="text-[11px] text-[#969696]">Max {vehicle.maxCargoCapacityLiters || 1200}L folded</span>
+                    <span className="text-[11px] text-[var(--color-text-muted)]">{isGreek ? 'Μέγιστο' : 'Max'} {vehicle.maxCargoCapacityLiters || 1200} L {isGreek ? 'με αναδίπλωση' : 'folded'}</span>
                   </div>
                 </div>
 
                 {/* Greek Market Specific Specs Banner */}
                 {isGreek && (
-                  <div className="mt-4 p-4 rounded-none bg-[#181818] border border-[#303030] grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="mt-4 p-4 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                     <div>
-                      <span className="text-[#969696] uppercase font-bold text-[10px] tracking-[1.1px]">
+                      <span className="text-[var(--color-text-muted)] uppercase font-bold text-[10px] tracking-[1.1px]">
                         Τέλη Κυκλοφορίας (Ελλάδα)
                       </span>
-                      <div className="text-sm font-extrabold text-[#da291c] mt-0.5">
+                      <div className="text-sm font-extrabold text-[var(--color-accent-text)] mt-0.5">
                         {vehicle.greekRoadTaxEur === 0 ? '0€ / Έτος (Απαλλαγή)' : `${vehicle.greekRoadTaxEur}€ / Έτος`}
                       </div>
-                      <span className="text-[11px] text-[#969696]">Βάσει CO2 / κυβικών</span>
+                      <span className="text-[11px] text-[var(--color-text-muted)]">Βάσει CO2 / κυβικών</span>
                     </div>
 
                     <div>
-                      <span className="text-[#969696] uppercase font-bold text-[10px] tracking-[1.1px]">
+                      <span className="text-[var(--color-text-muted)] uppercase font-bold text-[10px] tracking-[1.1px]">
                         Πράσινος Δακτύλιος Αθηνών
                       </span>
                       <div className="text-sm font-extrabold text-white mt-0.5">
                         {vehicle.athensRingExempt ? '✓ Ελεύθερη Είσοδος Καθημερινά' : 'Μονά / Ζυγά'}
                       </div>
-                      <span className="text-[11px] text-[#969696]">Κυκλοφορία στο κέντρο</span>
+                      <span className="text-[11px] text-[var(--color-text-muted)]">Κυκλοφορία στο κέντρο</span>
                     </div>
 
                     <div>
-                      <span className="text-[#969696] uppercase font-bold text-[10px] tracking-[1.1px]">
+                      <span className="text-[var(--color-text-muted)] uppercase font-bold text-[10px] tracking-[1.1px]">
                         Κυβισμός & Τεκμήριο
                       </span>
                       <div className="text-sm font-extrabold text-white mt-0.5">
                         {vehicle.engineDisplacementCc ? `${vehicle.engineDisplacementCc} cc` : 'Ηλεκτρικό'}
                       </div>
-                      <span className="text-[11px] text-[#969696]">Ετήσια φορολογική κλίμακα</span>
+                      <span className="text-[11px] text-[var(--color-text-muted)]">Ετήσια φορολογική κλίμακα</span>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Best For vs Not Ideal For */}
+              {/* {isGreek ? 'Ταιριάζει Καλύτερα Σε' : 'Best For'} vs {isGreek ? 'Λιγότερο Κατάλληλο Για' : 'Not Ideal For'} */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-500/20">
                   <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider mb-2.5">
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Best For</span>
+                    <span>{isGreek ? 'Ταιριάζει Καλύτερα Σε' : 'Best For'}</span>
                   </div>
                   <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                     {vehicle.bestFor.map((item, idx) => (
@@ -311,7 +347,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                 <div className="p-4 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-500/20">
                   <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-xs uppercase tracking-wider mb-2.5">
                     <AlertTriangle className="w-4 h-4" />
-                    <span>Not Ideal For</span>
+                    <span>{isGreek ? 'Λιγότερο Κατάλληλο Για' : 'Not Ideal For'}</span>
                   </div>
                   <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                     {vehicle.notIdealFor.map((item, idx) => (
@@ -328,7 +364,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div>
                   <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                    Key Strengths
+                    {isGreek ? 'Κύρια Πλεονεκτήματα' : 'Key Strengths'}
                   </h5>
                   <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
                     {vehicle.pros.map((p, i) => (
@@ -342,7 +378,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
 
                 <div>
                   <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                    Trade-offs to Consider
+                    {isGreek ? 'Συμβιβασμοί που Αξίζει να Σκεφτείς' : 'Trade-offs to Consider'}
                   </h5>
                   <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
                     {vehicle.cons.map((c, i) => (
@@ -363,11 +399,12 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Pre-Purchase Inspection Guide for {vehicle.model}</span>
+                  <span>{isGreek ? `Οδηγός Ελέγχου πριν την Αγορά — ${vehicle.model}` : `Pre-Purchase Inspection Guide for ${vehicle.model}`}</span>
                 </h4>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  Use this interactive checklist when viewing or test driving a used model. Tap each item
-                  as you verify it with the seller or test drive.
+                  {isGreek
+                    ? 'Χρησιμοποίησε το checklist κατά την επίσκεψη ή το test drive και σημείωσε όσα επιβεβαιώνεις.'
+                    : 'Use this checklist while viewing or test-driving a used car and mark each item as you verify it.'}
                 </p>
               </div>
 
@@ -375,10 +412,12 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                 {vehicle.inspectionChecklist.map((item, idx) => {
                   const isChecked = !!checkedChecklistItems[item.component];
                   return (
-                    <div
+                    <button
                       key={idx}
+                      type="button"
+                      aria-pressed={isChecked}
                       onClick={() => toggleChecklistItem(item.component)}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                      className={`w-full p-4 rounded-xl border transition-colors text-left ${
                         isChecked
                           ? 'border-emerald-500/50 bg-emerald-50/30 dark:bg-emerald-950/20'
                           : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700'
@@ -410,19 +449,19 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                                     : 'text-slate-500'
                                 }`}
                               >
-                                {item.importance}
+                                {isGreek ? (item.importance === 'Critical' ? 'Κρίσιμο' : item.importance === 'Important' ? 'Σημαντικό' : 'Συμβουλευτικό') : item.importance}
                               </span>
                             </div>
                             <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
                               {item.check}
                             </p>
                             <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2 py-1 rounded inline-block">
-                              Advisor tip: {item.tip}
+                              {isGreek ? 'Συμβουλή: ' : 'Advisor tip: '}{item.tip}
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -436,33 +475,33 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
                   <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
                     <Calendar className="w-4 h-4" />
-                    <span>Recommended Model Years</span>
+                    <span>{isGreek ? 'Προτεινόμενες Χρονιές' : 'Recommended Model Years'}</span>
                   </div>
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                     {vehicle.recommendedYears}
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
-                    Sweet spot with factory revisions and lower depreciation risk.
+                    {isGreek ? 'Συνήθως καλύτερος συνδυασμός εργοστασιακών βελτιώσεων και απόσβεσης.' : 'Usually the better balance of factory revisions and depreciation.'}
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
                   <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider mb-2">
                     <AlertTriangle className="w-4 h-4" />
-                    <span>Years or Trims to Avoid</span>
+                    <span>{isGreek ? 'Χρονιές ή Εκδόσεις προς Προσοχή' : 'Years or Trims to Avoid'}</span>
                   </div>
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white">
-                    {vehicle.yearsToAvoid || 'No high-risk model years identified'}
+                    {vehicle.yearsToAvoid || (isGreek ? 'Δεν έχουν επισημανθεί συγκεκριμένες χρονιές υψηλού ρίσκου' : 'No high-risk model years identified')}
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
-                    Versions with known early gremlins or poor resale demand.
+                    {isGreek ? 'Εκδόσεις που χρειάζονται επιπλέον έλεγχο λόγω γνωστών θεμάτων ή χαμηλότερης ζήτησης.' : 'Versions that deserve extra checks because of known issues or weaker demand.'}
                   </p>
                 </div>
               </div>
 
               <div>
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
-                  Documented Community & Fleet Concerns
+                  {isGreek ? 'Καταγεγραμμένα Γνωστά Θέματα' : 'Documented Community & Fleet Concerns'}
                 </h4>
                 <div className="space-y-2">
                   {vehicle.knownIssues.map((issue, idx) => (
@@ -485,10 +524,10 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Verified Listings for {vehicle.make} {vehicle.model}
+                    {isGreek ? `Ενδεικτικές Αγγελίες για ${vehicle.make} ${vehicle.model}` : `Reference Listings for ${vehicle.make} ${vehicle.model}`}
                   </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Real marketplace price intelligence compared to typical market value
+                    {isGreek ? 'Αποθηκευμένα παραδείγματα για σύγκριση με το ενδεικτικό εύρος τιμής' : 'Saved listing examples compared with the reference market range'}
                   </p>
                 </div>
               </div>
@@ -496,7 +535,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
               {listings.length === 0 ? (
                 <div className="p-8 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl">
                   <p className="text-xs text-slate-500">
-                    No active listings matching this exact variant today. Check back tomorrow!
+                    {isGreek ? 'Δεν υπάρχουν αποθηκευμένα παραδείγματα για αυτή την έκδοση.' : 'No saved listing examples match this exact variant.'}
                   </p>
                 </div>
               ) : (
@@ -517,9 +556,9 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                                 : 'text-slate-500'
                             }`}
                           >
-                            {l.dealRating}
+                            {isGreek ? (l.dealRating === 'Excellent Price' ? 'Εξαιρετική τιμή' : l.dealRating === 'Good Price' ? 'Καλή τιμή' : l.dealRating === 'Fair Price' ? 'Δίκαιη τιμή' : 'Πάνω από αγορά') : l.dealRating}
                           </span>
-                          <span className="text-[11px] text-slate-400">{l.publishedDate}</span>
+                          <span className="text-[11px] text-slate-400">{isGreek ? 'αποθηκευμένο δείγμα' : 'saved snapshot'}</span>
                         </div>
 
                         <h5 className="font-bold text-sm text-slate-900 dark:text-white leading-snug">
@@ -543,9 +582,9 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                         <span className="text-slate-500 font-medium">{l.sellerName}</span>
                         <button
                           onClick={() => onSelectListing && onSelectListing(l)}
-                          className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                          className="min-h-11 px-2 font-semibold text-[var(--color-accent-text)] hover:underline cursor-pointer"
                         >
-                          View Listing →
+                          {isGreek ? 'Προβολή αγγελιών →' : 'View listings →'}
                         </button>
                       </div>
                     </div>
@@ -555,7 +594,6 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </AccessibleDialog>
   );
 };

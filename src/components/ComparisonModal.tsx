@@ -1,282 +1,137 @@
-import React, { useState, useEffect } from 'react';
-import { Vehicle, Currency, UserPreferences } from '../types';
+import React, { useEffect, useState } from 'react';
+import { Vehicle, Currency, UserPreferences, MarketRegion } from '../types';
 import { formatPrice, formatPriceRange } from '../services/currency';
-import {
-  X,
-  Scale,
-  Sparkles,
-  Check,
-  AlertCircle,
-  HelpCircle,
-  ChevronRight,
-  Loader2
-} from 'lucide-react';
+import { AccessibleDialog } from './AccessibleDialog';
+import { X, Scale, Sparkles, Loader2 } from 'lucide-react';
 
 interface ComparisonModalProps {
   vehicles: Vehicle[];
   onClose: () => void;
   currency: Currency;
+  marketRegion?: MarketRegion;
   userPreferences: UserPreferences;
   onRemoveVehicle: (id: string) => void;
 }
 
+const priorityLabel = (value: string, isGreek: boolean) => {
+  const el: Record<string, string> = {
+    reliability: 'αξιοπιστία', 'low-running-costs': 'χαμηλό κόστος χρήσης', 'fuel-economy': 'οικονομία καυσίμου',
+    performance: 'επιδόσεις', comfort: 'άνεση', technology: 'τεχνολογία', safety: 'ασφάλεια', practicality: 'πρακτικότητα',
+    luxury: 'πολυτέλεια', design: 'σχεδίαση', 'resale-value': 'μεταπωλητική αξία', 'environmental-impact': 'περιβαλλοντικό αποτύπωμα'
+  };
+  return isGreek ? (el[value] || value) : value.replaceAll('-', ' ');
+};
+
 export const ComparisonModal: React.FC<ComparisonModalProps> = ({
-  vehicles,
-  onClose,
-  currency,
-  userPreferences,
-  onRemoveVehicle
+  vehicles, onClose, currency, marketRegion = 'greece', userPreferences, onRemoveVehicle
 }) => {
-  const [aiAnalysis, setAiAnalysis] = useState<{
-    headline?: string;
-    tradeOffs?: string[];
-    verdict?: string;
-  } | null>(null);
-  const [loadingAi, setLoadingAi] = useState<boolean>(false);
+  const isGreek = marketRegion === 'greece';
+  const [aiAnalysis, setAiAnalysis] = useState<{ headline?: string; tradeOffs?: string[]; verdict?: string } | null>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
-    if (vehicles.length >= 2) {
-      fetchAiAdvisory();
-    }
-  }, [vehicles.map((v) => v.id).join(',')]);
-
-  const fetchAiAdvisory = async () => {
+    if (vehicles.length < 2) return;
+    const controller = new AbortController();
     setLoadingAi(true);
-    try {
-      const res = await fetch('/api/compare-advisory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vehicles,
-          userPreferences
-        })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAiAnalysis(data);
-      }
-    } catch (e) {
-      console.warn('AI comparison advisory error:', e);
-    } finally {
-      setLoadingAi(false);
-    }
-  };
+    fetch('/api/compare-advisory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({ vehicles, userPreferences, marketRegion })
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => { if (data) setAiAnalysis(data); })
+      .catch((error) => { if (error?.name !== 'AbortError') console.warn('AI comparison advisory error:', error); })
+      .finally(() => setLoadingAi(false));
+    return () => controller.abort();
+  }, [vehicles, userPreferences, marketRegion]);
 
-  if (vehicles.length === 0) {
-    return (
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 max-w-md w-full text-center">
-          <Scale className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            No Vehicles Selected
-          </h3>
-          <p className="text-xs text-slate-500 mt-1 mb-5">
-            Select up to 3 cars from the recommendation cards or vehicle catalog to compare them side by side.
-          </p>
-          <button
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const gridStyle = { gridTemplateColumns: `minmax(140px, .8fr) repeat(${Math.max(vehicles.length, 1)}, minmax(160px, 1fr))` };
+  const priorities = userPreferences.priorities.map((p) => priorityLabel(p, isGreek)).join(isGreek ? ', ' : ', ');
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-5 animate-fadeIn">
-      <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden my-auto max-h-[94vh] flex flex-col">
-        {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-              <Scale className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Side-by-Side Comparison
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Comparing {vehicles.length} vehicle{vehicles.length === 1 ? '' : 's'} tailored to your profile
-              </p>
-            </div>
+    <AccessibleDialog
+      open
+      onClose={onClose}
+      labelledBy="comparison-title"
+      panelClassName="w-full max-w-6xl max-h-[94vh] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden my-auto"
+      overlayClassName="p-2 sm:p-5 items-center justify-center"
+    >
+      <header className="p-5 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 flex items-center justify-center text-[var(--color-accent-text)] shrink-0"><Scale className="w-5 h-5" aria-hidden="true" /></div>
+          <div className="min-w-0">
+            <h2 id="comparison-title" className="text-lg sm:text-xl font-extrabold text-[var(--color-text)] tracking-tight">{isGreek ? 'Σύγκριση οχημάτων' : 'Side-by-side comparison'}</h2>
+            <p className="text-sm text-[var(--color-text-muted)]">{isGreek ? `${vehicles.length} οχήματα με βάση το προφίλ σου` : `${vehicles.length} vehicles based on your profile`}</p>
           </div>
-
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
+        <button type="button" onClick={onClose} className="touch-target rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)] hover:text-[var(--color-text)] flex items-center justify-center" aria-label={isGreek ? 'Κλείσιμο σύγκρισης' : 'Close comparison'}><X className="w-5 h-5" aria-hidden="true" /></button>
+      </header>
 
-        {/* Comparison Grid */}
-        <div className="p-5 sm:p-7 overflow-y-auto space-y-7">
-          {/* Top Vehicle Cards Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {vehicles.map((v) => (
-              <div
-                key={v.id}
-                className="relative rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 p-4 overflow-hidden"
-              >
-                <button
-                  onClick={() => onRemoveVehicle(v.id)}
-                  className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white transition-colors cursor-pointer"
-                  title="Remove from comparison"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-
-                <div className="aspect-[16/10] w-full rounded-xl overflow-hidden mb-3 bg-slate-200 dark:bg-slate-800">
-                  <img
-                    src={v.imageUrl}
-                    alt={v.model}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="text-xs text-slate-500 font-medium">
-                  {v.generation} · {v.years}
-                </div>
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  {v.make} {v.model}
-                </h4>
-                <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                  Good buy: Under {formatPrice(v.goodBuyPrice, currency)}
-                </div>
-              </div>
-            ))}
+      <div className="p-5 sm:p-7 overflow-y-auto space-y-7">
+        {vehicles.length === 0 ? (
+          <div className="text-center py-14">
+            <Scale className="w-11 h-11 text-[var(--color-text-muted)] mx-auto mb-4" aria-hidden="true" />
+            <h3 className="text-lg font-bold text-[var(--color-text)]">{isGreek ? 'Δεν έχουν επιλεγεί οχήματα' : 'No vehicles selected'}</h3>
+            <p className="text-sm text-[var(--color-text-muted)] mt-2">{isGreek ? 'Επίλεξε έως 3 αυτοκίνητα από τις προτάσεις ή τον κατάλογο.' : 'Select up to 3 cars from recommendations or the catalog.'}</p>
           </div>
-
-          {/* Detailed Criteria Comparison Matrix */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden text-xs">
-            {/* Row 1: Typical Price Range */}
-            <div className="grid grid-cols-4 p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 font-medium">
-              <div className="text-slate-500 font-bold uppercase tracking-wider">Market Price</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {vehicles.map((v) => (
-                <div key={v.id} className="font-bold text-slate-900 dark:text-white">
-                  {formatPriceRange(v.typicalPriceMin, v.typicalPriceMax, currency)}
-                </div>
+                <article key={v.id} className="relative surface-card p-4 overflow-hidden">
+                  <button type="button" onClick={() => onRemoveVehicle(v.id)} className="touch-target absolute top-2 right-2 rounded-xl bg-black/55 text-white flex items-center justify-center" aria-label={isGreek ? `Αφαίρεση ${v.make} ${v.model} από τη σύγκριση` : `Remove ${v.make} ${v.model} from comparison`}><X className="w-4 h-4" aria-hidden="true" /></button>
+                  <img src={v.imageUrl} alt="" loading="lazy" className="aspect-[16/10] w-full rounded-xl object-cover bg-[var(--color-surface-subtle)] mb-3" />
+                  <p className="text-xs text-[var(--color-text-muted)]">{v.generation} · {v.years}</p>
+                  <h3 className="text-base font-extrabold text-[var(--color-text)]">{v.make} {v.model}</h3>
+                  <p className="text-sm font-bold text-[var(--color-accent-text)] mt-1">{isGreek ? 'Καλή αγορά έως' : 'Good buy up to'} {formatPrice(v.goodBuyPrice, currency)}</p>
+                </article>
               ))}
             </div>
 
-            {/* Row 2: Reliability Rating */}
-            <div className="grid grid-cols-4 p-3.5 border-b border-slate-200 dark:border-slate-800">
-              <div className="text-slate-500 font-medium">Reliability</div>
-              {vehicles.map((v) => (
-                <div key={v.id} className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                  <span className={v.reliabilityRating === 5 ? 'text-emerald-500' : 'text-slate-700 dark:text-slate-300'}>
-                    {v.reliabilityRating} / 5
-                  </span>
-                  {v.reliabilityRating === 5 && <span className="text-[10px] text-emerald-600 font-semibold">(Top-tier)</span>}
-                </div>
-              ))}
-            </div>
-
-            {/* Row 3: Fuel Economy & Type */}
-            <div className="grid grid-cols-4 p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
-              <div className="text-slate-500 font-medium">Fuel & Consumption</div>
-              {vehicles.map((v) => (
-                <div key={v.id} className="text-slate-800 dark:text-slate-200 font-medium">
-                  <div>{v.fuelType}</div>
-                  <div className="text-slate-500 text-[11px]">{v.fuelEconomy}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Row 4: Power & Acceleration */}
-            <div className="grid grid-cols-4 p-3.5 border-b border-slate-200 dark:border-slate-800">
-              <div className="text-slate-500 font-medium">Horsepower & 0–100</div>
-              {vehicles.map((v) => (
-                <div key={v.id} className="font-medium text-slate-800 dark:text-slate-200">
-                  <span className="font-bold text-slate-900 dark:text-white">{v.horsepower} hp</span> · {v.acceleration0to100}s
-                </div>
-              ))}
-            </div>
-
-            {/* Row 5: Boot Space & Practicality */}
-            <div className="grid grid-cols-4 p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
-              <div className="text-slate-500 font-medium">Boot Capacity</div>
-              {vehicles.map((v) => (
-                <div key={v.id} className="font-medium text-slate-800 dark:text-slate-200">
-                  <span className="font-bold text-slate-900 dark:text-white">{v.cargoCapacityLiters} Liters</span>
-                  <div className="text-[11px] text-slate-500">{v.seats} seats · {v.bodyStyle}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Row 6: Running Cost Category */}
-            <div className="grid grid-cols-4 p-3.5 border-b border-slate-200 dark:border-slate-800">
-              <div className="text-slate-500 font-medium">Running Cost Level</div>
-              {vehicles.map((v) => (
-                <div key={v.id} className="font-bold text-slate-900 dark:text-white">
-                  {v.runningCostLevel}
-                </div>
-              ))}
-            </div>
-
-            {/* Row 7: Drivetrain & Gearbox */}
-            <div className="grid grid-cols-4 p-3.5 bg-slate-50/50 dark:bg-slate-900/40">
-              <div className="text-slate-500 font-medium">Transmission & Drivetrain</div>
-              {vehicles.map((v) => (
-                <div key={v.id} className="text-slate-700 dark:text-slate-300">
-                  {v.transmission} · {v.drivetrain}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Personalized Conclusion: "Which one should you choose?" */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-500/20 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-extrabold text-sm uppercase tracking-wider">
-                <Sparkles className="w-4 h-4 text-emerald-500" />
-                <span>Which one should you choose?</span>
+            <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]" aria-label={isGreek ? 'Πίνακας σύγκρισης' : 'Comparison table'}>
+              <div className="min-w-max text-sm">
+                {[
+                  [isGreek ? 'Ενδεικτική τιμή αγοράς' : 'Reference market price', (v: Vehicle) => formatPriceRange(v.typicalPriceMin, v.typicalPriceMax, currency)],
+                  [isGreek ? 'Αξιοπιστία' : 'Reliability', (v: Vehicle) => `${v.reliabilityRating} / 5`],
+                  [isGreek ? 'Καύσιμο & κατανάλωση' : 'Fuel & consumption', (v: Vehicle) => `${v.fuelType} · ${v.fuelEconomy}`],
+                  [isGreek ? 'Ισχύς & 0–100' : 'Power & 0–100', (v: Vehicle) => `${v.horsepower} hp · ${v.acceleration0to100}s`],
+                  [isGreek ? 'Χώρος αποσκευών' : 'Boot capacity', (v: Vehicle) => `${v.cargoCapacityLiters} L · ${v.seats} ${isGreek ? 'θέσεις' : 'seats'}`],
+                  [isGreek ? 'Κόστος χρήσης' : 'Running cost', (v: Vehicle) => v.runningCostLevel],
+                  [isGreek ? 'Κιβώτιο & κίνηση' : 'Transmission & drivetrain', (v: Vehicle) => `${v.transmission} · ${v.drivetrain}`]
+                ].map(([label, formatter], index) => (
+                  <div key={String(label)} className={`grid p-4 gap-4 ${index % 2 ? '' : 'bg-[var(--color-surface-subtle)]'}`} style={gridStyle}>
+                    <div className="font-bold text-[var(--color-text-muted)]">{String(label)}</div>
+                    {vehicles.map((v) => <div key={v.id} className="font-semibold text-[var(--color-text)]">{(formatter as (v: Vehicle) => string)(v)}</div>)}
+                  </div>
+                ))}
               </div>
-              {loadingAi && <Loader2 className="w-4 h-4 text-emerald-500 animate-spin" />}
             </div>
 
-            {aiAnalysis ? (
-              <div className="space-y-3 text-xs sm:text-sm text-slate-800 dark:text-slate-200">
-                {aiAnalysis.headline && (
-                  <p className="font-bold text-slate-900 dark:text-white leading-snug">
-                    {aiAnalysis.headline}
+            <section className="p-5 sm:p-6 rounded-2xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/25" aria-labelledby="advisor-verdict-title">
+              <div className="flex items-center justify-between gap-3">
+                <h3 id="advisor-verdict-title" className="flex items-center gap-2 text-[var(--color-accent-text)] font-extrabold text-sm uppercase tracking-wider"><Sparkles className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Ποιο ταιριάζει καλύτερα;' : 'Which one fits best?'}</h3>
+                {loadingAi && <Loader2 className="w-4 h-4 text-[var(--color-accent-text)] animate-spin" aria-label={isGreek ? 'Ανάλυση σε εξέλιξη' : 'Analysis in progress'} />}
+              </div>
+              <div className="mt-3 text-sm text-[var(--color-text)] leading-relaxed" aria-live="polite">
+                {aiAnalysis ? (
+                  <div className="space-y-3">
+                    {aiAnalysis.headline && <p className="font-bold">{aiAnalysis.headline}</p>}
+                    {aiAnalysis.tradeOffs && <ul className="list-disc pl-5 space-y-1 text-[var(--color-text-muted)]">{aiAnalysis.tradeOffs.map((item, index) => <li key={index}>{item}</li>)}</ul>}
+                    {aiAnalysis.verdict && <p className="surface-card p-4"><strong>{isGreek ? 'Συμπέρασμα συμβούλου:' : 'Advisor verdict:'}</strong> {aiAnalysis.verdict}</p>}
+                  </div>
+                ) : (
+                  <p className="text-[var(--color-text-muted)]">
+                    {isGreek
+                      ? `Οι βασικές προτεραιότητές σου${priorities ? ` είναι ${priorities}` : ''}. Σύγκρινε πρώτα κόστος χρήσης, αξιοπιστία και πρακτικότητα και επιβεβαίωσε την πραγματική κατάσταση του συγκεκριμένου μεταχειρισμένου πριν την αγορά.`
+                      : `Your key priorities${priorities ? ` are ${priorities}` : ''}. Compare running cost, reliability and practicality first, then verify the condition of the specific used car before buying.`}
                   </p>
                 )}
-
-                {aiAnalysis.tradeOffs && (
-                  <ul className="space-y-1.5 pl-2">
-                    {aiAnalysis.tradeOffs.map((t, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300">
-                        <span className="text-emerald-500 font-bold">•</span>
-                        <span>{t}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {aiAnalysis.verdict && (
-                  <div className="p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-emerald-500/20 text-xs sm:text-sm font-medium leading-relaxed">
-                    <span className="font-bold text-emerald-700 dark:text-emerald-400">Advisor Verdict: </span>
-                    {aiAnalysis.verdict}
-                  </div>
-                )}
               </div>
-            ) : (
-              <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-2">
-                <p>
-                  Because you prioritized {userPreferences.priorities.join(' & ') || 'value'}, the decision
-                  hinges on your daily routine. If you do frequent stop-and-go commuting, choose the{' '}
-                  <strong className="text-slate-900 dark:text-white">{vehicles[0]?.make} {vehicles[0]?.model}</strong> for its
-                  lower operating friction. If passenger or luggage cargo takes precedence, opt for the{' '}
-                  <strong className="text-slate-900 dark:text-white">{vehicles[1]?.make || vehicles[0]?.make} {vehicles[1]?.model || vehicles[0]?.model}</strong>.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+            </section>
+          </>
+        )}
       </div>
-    </div>
+    </AccessibleDialog>
   );
 };

@@ -5,7 +5,12 @@ import {
   Zap,
   Gauge,
   CheckCircle2,
-  SlidersHorizontal
+  SlidersHorizontal,
+  CarFront,
+  Leaf,
+  HeartHandshake,
+  Luggage,
+  BatteryCharging
 } from 'lucide-react';
 import { Currency, MarketRegion } from '../types';
 
@@ -24,164 +29,86 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
   marketRegion
 }) => {
   const isGreek = marketRegion === 'greece';
+  const presets = [
+    { id: 'greek-budget-city', icon: CarFront, label: isGreek ? 'Πόλης 1.500€–3.500€' : 'Budget city car €1.5k–€3.5k' },
+    { id: 'greek-zero-tax', icon: Leaf, label: isGreek ? '0€ τέλη & Δακτύλιος' : 'Zero road tax & city ring' },
+    { id: 'city-reliability', icon: HeartHandshake, label: isGreek ? 'Αξιόπιστο υβριδικό 10k–20k' : 'Reliable hybrid €10k–€20k' },
+    { id: 'family-wagon', icon: Luggage, label: isGreek ? 'Οικογενειακό με χώρους 20k–30k' : 'Family space €20k–€30k' },
+    { id: 'electric-tech', icon: BatteryCharging, label: isGreek ? 'Ηλεκτρικό 30k–40k' : 'Electric tech €30k–€40k' }
+  ];
 
   return (
-    <div className="relative overflow-hidden bg-[#181818] text-white">
-      {/* Full-bleed cinematic hero photograph as page chrome (per Ferrari design spec) */}
-      <div className="relative w-full h-[480px] sm:h-[560px] md:h-[620px] overflow-hidden">
+    <div className="relative overflow-hidden bg-[var(--color-canvas)] text-[var(--color-text)]">
+      <section className="relative w-full min-h-[500px] sm:min-h-[580px] md:min-h-[620px] overflow-hidden bg-slate-950" aria-labelledby="hero-title">
         <img
-          src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=2400&q=85"
-          alt="Cinematic luxury automotive photography"
-          className="w-full h-full object-cover object-center brightness-90"
+          src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=82"
+          srcSet="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=78 900w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80 1400w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1800&q=82 1800w"
+          sizes="100vw"
+          alt={isGreek ? 'Αυτοκίνητο σε ανοιχτό δρόμο' : 'Car on an open road'}
+          className="absolute inset-0 w-full h-full object-cover object-center brightness-75"
+          fetchPriority="high"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#181818] via-[#181818]/45 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-950/30" />
 
-        {/* Floating cinematic hero typography over bottom of photo */}
-        <div className="absolute bottom-8 sm:bottom-12 left-0 right-0 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-[#0066cc] dark:text-[#2997ff] mb-3">
-            <span>{isGreek ? 'Ευφυής Σύμβουλος Αγοράς Αυτοκινήτου' : 'Intelligent Automotive Discovery'}</span>
-            <span aria-hidden="true">·</span>
-            <span>{isGreek ? 'Budget από 1.500€' : 'Budget from €1,500'}</span>
-            <span aria-hidden="true">·</span>
-            <span>{isGreek ? 'Τέλη & Δακτύλιος' : 'Independent Data'}</span>
-          </div>
+        <div className="relative z-10 min-h-[500px] sm:min-h-[580px] md:min-h-[620px] max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-end pb-10 sm:pb-14">
+          <div className="max-w-4xl">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold tracking-wide text-red-200 mb-3">
+              <span>{isGreek ? 'Σύμβουλος αγοράς αυτοκινήτου' : 'Independent vehicle advisor'}</span>
+              <span aria-hidden="true">·</span>
+              <span>{isGreek ? 'Budget από 1.500€' : 'Budget from €1,500'}</span>
+              <span aria-hidden="true">·</span>
+              <span>{isGreek ? 'Ελληνικά κόστη & περιορισμοί' : 'Market costs & constraints'}</span>
+            </p>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.28px] text-white leading-[1.08]">
-            {isGreek ? (
-              <>
-                Βρες το σωστό αυτοκίνητο για σένα σε{' '}
-                <span className="text-[#2997ff] font-bold">60 δευτερόλεπτα.</span>
-              </>
-            ) : (
-              <>
-                Find the right car for you in{' '}
-                <span className="text-[#2997ff] font-bold">60 seconds.</span>
-              </>
-            )}
-          </h1>
+            <h1 id="hero-title" className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.06]">
+              {isGreek ? 'Βρες το σωστό αυτοκίνητο για τη ζωή και το budget σου.' : 'Find the right car for your life and budget.'}
+            </h1>
 
-          <p className="mt-4 text-sm sm:text-base md:text-lg text-white/80 max-w-2xl font-normal leading-relaxed">
-            {isGreek
-              ? 'Απάντησε σε 3–4 απλές ερωτήσεις. Το CarCheck αναλύει το budget σου (από 1.500€ έως 60.000€+), τα τέλη κυκλοφορίας, το τεκμήριο και τον Δακτύλιο Αθηνών, προτείνοντας τα ιδανικά οχήματα.'
-              : 'Answer 3–4 simple questions. CarCheck understands your lifestyle, evaluates market prices (from €1,500 to €60,000+), and recommends sensible vehicles with crystal-clear explanations.'}
-          </p>
+            <p className="mt-5 text-base sm:text-lg text-slate-200 max-w-2xl leading-relaxed">
+              {isGreek
+                ? 'Απάντησε σε 4 σύντομες ερωτήσεις. Το CarCheck συνδυάζει budget, χρήση, αξιοπιστία, κόστος και ελληνικούς παράγοντες για να περιορίσει τις επιλογές σου.'
+                : 'Answer four short questions. CarCheck combines budget, use, reliability, ownership cost, and market constraints to narrow your choices.'}
+            </p>
 
-          {/* Apple Action Blue CTA button with full pill radius */}
-          <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <button
-              onClick={onStartDiscovery}
-              className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-[#0066cc] hover:bg-[#0071e3] active:scale-95 text-white text-sm font-semibold tracking-wide shadow-md transition-all cursor-pointer group"
-            >
-              <span>{isGreek ? 'Βρες το Αυτοκίνητό Μου' : 'Find My Car'}</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-
-            <button
-              onClick={onBrowseAll}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/20 dark:bg-[#1d1d1f]/40 backdrop-blur-md border border-white/30 text-white text-sm font-medium hover:bg-white/30 transition-all cursor-pointer active:scale-95"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-white/80" />
-              <span>{isGreek ? 'Όλα τα Οχήματα' : 'Browse All Vehicles'}</span>
-            </button>
+            <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <button type="button" onClick={onStartDiscovery} className="min-h-12 inline-flex items-center justify-center gap-2.5 px-7 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-bold shadow-lg transition-colors group">
+                <span>{isGreek ? 'Βρες το αυτοκίνητό μου' : 'Find my car'}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+              </button>
+              <button type="button" onClick={onBrowseAll} className="min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-white/10 backdrop-blur-md border border-white/30 text-white text-sm font-semibold hover:bg-white/20 transition-colors">
+                <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
+                <span>{isGreek ? 'Περιήγηση σε όλα τα οχήματα' : 'Browse all vehicles'}</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Editorial Body layout below hero */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        {/* Value Proof Bar with Apple Utility Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
-          <div className="p-5 rounded-[18px] bg-[#f5f5f7] dark:bg-[#272729] border border-[#e5e5ea] dark:border-[#38383a]">
-            <div className="flex items-center gap-2 text-[#0066cc] dark:text-[#2997ff] mb-1.5">
-              <Zap className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                {isGreek ? 'Από 1.500€' : 'From €1,500'}
-              </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-left">
+          {[
+            { icon: Zap, title: isGreek ? 'Budget από 1.500€' : 'From €1,500', body: isGreek ? 'Επιλογές από οικονομικά αυτοκίνητα πόλης έως σύγχρονα υβριδικά.' : 'Options from inexpensive city cars to modern hybrids.' },
+            { icon: Gauge, title: isGreek ? 'Ελληνική αγορά' : 'Personal fit', body: isGreek ? 'Τέλη, τεκμήρια και Δακτύλιος μπαίνουν στην αξιολόγηση όπου υπάρχουν δεδομένα.' : 'Recommendations are weighted around your actual priorities.' },
+            { icon: ShieldCheck, title: isGreek ? 'Οδηγός ελέγχου' : 'Inspection guide', body: isGreek ? 'Checklist πριν την αγορά για συνηθισμένα σημεία φθοράς και γνωστές αδυναμίες.' : 'Pre-purchase checklist for common wear points and known issues.' },
+            { icon: CheckCircle2, title: isGreek ? 'Διαφανείς τιμές' : 'Price context', body: isGreek ? 'Ενδεικτικά εύρη και σύνδεσμοι πηγών — όχι ισχυρισμός ζωντανής διαθεσιμότητας.' : 'Reference ranges and source links — not a claim of live availability.' }
+          ].map(({ icon: Icon, title, body }) => (
+            <div key={title} className="p-5 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+              <div className="flex items-center gap-2 text-[var(--color-accent-text)] mb-2">
+                <Icon className="w-4 h-4" aria-hidden="true" />
+                <span className="text-sm font-bold">{title}</span>
+              </div>
+              <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{body}</p>
             </div>
-            <p className="text-xs text-[#86868b] leading-relaxed">
-              {isGreek
-                ? 'Από αξιόπιστα αυτοκίνητα πόλης 1.500€ έως premium υβριδικά.'
-                : 'Budget options covering reliable €1,500 runabouts up to luxury.'}
-            </p>
-          </div>
-
-          <div className="p-5 rounded-[18px] bg-[#f5f5f7] dark:bg-[#272729] border border-[#e5e5ea] dark:border-[#38383a]">
-            <div className="flex items-center gap-2 text-[#0066cc] dark:text-[#2997ff] mb-1.5">
-              <Gauge className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                {isGreek ? 'Ελληνική Αγορά' : 'Match Score'}
-              </span>
-            </div>
-            <p className="text-xs text-[#86868b] leading-relaxed">
-              {isGreek
-                ? 'Υπολογισμός τελών κυκλοφορίας, τεκμηρίων και πράσινου δακτυλίου.'
-                : 'Weighted ranking based strictly on your individual priorities.'}
-            </p>
-          </div>
-
-          <div className="p-5 rounded-[18px] bg-[#f5f5f7] dark:bg-[#272729] border border-[#e5e5ea] dark:border-[#38383a]">
-            <div className="flex items-center gap-2 text-[#0066cc] dark:text-[#2997ff] mb-1.5">
-              <ShieldCheck className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                {isGreek ? 'Έλεγχος ΚΤΕΟ' : 'Inspection Guide'}
-              </span>
-            </div>
-            <p className="text-xs text-[#86868b] leading-relaxed">
-              {isGreek
-                ? 'Έλεγχος βερνικιού από ήλιο, A/C, καδένας χρονισμού και ΚΤΕΟ.'
-                : 'Step-by-step verification checklist for pre-purchase inspections.'}
-            </p>
-          </div>
-
-          <div className="p-5 rounded-[18px] bg-[#f5f5f7] dark:bg-[#272729] border border-[#e5e5ea] dark:border-[#38383a]">
-            <div className="flex items-center gap-2 text-[#0066cc] dark:text-[#2997ff] mb-1.5">
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                {isGreek ? 'Διαφανείς Τιμές' : 'Real Deal Price'}
-              </span>
-            </div>
-            <p className="text-xs text-[#86868b] leading-relaxed">
-              {isGreek
-                ? 'Τιμές αγοράς Good Buy & αγγελίες Car.gr.'
-                : 'Clear pricing benchmarks with verified marketplace listings.'}
-            </p>
-          </div>
+          ))}
         </div>
 
-        {/* Quick Launch Scenarios */}
         <div className="mt-10 text-left">
-          <p className="text-xs uppercase tracking-wider font-semibold text-[#86868b] mb-3">
-            {isGreek ? 'Γρήγορη εκκίνηση ανά ανάγκη:' : 'Explore popular lifestyles in one click:'}
-          </p>
+          <p className="text-sm font-bold text-[var(--color-text)] mb-3">{isGreek ? 'Γρήγορη εκκίνηση' : 'Quick starts'}</p>
           <div className="flex flex-wrap items-center gap-2">
-            {[
-              {
-                id: 'greek-budget-city',
-                label: isGreek ? '🚗 Αυτοκίνητο Πόλης 1.500€–3.500€ (Yaris / Punto / Micra)' : 'Budget City Hero €1.5k–€3.5k'
-              },
-              {
-                id: 'greek-zero-tax',
-                label: isGreek ? '🌿 0€ Τέλη Κυκλοφορίας & Ελεύθερος Δακτύλιος' : 'Zero Road Tax & City Green Ring'
-              },
-              {
-                id: 'city-reliability',
-                label: isGreek ? 'Αξιόπιστο Υβριδικό 10.000€–20.000€' : 'City Commuter · Max Reliability (€10k–€20k)'
-              },
-              {
-                id: 'family-wagon',
-                label: isGreek ? 'Οικογενειακό 4 Ατόμων & Αποσκευές (20.000€–30.000€)' : 'Family of 4 with Big Luggage (€20k–€30k)'
-              },
-              {
-                id: 'electric-tech',
-                label: isGreek ? 'Ηλεκτρικό & Supercharging (30.000€–40.000€)' : 'Electric Tech & Supercharging (€30k–€40k)'
-              }
-            ].map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => onQuickPreset(preset.id)}
-                className="px-4 py-2 rounded-full border border-[#e5e5ea] dark:border-[#38383a] bg-[#f5f5f7] dark:bg-[#272729] text-xs font-medium text-[#1d1d1f] dark:text-[#e5e5ea] hover:border-[#0066cc] hover:text-[#0066cc] dark:hover:text-[#2997ff] transition-all cursor-pointer active:scale-95"
-              >
-                {preset.label}
+            {presets.map(({ id, icon: Icon, label }) => (
+              <button key={id} type="button" onClick={() => onQuickPreset(id)} className="min-h-11 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-sm font-semibold text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent-text)] transition-colors inline-flex items-center gap-2">
+                <Icon className="w-4 h-4" aria-hidden="true" />
+                {label}
               </button>
             ))}
           </div>

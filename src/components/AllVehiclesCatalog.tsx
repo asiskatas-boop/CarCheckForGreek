@@ -1,20 +1,13 @@
 import React, { useState } from 'react';
-import { Vehicle, Currency, BodyStyle, FuelType } from '../types';
+import { Vehicle, Currency, MarketRegion } from '../types';
 import { VEHICLES } from '../data/vehicles';
 import { formatPrice, formatPriceRange } from '../services/currency';
-import {
-  Search,
-  SlidersHorizontal,
-  ChevronRight,
-  Scale,
-  Bookmark,
-  ShieldCheck,
-  Check
-} from 'lucide-react';
+import { Search, ChevronRight, Scale, Bookmark, ShieldCheck, RotateCcw } from 'lucide-react';
 import { GET_LISTINGS_FOR_VEHICLE } from '../data/listings';
 
 interface AllVehiclesCatalogProps {
   currency: Currency;
+  marketRegion?: MarketRegion;
   onOpenDetails: (vehicle: Vehicle) => void;
   onToggleCompare: (vehicleId: string) => void;
   comparedIds: string[];
@@ -23,8 +16,28 @@ interface AllVehiclesCatalogProps {
   onViewListings: (vehicleId: string) => void;
 }
 
+const BODY_LABELS_GR: Record<string, string> = {
+  Hatchback: 'Χάτσμπακ',
+  'Estate / Wagon': 'Στέισον βάγκον',
+  'Compact SUV': 'Compact SUV',
+  'Mid-size SUV': 'Μεσαίο SUV',
+  'Large SUV': 'Μεγάλο SUV',
+  'City car': 'Αυτοκίνητο πόλης',
+  Sedan: 'Σεντάν',
+  Crossover: 'Crossover'
+};
+
+const FUEL_LABELS_GR: Record<string, string> = {
+  Hybrid: 'Υβριδικό',
+  Petrol: 'Βενζίνη',
+  Electric: 'Ηλεκτρικό',
+  Diesel: 'Diesel',
+  'Plug-in Hybrid': 'Plug-in υβριδικό'
+};
+
 export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
   currency,
+  marketRegion = 'global',
   onOpenDetails,
   onToggleCompare,
   comparedIds,
@@ -32,24 +45,21 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
   savedIds,
   onViewListings
 }) => {
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedBody, setSelectedBody] = useState<string>('all');
-  const [selectedFuel, setSelectedFuel] = useState<string>('all');
+  const isGreek = marketRegion === 'greece';
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBody, setSelectedBody] = useState('all');
+  const [selectedFuel, setSelectedFuel] = useState('all');
   const [sortBy, setSortBy] = useState<'price-asc' | 'price-desc' | 'reliability' | 'power'>('reliability');
 
   const bodyStyles = ['Hatchback', 'Estate / Wagon', 'Compact SUV', 'Mid-size SUV', 'Large SUV', 'City car', 'Sedan', 'Crossover'];
   const fuelTypes = ['Hybrid', 'Petrol', 'Electric', 'Diesel', 'Plug-in Hybrid'];
 
-  const filteredVehicles = VEHICLES.filter((v) => {
-    if (selectedBody !== 'all' && v.bodyStyle !== selectedBody) return false;
-    if (selectedFuel !== 'all' && v.fuelType !== selectedFuel) return false;
+  const filteredVehicles = VEHICLES.filter((vehicle) => {
+    if (selectedBody !== 'all' && vehicle.bodyStyle !== selectedBody) return false;
+    if (selectedFuel !== 'all' && vehicle.fuelType !== selectedFuel) return false;
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const match =
-        v.make.toLowerCase().includes(q) ||
-        v.model.toLowerCase().includes(q) ||
-        v.engineSummary.toLowerCase().includes(q);
-      if (!match) return false;
+      const query = searchQuery.toLowerCase();
+      if (![vehicle.make, vehicle.model, vehicle.engineSummary].some((value) => value.toLowerCase().includes(query))) return false;
     }
     return true;
   }).sort((a, b) => {
@@ -59,198 +69,139 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
     return b.reliabilityRating - a.reliabilityRating;
   });
 
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedBody('all');
+    setSelectedFuel('all');
+    setSortBy('reliability');
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-      {/* Title */}
       <div className="mb-6">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          Comprehensive Vehicle Catalog
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Explore all analyzed vehicles with verified price ranges, reliability ratings, and pre-purchase checklists
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-text)] tracking-tight">
+          {isGreek ? 'Κατάλογος Οχημάτων' : 'Vehicle Catalog'}
+        </h1>
+        <p className="text-sm text-[var(--color-text-muted)] mt-1 max-w-3xl">
+          {isGreek
+            ? 'Εξερεύνησε τα οχήματα που έχουμε αναλύσει, με ενδεικτικές τιμές, αξιοπιστία και οδηγό ελέγχου πριν την αγορά.'
+            : 'Explore analyzed vehicles with reference price ranges, reliability ratings, and pre-purchase inspection guidance.'}
         </p>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="mb-6 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search make or model (e.g. Toyota, Octavia, Tesla)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white"
-          />
-        </div>
+      <section aria-label={isGreek ? 'Φίλτρα οχημάτων' : 'Vehicle filters'} className="mb-6 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] grid grid-cols-1 md:grid-cols-4 gap-3">
+        <label className="md:col-span-1 text-sm font-semibold text-[var(--color-text)]">
+          <span className="block mb-1.5">{isGreek ? 'Αναζήτηση' : 'Search'}</span>
+          <span className="relative block">
+            <Search className="w-4 h-4 text-[var(--color-text-muted)] absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={isGreek ? 'Toyota, Octavia, Tesla…' : 'Toyota, Octavia, Tesla…'}
+              className="w-full min-h-11 pl-9 pr-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+            />
+          </span>
+        </label>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Body selector */}
-          <select
-            value={selectedBody}
-            onChange={(e) => setSelectedBody(e.target.value)}
-            className="px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 cursor-pointer"
-          >
-            <option value="all">All Body Styles</option>
-            {bodyStyles.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
+        <label className="text-sm font-semibold text-[var(--color-text)]">
+          <span className="block mb-1.5">{isGreek ? 'Αμάξωμα' : 'Body style'}</span>
+          <select value={selectedBody} onChange={(event) => setSelectedBody(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-sm text-[var(--color-text)]">
+            <option value="all">{isGreek ? 'Όλα τα αμαξώματα' : 'All body styles'}</option>
+            {bodyStyles.map((body) => <option key={body} value={body}>{isGreek ? BODY_LABELS_GR[body] ?? body : body}</option>)}
           </select>
+        </label>
 
-          {/* Fuel selector */}
-          <select
-            value={selectedFuel}
-            onChange={(e) => setSelectedFuel(e.target.value)}
-            className="px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 cursor-pointer"
-          >
-            <option value="all">All Powertrains</option>
-            {fuelTypes.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
+        <label className="text-sm font-semibold text-[var(--color-text)]">
+          <span className="block mb-1.5">{isGreek ? 'Καύσιμο' : 'Powertrain'}</span>
+          <select value={selectedFuel} onChange={(event) => setSelectedFuel(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-sm text-[var(--color-text)]">
+            <option value="all">{isGreek ? 'Όλοι οι τύποι' : 'All powertrains'}</option>
+            {fuelTypes.map((fuel) => <option key={fuel} value={fuel}>{isGreek ? FUEL_LABELS_GR[fuel] ?? fuel : fuel}</option>)}
           </select>
+        </label>
 
-          {/* Sort selector */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 cursor-pointer"
-          >
-            <option value="reliability">Highest Reliability</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="power">Most Horsepower</option>
+        <label className="text-sm font-semibold text-[var(--color-text)]">
+          <span className="block mb-1.5">{isGreek ? 'Ταξινόμηση' : 'Sort by'}</span>
+          <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-sm text-[var(--color-text)]">
+            <option value="reliability">{isGreek ? 'Υψηλότερη αξιοπιστία' : 'Highest reliability'}</option>
+            <option value="price-asc">{isGreek ? 'Τιμή: χαμηλή → υψηλή' : 'Price: low to high'}</option>
+            <option value="price-desc">{isGreek ? 'Τιμή: υψηλή → χαμηλή' : 'Price: high to low'}</option>
+            <option value="power">{isGreek ? 'Περισσότερη ισχύς' : 'Most horsepower'}</option>
           </select>
-        </div>
+        </label>
+      </section>
+
+      <div className="mb-4 text-sm text-[var(--color-text-muted)]" aria-live="polite">
+        {isGreek ? `${filteredVehicles.length} οχήματα` : `${filteredVehicles.length} vehicles`}
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredVehicles.map((vehicle) => {
-          const isCompared = comparedIds.includes(vehicle.id);
-          const isSaved = savedIds.includes(vehicle.id);
-          const listingCount = GET_LISTINGS_FOR_VEHICLE(vehicle.id).length;
-
-          return (
-            <div
-              key={vehicle.id}
-              className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-                  <img
-                    src={vehicle.imageUrl}
-                    alt={vehicle.model}
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
-
-                  <div className="absolute bottom-3 left-3 text-white text-xs font-medium">
-                    {vehicle.generation} · {vehicle.years}
-                  </div>
-
-                  <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                    <button
-                      onClick={() => onToggleCompare(vehicle.id)}
-                      className={`p-2 rounded-lg backdrop-blur-md transition-all cursor-pointer ${
-                        isCompared
-                          ? 'bg-emerald-600 text-white shadow-sm'
-                          : 'bg-slate-900/80 text-slate-300 hover:text-white'
-                      }`}
-                      title="Compare"
-                    >
-                      <Scale className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => onToggleSave(vehicle.id)}
-                      className={`p-2 rounded-lg backdrop-blur-md transition-all cursor-pointer ${
-                        isSaved
-                          ? 'bg-emerald-600 text-white shadow-sm'
-                          : 'bg-slate-900/80 text-slate-300 hover:text-white'
-                      }`}
-                      title="Save to garage"
-                    >
-                      <Bookmark className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-4 sm:p-5">
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-1 font-medium">
-                    <span>{vehicle.bodyStyle}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{vehicle.fuelType}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{vehicle.drivetrain}</span>
-                  </div>
-
-                  <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    {vehicle.make} {vehicle.model}
-                  </h3>
-
-                  <div className="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800/60 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase font-semibold text-slate-500 block">
-                        Typical Price
-                      </span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">
-                        {formatPriceRange(vehicle.typicalPriceMin, vehicle.typicalPriceMax, currency)}
-                      </span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400 block">
-                        Good Buy
-                      </span>
-                      <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
-                        Under {formatPrice(vehicle.goodBuyPrice, currency)}
-                      </span>
+      {filteredVehicles.length === 0 ? (
+        <div className="surface-card py-14 px-6 text-center">
+          <Search className="w-8 h-8 mx-auto text-[var(--color-text-muted)]" aria-hidden="true" />
+          <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">{isGreek ? 'Δεν βρέθηκαν οχήματα' : 'No vehicles found'}</h2>
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">{isGreek ? 'Δοκίμασε λιγότερα φίλτρα ή καθάρισε την αναζήτηση.' : 'Try fewer filters or clear the search.'}</p>
+          <button type="button" onClick={resetFilters} className="mt-5 min-h-11 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-bold inline-flex items-center gap-2">
+            <RotateCcw className="w-4 h-4" aria-hidden="true" />
+            {isGreek ? 'Καθαρισμός φίλτρων' : 'Clear filters'}
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredVehicles.map((vehicle) => {
+            const isCompared = comparedIds.includes(vehicle.id);
+            const isSaved = savedIds.includes(vehicle.id);
+            const listingCount = GET_LISTINGS_FOR_VEHICLE(vehicle.id).length;
+            return (
+              <article key={vehicle.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+                <div>
+                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
+                    <img src={vehicle.imageUrl} alt={`${vehicle.make} ${vehicle.model}`} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute bottom-3 left-3 text-white text-sm font-medium">{vehicle.generation} · {vehicle.years}</div>
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                      <button type="button" onClick={() => onToggleCompare(vehicle.id)} aria-pressed={isCompared} aria-label={isGreek ? `${isCompared ? 'Αφαίρεση από' : 'Προσθήκη σε'} σύγκριση: ${vehicle.make} ${vehicle.model}` : `${isCompared ? 'Remove from' : 'Add to'} comparison: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isCompared ? 'bg-[var(--color-accent)] text-white' : 'bg-slate-950/80 text-white hover:bg-slate-900'}`}>
+                        <Scale className="w-4 h-4" aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => onToggleSave(vehicle.id)} aria-pressed={isSaved} aria-label={isGreek ? `${isSaved ? 'Αφαίρεση από' : 'Αποθήκευση στο'} Garage: ${vehicle.make} ${vehicle.model}` : `${isSaved ? 'Remove from' : 'Save to'} garage: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-slate-950/80 text-white hover:bg-slate-900'}`}>
+                        <Bookmark className="w-4 h-4" aria-hidden="true" />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs py-2 border-y border-slate-100 dark:border-slate-800">
-                    <div>
-                      <span className="text-[10px] text-slate-500">Power</span>
-                      <div className="font-bold text-slate-900 dark:text-white">{vehicle.horsepower} hp</div>
+                  <div className="p-5">
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--color-text-muted)] mb-1 font-medium">
+                      <span>{isGreek ? BODY_LABELS_GR[vehicle.bodyStyle] ?? vehicle.bodyStyle : vehicle.bodyStyle}</span><span aria-hidden="true">·</span><span>{isGreek ? FUEL_LABELS_GR[vehicle.fuelType] ?? vehicle.fuelType : vehicle.fuelType}</span><span aria-hidden="true">·</span><span>{vehicle.drivetrain}</span>
                     </div>
-                    <div>
-                      <span className="text-[10px] text-slate-500">Reliability</span>
-                      <div className="font-bold text-slate-900 dark:text-white">{vehicle.reliabilityRating}/5</div>
+                    <h2 className="text-xl font-extrabold text-[var(--color-text)] tracking-tight">{vehicle.make} {vehicle.model}</h2>
+
+                    <div className="mt-3 p-3 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] flex items-center justify-between gap-4">
+                      <div><span className="text-xs font-semibold text-[var(--color-text-muted)] block">{isGreek ? 'Ενδεικτικό εύρος' : 'Reference range'}</span><span className="text-sm font-bold text-[var(--color-text)]">{formatPriceRange(vehicle.typicalPriceMin, vehicle.typicalPriceMax, currency)}</span></div>
+                      <div className="text-right"><span className="text-xs font-semibold text-[var(--color-success)] block">{isGreek ? 'Στόχος καλής αγοράς' : 'Good-buy target'}</span><span className="text-sm font-extrabold text-[var(--color-success)]">{isGreek ? 'Κάτω από ' : 'Under '}{formatPrice(vehicle.goodBuyPrice, currency)}</span></div>
                     </div>
-                    <div>
-                      <span className="text-[10px] text-slate-500">Boot</span>
-                      <div className="font-bold text-slate-900 dark:text-white">{vehicle.cargoCapacityLiters}L</div>
+
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-center text-sm py-3 border-y border-[var(--color-border)]">
+                      <div><span className="text-xs text-[var(--color-text-muted)]">{isGreek ? 'Ισχύς' : 'Power'}</span><div className="font-bold text-[var(--color-text)]">{vehicle.horsepower} hp</div></div>
+                      <div><span className="text-xs text-[var(--color-text-muted)]">{isGreek ? 'Αξιοπιστία' : 'Reliability'}</span><div className="font-bold text-[var(--color-text)]">{vehicle.reliabilityRating}/5</div></div>
+                      <div><span className="text-xs text-[var(--color-text-muted)]">{isGreek ? 'Χώρος' : 'Boot'}</span><div className="font-bold text-[var(--color-text)]">{vehicle.cargoCapacityLiters} L</div></div>
                     </div>
+
+                    <p className="mt-3 text-sm text-[var(--color-text-muted)] line-clamp-2">{vehicle.defaultExplanation}</p>
                   </div>
                 </div>
-              </div>
 
-              <div className="p-4 sm:p-5 pt-0 border-t border-slate-100 dark:border-slate-800/80 mt-2 flex items-center gap-2">
-                <button
-                  onClick={() => onOpenDetails(vehicle)}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  <span>Full Model Guide & Checks</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-
-                {listingCount > 0 && (
-                  <button
-                    onClick={() => onViewListings(vehicle.id)}
-                    className="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-500 cursor-pointer"
-                  >
-                    {listingCount} Listing{listingCount > 1 ? 's' : ''}
+                <div className="p-5 pt-0 flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={() => onOpenDetails(vehicle)} className="min-h-11 flex-1 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-bold transition-colors">
+                    <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                    <span>{isGreek ? 'Οδηγός & έλεγχος' : 'Guide & checks'}</span>
+                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
                   </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                  {listingCount > 0 && <button type="button" onClick={() => onViewListings(vehicle.id)} className="min-h-11 px-4 rounded-xl border border-[var(--color-border)] text-sm font-bold text-[var(--color-text)] hover:bg-[var(--color-surface-subtle)] transition-colors">{listingCount} {isGreek ? 'ενδεικτικές αγγελίες' : 'listings'}</button>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

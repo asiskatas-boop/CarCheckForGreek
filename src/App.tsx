@@ -38,7 +38,12 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<'advisor' | 'all-cars' | 'marketplace' | 'garage'>('advisor');
+  const [currentTab, setCurrentTab] = useState<'advisor' | 'all-cars' | 'marketplace' | 'garage'>(() => {
+    if (typeof window === 'undefined') return 'advisor';
+    if (window.location.hash === '#vehicles') return 'all-cars';
+    if (window.location.hash === '#marketplace') return 'marketplace';
+    return 'advisor';
+  });
   const [discoveryState, setDiscoveryState] = useState<'hero' | 'questionnaire' | 'results'>('hero');
 
   const [marketRegion, setMarketRegion] = useState<MarketRegion>(() => {
@@ -59,16 +64,6 @@ export default function App() {
     }
   });
 
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_theme');
-      if (stored) return stored === 'dark';
-      return true; // default dark for premium automotive feel
-    } catch {
-      return true;
-    }
-  });
-
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(() => {
     try {
       const stored = localStorage.getItem('carcheck_user_preferences');
@@ -79,7 +74,7 @@ export default function App() {
   });
 
   const [recommendations, setRecommendations] = useState<ScoredRecommendation[]>(() => {
-    return recommendVehicles(DEFAULT_PREFERENCES);
+    return recommendVehicles({ ...userPreferences, marketRegion });
   });
 
   // Saved Garage IDs
@@ -129,25 +124,60 @@ export default function App() {
     searchQuery: ''
   });
 
-  // Synchronize Dark Mode with document
+  // CarCheck intentionally ships as a dark-first automotive interface.
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('carcheck_theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('carcheck_theme', 'dark');
+  }, []);
+
+  // Keep the primary views bookmarkable and make browser Back/Forward useful without adding a routing dependency.
+  useEffect(() => {
+    const hash = currentTab === 'all-cars' ? '#vehicles' : currentTab === 'marketplace' ? '#marketplace' : '#advisor';
+    if (window.location.hash !== hash) window.history.pushState(null, '', hash);
+  }, [currentTab]);
+
+  useEffect(() => {
+    const syncViewFromUrl = () => {
+      const hash = window.location.hash;
+      setCurrentTab(hash === '#vehicles' ? 'all-cars' : hash === '#marketplace' ? 'marketplace' : 'advisor');
+    };
+    window.addEventListener('popstate', syncViewFromUrl);
+    window.addEventListener('hashchange', syncViewFromUrl);
+    return () => {
+      window.removeEventListener('popstate', syncViewFromUrl);
+      window.removeEventListener('hashchange', syncViewFromUrl);
+    };
+  }, []);
+
+  // Keep document language and market metadata in sync with the selected region.
+  useEffect(() => {
+    const isGreek = marketRegion === 'greece';
+    document.documentElement.lang = isGreek ? 'el' : 'en';
+    document.title = isGreek
+      ? 'CarCheck — Σύμβουλος Αγοράς Αυτοκινήτου'
+      : 'CarCheck — Intelligent Car Discovery & Advisor';
+  }, [marketRegion]);
 
   // Synchronize Currency with localStorage
   useEffect(() => {
     localStorage.setItem('carcheck_currency', currency);
+    setUserPreferences((prev) => {
+      if (prev.currency === currency) return prev;
+      const updated = { ...prev, currency };
+      localStorage.setItem('carcheck_user_preferences', JSON.stringify(updated));
+      return updated;
+    });
   }, [currency]);
 
   // Synchronize Market Region with localStorage
   useEffect(() => {
     localStorage.setItem('carcheck_market_region', marketRegion);
-    setUserPreferences((prev) => ({ ...prev, marketRegion }));
+    setUserPreferences((prev) => {
+      const updated = { ...prev, marketRegion };
+      localStorage.setItem('carcheck_user_preferences', JSON.stringify(updated));
+      setRecommendations(recommendVehicles(updated));
+      return updated;
+    });
   }, [marketRegion]);
 
   // Synchronize Saved vehicles with localStorage
@@ -304,9 +334,10 @@ export default function App() {
       }
 
       if (overrides.excludeFuelType) {
+        const allowedFuelTypes = ['Petrol', 'Hybrid', 'Plug-in Hybrid', 'Electric'] as SmartFilterState['fuelTypes'];
         setSmartFilters((prev) => ({
           ...prev,
-          fuelTypes: prev.fuelTypes.filter((f) => f !== overrides.excludeFuelType)
+          fuelTypes: allowedFuelTypes.filter((fuel) => fuel !== overrides.excludeFuelType)
         }));
       }
 
@@ -326,7 +357,16 @@ export default function App() {
         }));
       }
 
+      if (overrides.maxPriceEUR) {
+        setSmartFilters((prev) => ({ ...prev, maxPriceEUR: overrides.maxPriceEUR }));
+      }
+
+      if (typeof overrides.searchQuery === 'string') {
+        setSmartFilters((prev) => ({ ...prev, searchQuery: overrides.searchQuery }));
+      }
+
       setUserPreferences(updatedPrefs);
+      localStorage.setItem('carcheck_user_preferences', JSON.stringify(updatedPrefs));
       const reRecs = recommendVehicles(updatedPrefs);
       setRecommendations(reRecs);
     }
@@ -341,7 +381,7 @@ export default function App() {
   const comparedVehicles = VEHICLES.filter((v) => comparedVehicleIds.includes(v.id));
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#181818] text-white transition-colors">
+    <div className="min-h-screen flex flex-col bg-[var(--color-canvas)] text-[var(--color-text)] transition-colors pb-20 md:pb-0">
       {/* Navbar */}
       <Navbar
         currentTab={currentTab}
@@ -359,13 +399,10 @@ export default function App() {
         setCurrency={setCurrency}
         marketRegion={marketRegion}
         setMarketRegion={setMarketRegion}
-        isDarkMode={isDarkMode}
-        setIsDarkMode={setIsDarkMode}
         onResetDiscovery={() => {
           setDiscoveryState('questionnaire');
           setCurrentTab('advisor');
         }}
-        onOpenExportScreens={() => setIsExportScreensOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -422,6 +459,7 @@ export default function App() {
             onToggleSave={handleToggleSaveVehicle}
             savedIds={savedVehicleIds}
             onViewListings={handleViewListings}
+            marketRegion={marketRegion}
           />
         )}
 
@@ -433,6 +471,7 @@ export default function App() {
             onToggleSaveListing={handleToggleSaveListing}
             filterVehicleId={marketplaceVehicleFilter}
             onClearVehicleFilter={() => setMarketplaceVehicleFilter(undefined)}
+            marketRegion={marketRegion}
           />
         )}
       </main>
@@ -463,6 +502,7 @@ export default function App() {
           currency={currency}
           userPreferences={userPreferences}
           onRemoveVehicle={(id) => handleToggleCompare(id)}
+          marketRegion={marketRegion}
         />
       )}
 
@@ -476,41 +516,45 @@ export default function App() {
         onRemoveListing={handleToggleSaveListing}
         currency={currency}
         onOpenDetails={(v) => setSelectedVehicleForDetail(v)}
+        marketRegion={marketRegion}
         onStartComparison={(vehicles) => {
           setComparedVehicleIds(vehicles.map((v) => v.id));
           setIsCompareModalOpen(true);
         }}
       />
 
-      {/* Quiet, anti-slop footer */}
-      <footer className="border-t border-[#e5e5ea] dark:border-[#2d2d30] py-8 text-xs text-[#86868b] text-center">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-[#1d1d1f] dark:text-[#e5e5ea]">CarCheck Advisor</span>
-            <span>·</span>
-            <span>Unbiased car discovery without classified clutter</span>
+      <footer className="border-t border-[var(--color-border)] py-8 text-sm text-[var(--color-text-muted)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <span className="font-bold text-[var(--color-text)]">CarCheck Advisor</span>
+            <span className="mx-2" aria-hidden="true">·</span>
+            <span>{marketRegion === 'greece' ? 'Ανεξάρτητη καθοδήγηση για αγορά αυτοκινήτου' : 'Independent car-buying guidance'}</span>
           </div>
-
-          <div className="flex items-center gap-4 text-[11px]">
+          <span className="text-xs max-w-xl sm:text-right">
+            {marketRegion === 'greece'
+              ? 'Οι τιμές, οι αγγελίες και τα φορολογικά στοιχεία είναι ενδεικτικά στιγμιότυπα. Επιβεβαίωσέ τα στην αρχική πηγή πριν από αγορά.'
+              : 'Prices, listings, and market data are reference snapshots. Verify current details with the original source before purchasing.'}
+          </span>
+          {import.meta.env.DEV && (
             <button
+              type="button"
               onClick={() => setIsExportScreensOpen(true)}
-              className="text-[#0066cc] dark:text-[#2997ff] font-semibold hover:underline cursor-pointer"
+              className="text-xs font-semibold text-[var(--color-accent-text)] underline underline-offset-4"
             >
-              {marketRegion === 'greece' ? '📄 Εξαγωγή & Εκτύπωση 10 Οθονών (PDF/HTML)' : '📄 Export All 10 Screens (PDF / HTML)'}
+              {marketRegion === 'greece' ? 'Εξαγωγή οθονών (dev)' : 'Export screens (dev)'}
             </button>
-            <span>·</span>
-            <span>Prices verified for 2026</span>
-          </div>
+          )}
         </div>
       </footer>
 
-      {/* Screen Portfolio & Exporter Modal */}
-      <ScreensExportModal
-        isOpen={isExportScreensOpen}
-        onClose={() => setIsExportScreensOpen(false)}
-        marketRegion={marketRegion}
-        currency={currency}
-      />
+      {import.meta.env.DEV && (
+        <ScreensExportModal
+          isOpen={isExportScreensOpen}
+          onClose={() => setIsExportScreensOpen(false)}
+          marketRegion={marketRegion}
+          currency={currency}
+        />
+      )}
     </div>
   );
 }

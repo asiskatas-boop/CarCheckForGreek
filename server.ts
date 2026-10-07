@@ -29,7 +29,8 @@ const ai = process.env.GEMINI_API_KEY
 // API: Conversational Preference Refiner
 app.post('/api/chat-refine', async (req: Request, res: Response) => {
   try {
-    const { userMessage, currentPreferences } = req.body;
+    const { userMessage, currentPreferences, marketRegion } = req.body;
+    const isGreek = marketRegion === 'greece' || currentPreferences?.marketRegion === 'greece';
 
     if (!userMessage) {
       res.status(400).json({ error: 'userMessage is required' });
@@ -47,6 +48,8 @@ Current User Preferences:
 - Lifestyle: ${currentPreferences?.lifestyle?.join(', ') || 'general'}
 
 The user just requested: "${userMessage}"
+
+${isGreek ? 'Reply in natural modern Greek. Keep car model names and technical units unchanged.' : 'Reply in English.'}
 
 Analyze their statement and return a JSON object with:
 1. "advisorResponse": A concise, friendly, 2-3 sentence automotive advisor response explaining what you did and why it makes sense. Do not sound like a pushy salesman; be an honest car friend.
@@ -85,32 +88,32 @@ Return strictly valid JSON.`;
 
     // Heuristic Fallback
     const lower = userMessage.toLowerCase();
-    let advisorResponse = "I've updated your recommendations based on your request.";
+    let advisorResponse = isGreek ? 'Ενημέρωσα τις προτάσεις με βάση το αίτημά σου.' : "I've updated your recommendations based on your request.";
     const filterOverrides: Record<string, any> = {};
 
-    if (lower.includes('cheaper') || lower.includes('under 15') || lower.includes('less money')) {
-      advisorResponse = "Understood. I've narrowed the focus to options with lower purchase prices and rock-bottom running costs.";
+    if (lower.includes('cheaper') || lower.includes('under 15') || lower.includes('less money') || lower.includes('φθην') || lower.includes('κάτω από')) {
+      advisorResponse = isGreek ? 'Περιορίζω τις επιλογές σε χαμηλότερη τιμή αγοράς και μικρότερο κόστος χρήσης.' : "Understood. I've narrowed the focus to options with lower purchase prices and low running costs.";
       filterOverrides.maxPriceEUR = 18000;
       filterOverrides.addPriority = 'low-running-costs';
-    } else if (lower.includes('sport') || lower.includes('faster') || lower.includes('fun')) {
-      advisorResponse = "Dialed up the excitement! Prioritizing cars with sharp chassis dynamics, higher horsepower, and lively steering.";
+    } else if (lower.includes('sport') || lower.includes('faster') || lower.includes('fun') || lower.includes('σπορ') || lower.includes('γρήγορ')) {
+      advisorResponse = isGreek ? 'Δίνω περισσότερο βάρος σε επιδόσεις, απόκριση και οδηγική αίσθηση.' : 'Prioritizing sharper chassis dynamics, higher performance, and lively steering.';
       filterOverrides.addPriority = 'performance';
       filterOverrides.sportyFocus = true;
     } else if (lower.includes('suv')) {
-      advisorResponse = "Filtered specifically for SUVs and crossovers with higher ground clearance, commanding visibility, and flexible cargo space.";
+      advisorResponse = isGreek ? 'Φιλτράρω για SUV και crossover με ψηλότερη θέση οδήγησης και πρακτικούς χώρους.' : 'Filtered for SUVs and crossovers with higher seating positions and flexible cargo space.';
       filterOverrides.bodyStyle = ['Compact SUV', 'Mid-size SUV', 'Large SUV', 'Crossover'];
-    } else if (lower.includes('diesel') && (lower.includes("don't") || lower.includes('no'))) {
-      advisorResponse = "Excluded all diesel powertrains. Highlighting clean petrol, self-charging hybrids, and electric alternatives.";
+    } else if ((lower.includes('diesel') || lower.includes('ντίζελ')) && (lower.includes("don't") || lower.includes('no') || lower.includes('δεν') || lower.includes('όχι'))) {
+      advisorResponse = isGreek ? 'Αφαιρώ τα diesel και κρατώ βενζίνη, υβριδικά και ηλεκτρικά.' : 'Excluded diesel powertrains and kept petrol, hybrid, and electric alternatives.';
       filterOverrides.excludeFuelType = 'Diesel';
-    } else if (lower.includes('electric') || lower.includes('ev')) {
-      advisorResponse = "Switched to pure electric and plug-in vehicles to eliminate fuel station visits and slash per-kilometer running costs.";
+    } else if (lower.includes('electric') || lower.includes('ev') || lower.includes('ηλεκτρ')) {
+      advisorResponse = isGreek ? 'Εστιάζω σε αμιγώς ηλεκτρικά και plug-in hybrid, με προσοχή σε φόρτιση και πραγματική χρήση.' : 'Switched the focus to electric and plug-in hybrid vehicles, with charging and daily use in mind.';
       filterOverrides.fuelType = ['Electric', 'Plug-in Hybrid'];
-    } else if (lower.includes('luggage') || lower.includes('boot') || lower.includes('space') || lower.includes('practical')) {
-      advisorResponse = "Emphasizing vehicles with 500+ liter cargo bays, split-folding rear benches, and family-proof practicality.";
+    } else if (lower.includes('luggage') || lower.includes('boot') || lower.includes('space') || lower.includes('practical') || lower.includes('πορτ') || lower.includes('χώρ') || lower.includes('πρακτικ')) {
+      advisorResponse = isGreek ? 'Δίνω προτεραιότητα σε μεγαλύτερο χώρο αποσκευών και πιο πρακτικές οικογενειακές επιλογές.' : 'Emphasizing larger cargo areas and more practical family-friendly options.';
       filterOverrides.addPriority = 'practicality';
       filterOverrides.bodyStyle = ['Estate / Wagon', 'Mid-size SUV', 'Large SUV'];
-    } else if (lower.includes('premium') || lower.includes('luxury')) {
-      advisorResponse = "Elevated the focus to premium marques featuring acoustic soundproofing, refined suspension, and upscale craftsmanship.";
+    } else if (lower.includes('premium') || lower.includes('luxury') || lower.includes('πολυτελ')) {
+      advisorResponse = isGreek ? 'Μεταφέρω το βάρος σε ποιότητα κύλισης, ηχομόνωση και πιο premium καμπίνα.' : 'Shifting the focus toward refinement, sound insulation, and a more premium cabin.';
       filterOverrides.addPriority = 'luxury';
     }
 
@@ -129,7 +132,8 @@ Return strictly valid JSON.`;
 // API: Comparison Advisory Synthesis
 app.post('/api/compare-advisory', async (req: Request, res: Response) => {
   try {
-    const { vehicles, userPreferences } = req.body;
+    const { vehicles, userPreferences, marketRegion } = req.body;
+    const isGreek = marketRegion === 'greece' || userPreferences?.marketRegion === 'greece';
 
     if (!vehicles || !Array.isArray(vehicles) || vehicles.length === 0) {
       res.status(400).json({ error: 'Vehicles array is required' });
@@ -152,6 +156,8 @@ The user's stated background:
 - Budget: ${userPreferences?.budgetId || 'general'}
 - Usages: ${userPreferences?.usages?.join(', ') || 'daily driving'}
 - Priorities: ${userPreferences?.priorities?.join(', ') || 'overall balance'}
+
+${isGreek ? 'Write all prose fields in natural modern Greek; keep model names and technical units unchanged.' : 'Write all prose fields in English.'}
 
 Provide a personalized comparison conclusion answering:
 "Which one should you choose?"
@@ -189,12 +195,19 @@ Return JSON.`;
     const v2 = vehicles[1] || v1;
     res.json({
       success: true,
-      headline: `Between the ${v1.make} ${v1.model} and ${v2.make} ${v2.model}, your decision hinges on ${userPreferences?.priorities?.[0] || 'running costs'} versus practicality.`,
-      tradeOffs: [
-        `The ${v1.make} offers ${v1.reliabilityRating >= 4 ? 'exceptional reliability' : 'nimble performance'} and ${v1.fuelEconomy} efficiency.`,
-        `The ${v2.make} counters with ${v2.cargoCapacityLiters}L cargo capacity and strong long-distance composure.`
+      headline: isGreek
+        ? `Η επιλογή ανάμεσα σε ${v1.make} ${v1.model} και ${v2.make} ${v2.model} εξαρτάται κυρίως από το κόστος χρήσης και την πρακτικότητα.`
+        : `Between the ${v1.make} ${v1.model} and ${v2.make} ${v2.model}, the decision mainly comes down to running costs versus practicality.`,
+      tradeOffs: isGreek ? [
+        `Το ${v1.make} ${v1.model} προσφέρει αξιοπιστία ${v1.reliabilityRating}/5 και κατανάλωση ${v1.fuelEconomy}.`,
+        `Το ${v2.make} ${v2.model} προσφέρει ${v2.cargoCapacityLiters} L χώρο αποσκευών και διαφορετικό συμβιβασμό σε άνεση και κόστος.`
+      ] : [
+        `The ${v1.make} ${v1.model} offers ${v1.reliabilityRating}/5 reliability and ${v1.fuelEconomy} efficiency.`,
+        `The ${v2.make} ${v2.model} offers ${v2.cargoCapacityLiters} L cargo capacity with a different comfort/cost trade-off.`
       ],
-      verdict: `If your primary daily usage is ${userPreferences?.usages?.[0] || 'commuting'}, choose the ${v1.make} ${v1.model}. If you frequently carry heavy gear or family passengers, opt for the ${v2.make}.`
+      verdict: isGreek
+        ? `Για την καθημερινή επιλογή προτίμησε το μοντέλο που ταιριάζει καλύτερα στις δηλωμένες προτεραιότητές σου και έλεγξε πάντα το συγκεκριμένο μεταχειρισμένο πριν την αγορά.`
+        : `For the daily-use choice, prefer the model that best matches your stated priorities and always inspect the specific used car before purchase.`
     });
   } catch (error) {
     console.error('Error in /api/compare-advisory:', error);

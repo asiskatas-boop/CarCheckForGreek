@@ -19,7 +19,18 @@ import {
   Sliders,
   DollarSign,
   Car,
-  HeartHandshake
+  HeartHandshake,
+  Route,
+  Building2,
+  Users,
+  Map,
+  TentTree,
+  Briefcase,
+  Package,
+  Trees,
+  Gauge,
+  ShieldCheck,
+  Gem
 } from 'lucide-react';
 
 interface QuestionnaireProps {
@@ -106,18 +117,18 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
   ];
 
   // Question 2 Usages
-  const usageOptions: { id: UsageType; label: string; icon: string }[] = [
-    { id: 'daily-commuting', label: 'Daily commuting', icon: '🛣️' },
-    { id: 'city-driving', label: 'City driving & parking', icon: '🏙️' },
-    { id: 'family-use', label: 'Family & kids', icon: '👨‍👩‍👧‍👦' },
-    { id: 'long-road-trips', label: 'Long road trips / Motorway', icon: '✈️' },
-    { id: 'weekend-driving', label: 'Weekend leisure', icon: '🏕️' },
-    { id: 'business', label: 'Business & client travel', icon: '💼' },
-    { id: 'carrying-equipment', label: 'Carrying bulky equipment', icon: '📦' },
-    { id: 'outdoor-activities', label: 'Outdoor adventures & sports', icon: '🌲' },
-    { id: 'performance-fun', label: 'Performance & driving fun', icon: '🏁' },
-    { id: 'first-car', label: 'First car / New driver', icon: '🔰' },
-    { id: 'luxury-comfort', label: 'Luxury & quiet comfort', icon: '✨' }
+  const usageOptions: { id: UsageType; label: string; icon: React.ElementType }[] = [
+    { id: 'daily-commuting', label: 'Daily commuting', icon: Route },
+    { id: 'city-driving', label: 'City driving & parking', icon: Building2 },
+    { id: 'family-use', label: 'Family & kids', icon: Users },
+    { id: 'long-road-trips', label: 'Long road trips / Motorway', icon: Map },
+    { id: 'weekend-driving', label: 'Weekend leisure', icon: TentTree },
+    { id: 'business', label: 'Business & client travel', icon: Briefcase },
+    { id: 'carrying-equipment', label: 'Carrying bulky equipment', icon: Package },
+    { id: 'outdoor-activities', label: 'Outdoor adventures & sports', icon: Trees },
+    { id: 'performance-fun', label: 'Performance & driving fun', icon: Gauge },
+    { id: 'first-car', label: 'First car / New driver', icon: ShieldCheck },
+    { id: 'luxury-comfort', label: 'Luxury & quiet comfort', icon: Gem }
   ];
 
   // Question 3 Priorities
@@ -402,9 +413,9 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
               : isGreek ? 'Τρόπος Ζωής & Δακτύλιος' : 'Lifestyle Tailoring'}
           </span>
         </div>
-        <div className="w-full h-1 bg-[#303030] rounded-none overflow-hidden">
+        <div className="w-full h-1 bg-[#303030] rounded-xl overflow-hidden">
           <div
-            className="h-full bg-[#da291c] rounded-none transition-all duration-300"
+            className="h-full bg-[var(--color-accent)] rounded-xl transition-all duration-300"
             style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
@@ -414,7 +425,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
       {step === 1 && (
         <div className="space-y-6 animate-fadeIn">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-[#da291c] mb-1">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-text)] mb-1">
               {isGreek ? 'Βήμα 1 από 4 · Οικονομικές Παράμετροι' : 'Step 1 of 4 · Financial Parameters'}
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -435,9 +446,10 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   key={opt.id}
                   type="button"
                   onClick={() => handleSelectBudget(opt.id)}
-                  className={`p-4 rounded-none border text-left transition-all cursor-pointer ${
+                  aria-pressed={isSelected}
+                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-[#da291c] bg-[#303030] text-white shadow-xs'
+                      ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
                       : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
                   }`}
                 >
@@ -446,7 +458,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       {opt.label}
                     </span>
                     {isSelected && (
-                      <div className="w-5 h-5 rounded-none bg-[#da291c] text-white flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                     )}
@@ -462,9 +474,10 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
             <button
               type="button"
               onClick={() => handleSelectBudget('custom')}
-              className={`p-4 rounded-none border text-left transition-all cursor-pointer ${
+              aria-pressed={showCustomBudget || prefs.budgetId === 'custom'}
+              className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                 showCustomBudget || prefs.budgetId === 'custom'
-                  ? 'border-[#da291c] bg-[#303030] text-white shadow-xs'
+                  ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
                   : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
               }`}
             >
@@ -473,7 +486,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   {isGreek ? 'Προσαρμοσμένο Ποσό (από 1.500€)' : 'Custom Amount (from €1,500)'}
                 </span>
                 {(showCustomBudget || prefs.budgetId === 'custom') && (
-                  <div className="w-5 h-5 rounded-none bg-[#da291c] text-white flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
                 )}
@@ -488,13 +501,13 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
 
           {/* Custom Budget Inputs (Shown when custom is selected) */}
           {(showCustomBudget || prefs.budgetId === 'custom') && (
-            <div className="p-4 rounded-none bg-[#1e1e1e] border border-[#da291c]/50 animate-fadeIn">
-              <div className="text-xs font-bold uppercase tracking-[1.1px] text-[#da291c] mb-3">
+            <div className="p-4 rounded-xl bg-[#1e1e1e] border border-[var(--color-accent)]/50 animate-fadeIn">
+              <div className="text-xs font-bold uppercase tracking-[1.1px] text-[var(--color-accent-text)] mb-3">
                 {isGreek ? 'Ορισμός Εύρους Budget (από 1.500€)' : 'Define Budget Target Range (From €1,500)'}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-[#969696] block mb-1">
+                  <label htmlFor="custom-budget-min" className="text-xs text-[#969696] block mb-1">
                     {isGreek ? 'Ελάχιστο Ποσό' : 'Minimum Budget'}
                   </label>
                   <div className="relative">
@@ -502,7 +515,9 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       {symbol}
                     </span>
                     <input
+                      id="custom-budget-min"
                       type="number"
+                      inputMode="numeric"
                       min={1500}
                       step={500}
                       value={customMin}
@@ -511,13 +526,13 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                         setCustomMin(val);
                         setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: val, budgetCustomMax: customMax });
                       }}
-                      className="w-full pl-8 pr-3 py-2 text-sm rounded-none border border-[#303030] bg-[#181818] text-white focus:border-[#da291c] focus:outline-none"
+                      className="w-full min-h-11 pl-8 pr-3 py-2 text-sm rounded-xl border border-[#303030] bg-[#181818] text-white focus:border-[var(--color-accent)] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs text-[#969696] block mb-1">
+                  <label htmlFor="custom-budget-max" className="text-xs text-[#969696] block mb-1">
                     {isGreek ? 'Μέγιστο Ποσό' : 'Maximum Budget'}
                   </label>
                   <div className="relative">
@@ -525,7 +540,9 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       {symbol}
                     </span>
                     <input
+                      id="custom-budget-max"
                       type="number"
+                      inputMode="numeric"
                       min={customMin}
                       step={500}
                       value={customMax}
@@ -534,7 +551,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                         setCustomMax(val);
                         setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: customMin, budgetCustomMax: val });
                       }}
-                      className="w-full pl-8 pr-3 py-2 text-sm rounded-none border border-[#303030] bg-[#181818] text-white focus:border-[#da291c] focus:outline-none"
+                      className="w-full min-h-11 pl-8 pr-3 py-2 text-sm rounded-xl border border-[#303030] bg-[#181818] text-white focus:border-[var(--color-accent)] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -543,10 +560,10 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
           )}
 
           {/* Optional Financing details (non-mandatory) */}
-          <div className="mt-6 p-4 rounded-none bg-[#242424] border border-[#303030]">
+          <div className="mt-6 p-4 rounded-xl bg-[#242424] border border-[#303030]">
             <div className="flex items-center justify-between text-xs font-semibold text-white mb-3">
               <span className="flex items-center gap-1.5">
-                <HeartHandshake className="w-4 h-4 text-[#da291c]" />
+                <HeartHandshake className="w-4 h-4 text-[var(--color-accent-text)]" />
                 {isGreek ? 'Προαιρετικό: Τρόπος Πληρωμής' : 'Optional: Purchase or Financing Preference'}
               </span>
               <span className="text-[11px] font-normal text-[#969696]">
@@ -563,15 +580,16 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                 <button
                   key={pMethod.id}
                   type="button"
+                  aria-pressed={prefs.paymentMethod === pMethod.id}
                   onClick={() =>
                     setPrefs({
                       ...prefs,
                       paymentMethod: pMethod.id as PaymentMethod
                     })
                   }
-                  className={`py-2 px-3 rounded-none text-xs font-medium border text-center transition-colors cursor-pointer ${
+                  className={`min-h-11 px-3 rounded-xl text-xs font-medium border text-center transition-colors cursor-pointer ${
                     prefs.paymentMethod === pMethod.id
-                      ? 'border-[#da291c] bg-[#303030] text-white'
+                      ? 'border-[var(--color-accent)] bg-[#303030] text-white'
                       : 'border-[#303030] bg-[#181818] text-[#969696] hover:text-white'
                   }`}
                 >
@@ -582,7 +600,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
 
             {prefs.paymentMethod === 'financing' && (
               <div className="mt-3 flex items-center gap-3">
-                <label className="text-xs text-[#969696]">
+                <label htmlFor="monthly-payment-max" className="text-xs text-[#969696]">
                   {isGreek ? 'Μέγιστη μηνιαία δόση:' : 'Target monthly payment:'}
                 </label>
                 <div className="relative">
@@ -590,7 +608,9 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                     {symbol}
                   </span>
                   <input
+                    id="monthly-payment-max"
                     type="number"
+                    inputMode="numeric"
                     placeholder="π.χ. 250"
                     value={customMonthly}
                     onChange={(e) => {
@@ -598,7 +618,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       const parsed = parseInt(e.target.value, 10);
                       setPrefs({ ...prefs, monthlyPaymentMax: isNaN(parsed) ? undefined : parsed });
                     }}
-                    className="w-32 pl-6 pr-2 py-1 text-xs rounded-none border border-[#303030] bg-[#181818] text-white focus:border-[#da291c] focus:outline-none"
+                    className="w-36 min-h-11 pl-6 pr-2 py-2 text-sm rounded-xl border border-[#303030] bg-[#181818] text-white focus:border-[var(--color-accent)] focus:outline-none"
                   />
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#969696]">
                     /μήνα
@@ -614,7 +634,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
       {step === 2 && (
         <div className="space-y-6 animate-fadeIn">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-[#da291c] mb-1">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-text)] mb-1">
               {isGreek ? 'Βήμα 2 από 4 · Προφίλ Χρήσης' : 'Step 2 of 4 · Usage profile'}
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -649,18 +669,17 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   key={opt.id}
                   type="button"
                   onClick={() => handleToggleUsage(opt.id)}
-                  className={`p-3.5 rounded-none border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[90px] ${
+                  aria-pressed={isSelected}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[90px] ${
                     isSelected
-                      ? 'border-[#da291c] bg-[#303030] text-white shadow-xs'
+                      ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
                       : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xl" role="img" aria-label={localizedLabel}>
-                      {opt.icon}
-                    </span>
+                    {React.createElement(opt.icon, { className: 'w-5 h-5 text-[var(--color-accent-text)]', 'aria-hidden': true })}
                     {isSelected && (
-                      <div className="w-4 h-4 rounded-none bg-[#da291c] text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
@@ -688,7 +707,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
         <div className="space-y-6 animate-fadeIn">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#da291c] mb-1">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-text)] mb-1">
                 {isGreek ? 'Βήμα 3 από 4 · Κριτήρια Αξιολόγησης' : 'Step 3 of 4 · Ranking criteria'}
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -701,7 +720,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
               </p>
             </div>
 
-            <div className="self-start sm:self-auto text-xs font-semibold px-2.5 py-1 rounded-none bg-[#303030] text-white">
+            <div role="status" aria-live="polite" className="self-start sm:self-auto text-xs font-semibold px-2.5 py-1 rounded-xl bg-[#303030] text-white">
               {isGreek ? `${prefs.priorities.length} από 3 επιλεγμένα` : `${prefs.priorities.length} of 3 selected`}
             </div>
           </div>
@@ -747,11 +766,12 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   type="button"
                   disabled={isDisabled}
                   onClick={() => handleTogglePriority(opt.id)}
-                  className={`p-3.5 rounded-none border text-left transition-all ${
+                  aria-pressed={isSelected}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
                     isDisabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
                   } ${
                     isSelected
-                      ? 'border-[#da291c] bg-[#303030] text-white shadow-xs'
+                      ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
                       : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
                   }`}
                 >
@@ -760,7 +780,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       {localizedLabel}
                     </span>
                     {isSelected && (
-                      <div className="w-4 h-4 rounded-none bg-[#da291c] text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
@@ -779,7 +799,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
       {step === 4 && (
         <div className="space-y-6 animate-fadeIn">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-[#da291c] mb-1">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-text)] mb-1">
               {isGreek ? 'Βήμα 4 από 4 · Προσαρμογή στον Τρόπο Ζωής' : 'Step 4 of 4 · Dynamic lifestyle tailoring'}
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -807,9 +827,10 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   key={choice.id}
                   type="button"
                   onClick={() => handleSelectDynamicChoice(choice)}
-                  className={`p-4 rounded-none border text-left transition-all cursor-pointer ${
+                  aria-pressed={isSelected}
+                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-[#da291c] bg-[#303030] text-white shadow-xs'
+                      ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
                       : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
                   }`}
                 >
@@ -818,7 +839,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       {choice.label}
                     </span>
                     {isSelected && (
-                      <div className="w-4 h-4 rounded-none bg-[#da291c] text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
@@ -839,7 +860,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
           <button
             type="button"
             onClick={() => setStep(step - 1)}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-none border border-[#303030] bg-[#242424] text-white text-xs font-bold uppercase tracking-[1.2px] hover:bg-[#303030] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[#303030] bg-[#242424] text-white text-xs font-bold uppercase tracking-[1.2px] hover:bg-[#303030] transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{isGreek ? 'ΠΙΣΩ' : 'BACK'}</span>
@@ -857,7 +878,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
               (step === 3 && !canProceedStep3)
             }
             onClick={() => setStep(step + 1)}
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-none bg-[#da291c] hover:bg-[#b01e0a] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-[1.4px] transition-colors cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-[var(--color-accent)] hover:bg-[#b01e0a] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-[1.4px] transition-colors cursor-pointer shadow-sm"
           >
             <span>{isGreek ? 'ΣΥΝΕΧΕΙΑ' : 'CONTINUE'}</span>
             <ArrowRight className="w-4 h-4" />
@@ -867,7 +888,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
             type="button"
             disabled={!canProceedStep4}
             onClick={handleFinish}
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-none bg-[#da291c] hover:bg-[#b01e0a] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-[1.4px] transition-all shadow-md cursor-pointer"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[var(--color-accent)] hover:bg-[#b01e0a] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-[1.4px] transition-all shadow-md cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-white" />
             <span>{isGreek ? 'ΕΥΡΕΣΗ ΑΥΤΟΚΙΝΗΤΩΝ' : 'GENERATE CAR RECOMMENDATIONS'}</span>
