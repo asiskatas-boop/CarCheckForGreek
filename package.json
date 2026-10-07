@@ -11,10 +11,7 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "validate:data": "node scripts/validate-vehicle-import.mjs",
-    "images:pull": "node scripts/pull-carimages.mjs",
-    "prebuild": "node scripts/prepare-carimages.mjs",
-    "prestart": "node scripts/prepare-carimages.mjs",
-    "predev": "node scripts/prepare-carimages.mjs"
+    "images:pull": "node scripts/pull-carimages.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

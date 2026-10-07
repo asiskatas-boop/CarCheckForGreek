@@ -2,5 +2,5 @@
   "name": "CarCheck",
   "description": "Intelligent car discovery advisor. Answer 3–4 simple questions to find the ideal car for your budget, lifestyle, and priorities.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }
