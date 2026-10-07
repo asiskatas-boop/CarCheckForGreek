@@ -160,7 +160,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
                 <div>
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
                     <VehicleImage vehicle={vehicle} alt={`${vehicle.make} ${vehicle.model}`} marketRegion={marketRegion} showReferenceLabel />
-                    <div className="absolute bottom-3 left-3 rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm">{vehicle.generation} · {vehicle.years}</div>
+                    <div className="absolute bottom-10 left-3 rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm">{vehicle.generation} · {vehicle.years}</div>
                     <div className="absolute top-3 right-3 flex items-center gap-2">
                       <button type="button" onClick={() => onToggleCompare(vehicle.id)} aria-pressed={isCompared} aria-label={isGreek ? `${isCompared ? 'Αφαίρεση από' : 'Προσθήκη σε'} σύγκριση: ${vehicle.make} ${vehicle.model}` : `${isCompared ? 'Remove from' : 'Add to'} comparison: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isCompared ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
                         <Scale className="w-4 h-4" aria-hidden="true" />

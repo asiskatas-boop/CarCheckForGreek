@@ -50,21 +50,21 @@ Use **Euro NCAP** directly. Persist the rating year/protocol and adult/child/vul
 
 Use **EU Safety Gate** alert IDs for European recall/safety notices and, when possible, the manufacturer's VIN recall checker for the individual vehicle. Store alert ID, publication date, retrieved date, affected model/date range, and source URL.
 
-### 8. Model imagery — IMAGIN.studio
+### 8. Model imagery — CarImages.org (one-time pull)
 
-The UI now uses `src/components/VehicleImage.tsx` instead of the old hand-picked Unsplash URLs.
+CarCheck now uses the public CarImages rights manifest instead of an image API. The archive publishes licence-resolved metadata for its Wikimedia Commons photographs. Run this once on a networked machine:
 
-Configure:
-
-```env
-VITE_IMAGIN_CUSTOMER_KEY="your-licensed-customer-key"
+```bash
+npm run images:pull
 ```
 
-The component requests make, model family, model year, known variant/powertrain hints, and `countryCode=GR` for the Greek market, and serves responsive 400/800/1200px images from IMAGIN's CDN. If a key is missing or an image request fails, CarCheck intentionally shows a labelled model placeholder instead of an unrelated stock car.
+The importer downloads the current CarImages rights CSV, matches the CarCheck seed vehicles, **excludes CC BY-SA / ShareAlike photos**, prefers CC0/public-domain or CC BY images, downloads the selected files into `public/carimages/`, and generates `src/data/carImages.generated.ts`. CC BY credits are then shown directly with the image and linked to the recorded licence.
 
-For actual marketplace inventory, use the listing's licensed real photographs from the source feed. A studio/model image is a fallback/reference image, not evidence of that individual vehicle's condition.
+The app never loads the 50+ MB rights manifest in the browser. This is a data-preparation step, not a runtime API dependency. If no safe exact match is found, CarCheck shows the model placeholder rather than guessing. The combined `Fiat Punto / Panda 1.2 FIRE` seed record is intentionally skipped because it represents two different vehicles and should be split before assigning an image.
 
-Do not download or server-cache IMAGIN images unless your commercial agreement explicitly permits it.
+For actual marketplace inventory, use the listing's own licensed photographs from the listing source. A CarImages photograph is a model/generation reference image, not evidence of the condition of a specific used car.
+
+See `CARIMAGES_SETUP.md` for the exact licensing policy and rerun instructions.
 
 ## Provenance model
 

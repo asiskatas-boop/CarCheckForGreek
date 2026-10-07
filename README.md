@@ -41,8 +41,8 @@ CarCheck is specialized for both the broader European market and the **Greek Aut
    - Every car includes common known issues, model years to avoid, recommended vs avoided powertrains, and a 3-step mechanic inspection checklist.
 4. **Side-by-Side Comparison:**
    - Compare up to 3 cars with detailed metrics (0-100 km/h, cargo volume, reliability, running cost, fuel consumption).
-5. **Conversational AI Refinement:**
-   - Natural language prompt refinement powered by server-side Gemini API (e.g. *"something sportier"*, *"cheaper alternative"*, *"only automatics"*).
+5. **Conversational Refinement:**
+   - Natural language prompt refinement handled locally (e.g. *"something sportier"*, *"cheaper alternative"*, *"only automatics"*).
 6. **Garage Shortlist:**
    - Bookmark favorite models and listings, record personal notes, and track your selection.
 
@@ -52,8 +52,8 @@ CarCheck is specialized for both the broader European market and the **Greek Aut
 
 - **Frontend:** React 19, Tailwind CSS v4, Lucide React, Motion.
 - **Design Archetype:** Apple-inspired warm-light interface using off-whites, ivory, beige, graphite text, and Apple blue (`#0066cc`) as the only interactive brand color.
-- **Backend:** Full-stack Express server (`server.ts`) running Vite middlewares on port 3000.
-- **AI Engine:** `@google/genai` TypeScript SDK with `gemini-2.5-flash` for conversational refinement and advisory verdicts.
+- **Runtime:** Static React/Vite application; no backend or API key is required to run it.
+- **Advisor:** Local deterministic refinement and comparison logic, so preview/deployment does not depend on an external AI service.
 
 ---
 

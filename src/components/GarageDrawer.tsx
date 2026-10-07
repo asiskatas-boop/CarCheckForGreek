@@ -109,7 +109,7 @@ export const GarageDrawer: React.FC<GarageDrawerProps> = ({
                     <article key={v.id} className="surface-card p-4 space-y-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-16 h-12 rounded-xl overflow-hidden bg-[var(--color-surface-subtle)] shrink-0"><VehicleImage vehicle={v} decorative marketRegion={marketRegion} /></div>
+                          <div className="w-16 h-12 rounded-xl overflow-hidden bg-[var(--color-surface-subtle)] shrink-0"><VehicleImage vehicle={v} decorative marketRegion={marketRegion} allowAttributionRequired={false} /></div>
                           <div className="min-w-0">
                             <h4 className="text-[15px] font-bold text-[var(--color-text)] truncate">{v.make} {v.model}</h4>
                             <p className="text-[13px] text-[var(--color-text-muted)]">{isGreek ? 'Καλή αγορά έως' : 'Good buy up to'} {formatPrice(v.goodBuyPrice, currency)}</p>

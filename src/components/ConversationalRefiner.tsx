@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, Loader2, Bot } from 'lucide-react';
-import { MarketRegion, SmartFilterState, UserPreferences } from '../types';
+import { MarketRegion, UserPreferences } from '../types';
+import { refineLocally, type AdvisorFilterOverrides } from '../services/localAdvisor';
 
 interface ConversationalRefinerProps {
   currentPreferences: UserPreferences;
   marketRegion?: MarketRegion;
-  onApplyRefinements: (result: { advisorResponse: string; filterOverrides?: Partial<SmartFilterState> }) => void;
+  onApplyRefinements: (result: { advisorResponse: string; filterOverrides?: AdvisorFilterOverrides }) => void;
   lastAdvisorMessage?: string;
 }
 
@@ -24,25 +25,12 @@ export const ConversationalRefiner: React.FC<ConversationalRefinerProps> = ({
     if (!text || isLoading) return;
     setIsLoading(true);
     try {
-      const res = await fetch('/api/chat-refine', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userMessage: text, currentPreferences, marketRegion })
-      });
-      if (!res.ok) throw new Error('Refinement failed');
-      const data = await res.json();
-      onApplyRefinements({
-        advisorResponse: data.advisorResponse || (isGreek ? 'Οι προτάσεις ενημερώθηκαν με βάση το αίτημά σου.' : 'Recommendations updated based on your request.'),
-        filterOverrides: data.filterOverrides
-      });
+      const result = refineLocally(text, marketRegion);
+      onApplyRefinements(result);
       setInput('');
-    } catch (error) {
-      console.error(error);
-      onApplyRefinements({
-        advisorResponse: isGreek ? `Κατάλαβα: «${text}». Προσάρμοσα τα φίλτρα όσο ήταν δυνατό.` : `Understood: “${text}”. I adjusted the filters where possible.`,
-        filterOverrides: { searchQuery: text }
-      });
-      setInput('');
-    } finally { setIsLoading(false); }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

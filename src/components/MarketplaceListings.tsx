@@ -143,7 +143,7 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
                     <button type="button" onClick={() => onToggleSaveListing(listing.id)} aria-pressed={isSaved} aria-label={isGreek ? `${isSaved ? 'Αφαίρεση' : 'Αποθήκευση'} αγγελίας ${listing.title}` : `${isSaved ? 'Remove' : 'Save'} listing ${listing.title}`} className={`absolute top-3 right-3 touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
                       <Bookmark className="w-4 h-4" aria-hidden="true" />
                     </button>
-                    <div className="absolute bottom-3 left-3 right-3 w-fit max-w-[calc(100%-1.5rem)] rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm truncate">{isGreek ? 'Δείγμα αγοράς' : 'Market sample'} · {listing.location}</div>
+                    <div className="absolute bottom-10 left-3 right-3 w-fit max-w-[calc(100%-1.5rem)] rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm truncate">{isGreek ? 'Δείγμα αγοράς' : 'Market sample'} · {listing.location}</div>
                   </div>
 
                   <div className="p-5">

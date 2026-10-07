@@ -65,7 +65,7 @@ At minimum each populated provenance record should include `provider`, `kind`, `
 
 ## Images
 
-Do not upload random stock image URLs as model truth. For model/reference imagery, configure IMAGIN (or another licensed provider) and map the exact make/model/year/variant. For actual marketplace listings, keep the real listing photos from the licensed listing feed.
+Do not upload random stock image URLs as model truth. For model/reference imagery, run `npm run images:pull` to select rights-resolved CarImages.org/Wikimedia photographs and self-host them with their recorded credit/licence. For actual marketplace listings, keep the real listing photos from the licensed listing feed.
 
 ## Validation
 

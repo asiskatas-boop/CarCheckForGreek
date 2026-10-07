@@ -356,6 +356,18 @@ export default function App() {
         setSmartFilters((prev) => ({ ...prev, maxPriceEUR: overrides.maxPriceEUR }));
       }
 
+      if (overrides.bodyStyles) {
+        setSmartFilters((prev) => ({ ...prev, bodyStyles: overrides.bodyStyles }));
+      }
+
+      if (overrides.fuelTypes) {
+        setSmartFilters((prev) => ({ ...prev, fuelTypes: overrides.fuelTypes }));
+      }
+
+      if (overrides.transmissions) {
+        setSmartFilters((prev) => ({ ...prev, transmissions: overrides.transmissions }));
+      }
+
       if (typeof overrides.searchQuery === 'string') {
         setSmartFilters((prev) => ({ ...prev, searchQuery: overrides.searchQuery }));
       }

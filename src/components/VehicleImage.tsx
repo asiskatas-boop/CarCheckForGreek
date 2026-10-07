@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CarFront, ImageOff } from 'lucide-react';
 import { MarketRegion, Vehicle } from '../types';
+import { CAR_IMAGE_MANIFEST } from '../data/carImages.generated';
 
 interface VehicleImageProps {
   vehicle: Vehicle;
@@ -11,88 +12,50 @@ interface VehicleImageProps {
   decorative?: boolean;
   showReferenceLabel?: boolean;
   marketRegion?: MarketRegion;
+  allowAttributionRequired?: boolean;
 }
 
-type ImageProfile = {
-  modelFamily: string;
-  modelRange?: string;
-  modelVariant?: string;
-  modelYear?: number;
-  powerTrain?: string;
-};
-
-const IMAGE_PROFILES: Record<string, ImageProfile> = {
-  'toyota-corolla-hybrid-e210': { modelFamily: 'corolla', modelYear: 2022, powerTrain: 'hybrid' },
-  'skoda-octavia-combi-mk4': { modelFamily: 'octavia', modelVariant: 'estate', modelYear: 2022 },
-  'mazda-cx5-gen2': { modelFamily: 'cx-5', modelVariant: 'suv', modelYear: 2021 },
-  'tesla-model-3-highland': { modelFamily: 'model-3', modelYear: 2024, powerTrain: 'electric' },
-  'volkswagen-golf-mk8': { modelFamily: 'golf', modelVariant: 'hatchback', modelYear: 2022 },
-  'dacia-sandero-stepway-mk3': { modelFamily: 'sandero', modelRange: 'stepway', modelYear: 2023 },
-  'toyota-yaris-cross-hybrid': { modelFamily: 'yaris-cross', modelVariant: 'suv', modelYear: 2023, powerTrain: 'hybrid' },
-  'bmw-3-series-touring-g21': { modelFamily: '3-series', modelVariant: 'estate', modelYear: 2021 },
-  'hyundai-ioniq-5': { modelFamily: 'ioniq-5', modelVariant: 'suv', modelYear: 2023, powerTrain: 'electric' },
-  'volvo-xc60-recharge-t6': { modelFamily: 'xc60', modelVariant: 'suv', modelYear: 2022, powerTrain: 'hybrid' },
-  'honda-civic-ehev-mk11': { modelFamily: 'civic', modelVariant: 'hatchback', modelYear: 2023, powerTrain: 'hybrid' },
-  'ford-fiesta-mk8': { modelFamily: 'fiesta', modelVariant: 'hatchback', modelYear: 2019 },
-  'porsche-macan-gen1': { modelFamily: 'macan', modelVariant: 'suv', modelYear: 2018 },
-  'toyota-yaris-hybrid-mk3': { modelFamily: 'yaris', modelVariant: 'hatchback', modelYear: 2016, powerTrain: 'hybrid' },
-  'skoda-kodiaq-mk1': { modelFamily: 'kodiaq', modelVariant: 'suv', modelYear: 2020 },
-  'tesla-model-y-longrange': { modelFamily: 'model-y', modelVariant: 'suv', modelYear: 2024, powerTrain: 'electric' },
-  'toyota-yaris-mk1-xp10': { modelFamily: 'yaris', modelVariant: 'hatchback', modelYear: 2004 },
-  'nissan-micra-k12': { modelFamily: 'micra', modelVariant: 'hatchback', modelYear: 2007 },
-  'hyundai-getz-11-13': { modelFamily: 'getz', modelVariant: 'hatchback', modelYear: 2008 }
-};
-
-const providerKey = import.meta.env.VITE_IMAGIN_CUSTOMER_KEY?.trim();
-
-const imageUrl = (vehicle: Vehicle, requestedYear: number | undefined, width: number, marketRegion: MarketRegion | string) => {
-  if (!providerKey) return null;
-  const profile = IMAGE_PROFILES[vehicle.id];
-  if (!profile) return null;
-
-  const params = new URLSearchParams({
-    customer: providerKey,
-    make: vehicle.make.toLowerCase(),
-    modelFamily: profile.modelFamily,
-    modelYear: String(requestedYear || profile.modelYear || new Date().getFullYear()),
-    angle: '23',
-    zoomType: 'relative',
-    width: String(width),
-    fileType: 'webp'
-  });
-
-  if (marketRegion === 'greece') params.set('countryCode', 'GR');
-
-  if (profile.modelRange) params.set('modelRange', profile.modelRange);
-  if (profile.modelVariant) params.set('modelVariant', profile.modelVariant);
-  if (profile.powerTrain) params.set('powerTrain', profile.powerTrain);
-
-  return `https://cdn.imagin.studio/getImage?${params.toString()}`;
+const suppliedImageUrl = (vehicle: Vehicle) => {
+  const value = vehicle.imageUrl?.trim();
+  if (!value) return null;
+  // The seed data contains generic Unsplash photos. Never present those as an exact model.
+  if (/images\.unsplash\.com|source\.unsplash\.com/i.test(value)) return null;
+  return value;
 };
 
 export const VehicleImage: React.FC<VehicleImageProps> = ({
   vehicle,
-  year,
   alt,
   className = '',
   eager = false,
   decorative = false,
   showReferenceLabel = false,
-  marketRegion = 'global'
+  marketRegion = 'global',
+  allowAttributionRequired = true
 }) => {
   const isGreek = marketRegion === 'greece';
-  const [failed, setFailed] = useState(false);
-  const src = useMemo(() => imageUrl(vehicle, year, 1200, marketRegion), [vehicle, year, marketRegion]);
-  const srcSet = useMemo(() => {
-    if (!src) return undefined;
-    return [400, 800, 1200]
-      .map((width) => `${imageUrl(vehicle, year, width, marketRegion)} ${width}w`)
-      .join(', ');
-  }, [src, vehicle, year, marketRegion]);
+  const carImage = CAR_IMAGE_MANIFEST[vehicle.id];
+  const eligibleCarImage = carImage && (allowAttributionRequired || !carImage.attributionRequired) ? carImage : undefined;
+  const declaredSrc = useMemo(() => suppliedImageUrl(vehicle), [vehicle]);
+  const [carImageFailed, setCarImageFailed] = useState(false);
+  const [declaredFailed, setDeclaredFailed] = useState(false);
 
+  const generatedSrc = eligibleCarImage && !carImageFailed ? `${import.meta.env.BASE_URL}${eligibleCarImage.src.replace(/^\/+/, '')}` : null;
+  const fallbackSrc = declaredSrc && !declaredFailed ? declaredSrc : null;
+  const src = generatedSrc || fallbackSrc;
+  const usingCarImages = Boolean(src && generatedSrc && src === generatedSrc);
+  const requiresCredit = Boolean(usingCarImages && eligibleCarImage?.attributionRequired);
   const accessibleAlt = decorative ? '' : (alt || `${vehicle.make} ${vehicle.model}`);
 
-  if (!src || failed) {
+  if (!src && decorative) {
+    return (
+      <div className={`flex h-full w-full items-center justify-center bg-[var(--color-image-fallback)] text-[var(--color-text-muted)] ${className}`} aria-hidden="true">
+        <CarFront className="h-5 w-5" aria-hidden="true" />
+      </div>
+    );
+  }
+
+  if (!src) {
     return (
       <div
         className={`relative flex h-full w-full items-center justify-center overflow-hidden bg-[var(--color-image-fallback)] ${className}`}
@@ -101,32 +64,63 @@ export const VehicleImage: React.FC<VehicleImageProps> = ({
         aria-hidden={decorative ? 'true' : undefined}
       >
         <div className="flex max-w-[80%] flex-col items-center gap-2 text-center text-[var(--color-text-muted)]">
-          {src ? <ImageOff className="h-7 w-7" aria-hidden="true" /> : <CarFront className="h-8 w-8" aria-hidden="true" />}
+          {(carImageFailed || declaredFailed) ? <ImageOff className="h-7 w-7" aria-hidden="true" /> : <CarFront className="h-8 w-8" aria-hidden="true" />}
           <span className="text-sm font-semibold text-[var(--color-text)]">{vehicle.make} {vehicle.model}</span>
-          <span className="text-[13px] leading-snug">{src ? (isGreek ? 'Η εικόνα του οχήματος δεν είναι διαθέσιμη' : 'Vehicle image unavailable') : (isGreek ? 'Η ακριβής εικόνα μοντέλου εμφανίζεται μόλις συνδεθεί ο πάροχος εικόνων' : 'Accurate model imagery appears after the image provider is configured')}</span>
+          <span className="text-[13px] leading-snug">
+            {(carImageFailed || declaredFailed)
+              ? (isGreek ? 'Η εικόνα του οχήματος δεν είναι διαθέσιμη' : 'Vehicle image unavailable')
+              : (isGreek ? 'Δεν βρέθηκε εικόνα αναφοράς για αυτό το μοντέλο' : 'No reference image found for this model')}
+          </span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <img
-        src={src}
-        srcSet={srcSet}
-        sizes="(max-width: 768px) 100vw, 50vw"
-        alt={accessibleAlt}
-        className={`h-full w-full object-cover ${className}`}
-        loading={eager ? 'eager' : 'lazy'}
-        fetchPriority={eager ? 'high' : 'auto'}
-        decoding="async"
-        onError={() => setFailed(true)}
-      />
-      {showReferenceLabel && (
-        <span className="absolute bottom-2 left-2 rounded-full border border-white/80 bg-[rgba(255,253,249,0.92)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-text)] backdrop-blur-sm shadow-sm">
-          {isGreek ? 'Εικόνα αναφοράς μοντέλου' : 'Model reference image'}
-        </span>
+    <figure className="flex h-full w-full flex-col overflow-hidden bg-[var(--color-image-fallback)]">
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        <img
+          src={src}
+          alt={accessibleAlt}
+          className={`h-full w-full object-contain ${className}`}
+          loading={eager ? 'eager' : 'lazy'}
+          fetchPriority={eager ? 'high' : 'auto'}
+          decoding="async"
+          onError={() => {
+            if (usingCarImages) setCarImageFailed(true);
+            else setDeclaredFailed(true);
+          }}
+        />
+
+        {showReferenceLabel && (
+          <span className="absolute bottom-2 left-2 rounded-full border border-white/80 bg-[rgba(255,253,249,0.92)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-text)] backdrop-blur-sm shadow-sm">
+            {isGreek ? 'Εικόνα αναφοράς μοντέλου' : 'Model reference image'}
+          </span>
+        )}
+      </div>
+
+      {requiresCredit && eligibleCarImage && (
+        <figcaption className="flex shrink-0 flex-wrap items-center gap-x-1 gap-y-0.5 border-t border-[var(--color-border)] bg-[var(--color-surface-raised)] px-2 py-1 text-[9px] leading-tight text-[var(--color-text-muted)] sm:text-[10px]">
+          <a
+            href={eligibleCarImage.sourcePageUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="break-words underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
+            title={eligibleCarImage.creditText}
+          >
+            {eligibleCarImage.creditText}
+          </a>
+          <span aria-hidden="true">·</span>
+          <a
+            href={eligibleCarImage.licenseUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
+          >
+            {eligibleCarImage.licenseCode}
+          </a>
+        </figcaption>
       )}
-    </div>
+    </figure>
   );
 };

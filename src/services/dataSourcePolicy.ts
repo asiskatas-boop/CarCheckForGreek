@@ -9,7 +9,7 @@ export const PREFERRED_DATA_SOURCES: Record<VehicleDataDomain, { primary: string
   emissions: { primary: 'EEA / Certificate of Conformity', notes: 'Prefer the vehicle licence or CoC for a specific car; use EEA for model/registration-level reference data.' },
   safety: { primary: 'Euro NCAP', notes: 'Persist rating year/protocol together with stars and sub-scores.' },
   recalls: { primary: 'EU Safety Gate', fallback: 'manufacturer recall checker', notes: 'Match by make/model/date/VIN where available and persist alert identifiers.' },
-  images: { primary: 'IMAGIN.studio', notes: 'Request by canonical make/model family/year/variant and serve from the licensed CDN.' }
+  images: { primary: 'CarImages.org / Wikimedia Commons', notes: 'Run the one-time rights-manifest importer, self-host the selected image, and preserve the exact credit and licence URL.' }
 };
 
 export const makeProvenance = (input: Omit<DataProvenance, 'retrievedAt'> & { retrievedAt?: string }): DataProvenance => ({

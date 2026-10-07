@@ -3,7 +3,8 @@ import { Vehicle, Currency, UserPreferences, MarketRegion } from '../types';
 import { formatPrice, formatPriceRange } from '../services/currency';
 import { AccessibleDialog } from './AccessibleDialog';
 import { VehicleImage } from './VehicleImage';
-import { X, Scale, Sparkles, Loader2 } from 'lucide-react';
+import { X, Scale, Sparkles } from 'lucide-react';
+import { compareLocally } from '../services/localAdvisor';
 
 interface ComparisonModalProps {
   vehicles: Vehicle[];
@@ -28,23 +29,9 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
 }) => {
   const isGreek = marketRegion === 'greece';
   const [aiAnalysis, setAiAnalysis] = useState<{ headline?: string; tradeOffs?: string[]; verdict?: string } | null>(null);
-  const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
-    if (vehicles.length < 2) return;
-    const controller = new AbortController();
-    setLoadingAi(true);
-    fetch('/api/compare-advisory', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({ vehicles, userPreferences, marketRegion })
-    })
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => { if (data) setAiAnalysis(data); })
-      .catch((error) => { if (error?.name !== 'AbortError') console.warn('AI comparison advisory error:', error); })
-      .finally(() => setLoadingAi(false));
-    return () => controller.abort();
+    setAiAnalysis(compareLocally(vehicles, userPreferences, marketRegion));
   }, [vehicles, userPreferences, marketRegion]);
 
   const gridStyle = { gridTemplateColumns: `minmax(140px, .8fr) repeat(${Math.max(vehicles.length, 1)}, minmax(160px, 1fr))` };
@@ -112,7 +99,6 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
             <section className="p-5 sm:p-6 rounded-2xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/25" aria-labelledby="advisor-verdict-title">
               <div className="flex items-center justify-between gap-3">
                 <h3 id="advisor-verdict-title" className="flex items-center gap-2 text-[var(--color-accent-text)] font-semibold text-[15px] uppercase tracking-wider"><Sparkles className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Ποιο ταιριάζει καλύτερα;' : 'Which one fits best?'}</h3>
-                {loadingAi && <Loader2 className="w-4 h-4 text-[var(--color-accent-text)] animate-spin" aria-label={isGreek ? 'Ανάλυση σε εξέλιξη' : 'Analysis in progress'} />}
               </div>
               <div className="mt-3 text-[15px] text-[var(--color-text)] leading-relaxed" aria-live="polite">
                 {aiAnalysis ? (

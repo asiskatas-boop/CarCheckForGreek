@@ -164,5 +164,5 @@ The **Available Cars** marketplace tab allows users to see real market vehicles:
 
 - **Frontend:** React 19 SPA, Tailwind CSS v4, Lucide icons.
 - **Styling Archetype:** Apple-inspired warm-light interface (off-whites, ivory, beige, graphite text, and Apple blue `#0066cc` for primary interactions).
-- **Backend Entry:** `server.ts` running Express with Vite middlewares on port 3000.
-- **AI Integration:** `@google/genai` TypeScript SDK with `gemini-2.5-flash` for conversational preference refinement and vehicle comparison analysis, backed by deterministic fallback heuristics.
+- **Runtime:** Static React/Vite application on port 3000; no backend or API key is required.
+- **Advisor:** Deterministic local preference refinement and vehicle comparison logic.

@@ -42,11 +42,11 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
           <div className="absolute top-3 right-3 bg-[rgba(255,253,249,0.92)] backdrop-blur-md border border-white/80 px-3 py-1.5 flex items-center gap-1.5 rounded-full text-[var(--color-text)] shadow-sm">
             <span className="text-xs font-medium text-[var(--color-text-muted)]">{isGreek ? 'Ταίριασμα' : 'Match'}</span><span className="text-[13px] font-semibold">{matchScore}%</span>
           </div>
-          <div className="absolute bottom-3 right-3 flex items-center gap-2">
+          <div className="absolute bottom-10 right-3 flex items-center gap-2">
             <button type="button" onClick={() => onToggleCompare(vehicle.id)} aria-pressed={isCompared} aria-label={isCompared ? (isGreek ? 'Αφαίρεση από τη σύγκριση' : 'Remove from comparison') : (isGreek ? 'Προσθήκη στη σύγκριση' : 'Add to comparison')} className={`touch-target rounded-xl backdrop-blur-md flex items-center justify-center ${isCompared ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}><Scale className="w-4 h-4" aria-hidden="true" /></button>
             <button type="button" onClick={() => onToggleSave(vehicle.id)} aria-pressed={isSaved} aria-label={isSaved ? (isGreek ? 'Αφαίρεση από το Garage' : 'Remove from garage') : (isGreek ? 'Αποθήκευση στο Garage' : 'Save to garage')} className={`touch-target rounded-xl backdrop-blur-md flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}><Bookmark className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} aria-hidden="true" /></button>
           </div>
-          <p className="absolute bottom-3 left-3 rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm">{vehicle.generation} · {vehicle.years}</p>
+          <p className="absolute bottom-10 left-3 rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm">{vehicle.generation} · {vehicle.years}</p>
         </div>
 
         <div className="p-5">

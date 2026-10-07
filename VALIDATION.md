@@ -33,5 +33,12 @@ Then run the app and verify at minimum:
 - reduced-motion mode;
 - warm light-theme contrast across canvas, cards, controls, overlays, and focus states;
 - Greek and EU market modes;
-- IMAGIN image matching for every canonical model profile;
+- CarImages one-time image matching for every canonical model profile, including visible credit/licence links for CC BY photos;
 - verify that no customer-facing surface reintroduces a red or dark theme token.
+
+## CarImages importer validation — 2026-10-07
+
+- `scripts/pull-carimages.mjs`: Node syntax check passes.
+- All 25 TypeScript/TSX source files: parser/transpile syntax check passes with 0 diagnostics.
+- CarImages profiles: 20 seed vehicle records represented; 19 active image searches and 1 intentionally skipped combined Fiat record.
+- The importer could not be executed against the live CarImages CSV in this sandbox because outbound DNS from the container is unavailable. Run `npm run images:pull` once on a networked machine before the final build.

@@ -1,0 +1,22 @@
+[
+  {"vehicleId":"toyota-corolla-hybrid-e210","required":["toyota","corolla"],"generationAny":["e210"],"preferred":["front","hybrid"]},
+  {"vehicleId":"skoda-octavia-combi-mk4","required":["skoda","octavia"],"generationAny":["nx","mk4","fourth generation"],"requiredAny":["combi","estate","wagon"],"preferred":["front"]},
+  {"vehicleId":"mazda-cx5-gen2","required":["mazda","cx 5"],"generationAny":["kf","second generation","2nd generation"],"preferred":["front"]},
+  {"vehicleId":"tesla-model-3-highland","required":["tesla","model 3"],"preferred":["highland","front"]},
+  {"vehicleId":"volkswagen-golf-mk8","required":["volkswagen","golf"],"generationAny":["mk8","viii","eighth generation"],"preferred":["front"]},
+  {"vehicleId":"dacia-sandero-stepway-mk3","required":["dacia","sandero","stepway"],"generationAny":["mk3","iii","third generation","2021"],"preferred":["front"]},
+  {"vehicleId":"toyota-yaris-cross-hybrid","required":["toyota","yaris cross"],"preferred":["front","hybrid"]},
+  {"vehicleId":"bmw-3-series-touring-g21","required":["bmw","3 series"],"generationAny":["g20","g21"],"requiredAny":["touring","wagon","estate","g21"],"preferred":["front"]},
+  {"vehicleId":"hyundai-ioniq-5","required":["hyundai","ioniq 5"],"preferred":["front"]},
+  {"vehicleId":"volvo-xc60-recharge-t6","required":["volvo","xc60"],"generationAny":["second generation","2nd generation","spa","2017","2018","2019","2020","2021","2022","2023"],"preferred":["recharge","t6","front"]},
+  {"vehicleId":"honda-civic-ehev-mk11","required":["honda","civic"],"generationAny":["eleventh generation","11th generation","fe","fl","2021","2022","2023"],"preferred":["e hev","hybrid","front"]},
+  {"vehicleId":"ford-fiesta-mk8","required":["ford","fiesta"],"generationAny":["mk8","seventh generation","2017","2018","2019","2020"],"preferred":["front"]},
+  {"vehicleId":"porsche-macan-gen1","required":["porsche","macan"],"generationAny":["first generation","95b","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023"],"preferred":["front"]},
+  {"vehicleId":"toyota-yaris-hybrid-mk3","required":["toyota","yaris"],"generationAny":["xp130","third generation","3rd generation","2011","2012","2013","2014","2015","2016","2017","2018","2019"],"preferred":["hybrid","front"]},
+  {"vehicleId":"skoda-kodiaq-mk1","required":["skoda","kodiaq"],"generationAny":["first generation","2016","2017","2018","2019","2020","2021","2022","2023"],"preferred":["front"]},
+  {"vehicleId":"tesla-model-y-longrange","required":["tesla","model y"],"preferred":["front","long range"]},
+  {"vehicleId":"toyota-yaris-mk1-xp10","required":["toyota","yaris"],"generationAny":["xp10","first generation","1999","2000","2001","2002","2003","2004","2005"],"preferred":["front"]},
+  {"vehicleId":"fiat-punto-panda-12-fire","disabled":true,"reason":"This CarCheck seed record combines two different models (Punto 188 and Panda 169); a single photo would be misleading."},
+  {"vehicleId":"nissan-micra-k12","required":["nissan","micra"],"generationAny":["k12","third generation","2002","2003","2004","2005","2006","2007","2008","2009","2010"],"preferred":["front"]},
+  {"vehicleId":"hyundai-getz-11-13","required":["hyundai","getz"],"preferred":["front"]}
+]
