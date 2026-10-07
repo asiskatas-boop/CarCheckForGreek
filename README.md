@@ -1,6 +1,6 @@
 # CarCheck 🏎️ — Intelligent Car Discovery & Advisor
 
-> **"What car should I buy?"** Answer 3 to 4 simple questions in 60 seconds. CarCheck automatically filters through thousands of automotive possibilities to deliver tailored recommendations with transparent reasoning, market price benchmarks, and pre-purchase inspection checklists.
+> **"What car should I buy?"** Answer 3 to 4 simple questions in 60 seconds. CarCheck scores the vehicle records currently loaded in its dataset to deliver tailored recommendations with transparent reasoning, market price benchmarks, and pre-purchase inspection checklists.
 
 ---
 
@@ -22,8 +22,8 @@ CarCheck is specialized for both the broader European market and the **Greek Aut
   - **Ελεύθερος Δακτύλιος Αθηνών:** Highlights green hybrid and electric exemptions from odd/even central Athens restrictions.
   - **Τεκμήρια Διαβίωσης:** Identifies cars under 1,000cc and 1,200cc that protect buyers from aggressive tax presumptions.
   - **ΚΤΕΟ & Mediterranean Climate:** Inspection checklists verified for Greek heatwaves (ice-cold A/C checks, non-interference FIRE engines, radiator fan switches, coastal salt protection).
-- **Marketplace Listings with Car.gr Parity:**
-  - Verified dealer and private listings across Athens (Marousi, Glyfada, Kifisia, Peristeri), Thessaloniki (Kalamaria), Patras, Heraklion Crete, and Larissa.
+- **Reference Marketplace Listings:**
+  - Saved sample listings are clearly marked as reference data; current price and availability must be verified at the original marketplace source.
 
 ---
 
@@ -50,7 +50,7 @@ CarCheck is specialized for both the broader European market and the **Greek Aut
 
 ## 🛠️ Tech Stack & Architecture
 
-- **Frontend:** React 19, Tailwind CSS v4, Lucide React, Motion.
+- **Frontend:** React 19, Tailwind CSS v4, and Lucide React.
 - **Design Archetype:** Apple-inspired warm-light interface using off-whites, ivory, beige, graphite text, and Apple blue (`#0066cc`) as the only interactive brand color.
 - **Runtime:** Static React/Vite application; no backend or API key is required to run it.
 - **Advisor:** Local deterministic refinement and comparison logic, so preview/deployment does not depend on an external AI service.

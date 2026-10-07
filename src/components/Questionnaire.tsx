@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   UserPreferences,
   BudgetRangeId,
@@ -9,7 +9,7 @@ import {
   PaymentMethod,
   MarketRegion
 } from '../types';
-import { CURRENCY_RATES, formatPrice } from '../services/currency';
+import { CURRENCY_RATES, convertFromEUR, convertToEUR, formatPrice } from '../services/currency';
 import {
   ArrowRight,
   ArrowLeft,
@@ -50,59 +50,63 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
   const [step, setStep] = useState<number>(1);
   const [prefs, setPrefs] = useState<UserPreferences>(initialPreferences);
   const [showCustomBudget, setShowCustomBudget] = useState<boolean>(false);
-  const [customMin, setCustomMin] = useState<number>(1500);
-  const [customMax, setCustomMax] = useState<number>(15000);
+  const [customMin, setCustomMin] = useState<number>(() => Math.max(1500, initialPreferences.budgetCustomMin ?? 1500));
+  const [customMax, setCustomMax] = useState<number>(() => Math.max(initialPreferences.budgetCustomMax ?? 15000, initialPreferences.budgetCustomMin ?? 1500));
   const [customMonthly, setCustomMonthly] = useState<string>('');
 
   const symbol = CURRENCY_RATES[currency].symbol;
+
+  useEffect(() => {
+    setPrefs((prev) => ({ ...prev, currency, marketRegion }));
+  }, [currency, marketRegion]);
 
   // Question 1 Budget Options
   const budgetOptions: { id: BudgetRangeId; label: string; desc: string }[] = [
     {
       id: '1.5k-5k',
-      label: `${symbol}1,500 – ${symbol}5,000`,
+      label: `${formatPrice(1500, currency)} – ${formatPrice(5000, currency)}`,
       desc: isGreek
         ? 'Αξιόπιστα οικονομικά μοντέλα πόλης (Yaris Mk1, Punto FIRE, Micra K12, Getz) με ελάχιστα τέλη και φθηνά ανταλλακτικά'
         : 'Essential reliable runabouts (Toyota Yaris Mk1, Fiat Punto, Nissan Micra) with rock-bottom running costs'
     },
     {
       id: '5k-10k',
-      label: `${symbol}5,000 – ${symbol}10,000`,
+      label: `${formatPrice(5000, currency)} – ${formatPrice(10000, currency)}`,
       desc: isGreek
         ? 'Δοκιμασμένα αυτοκίνητα πόλης & supermini με χαμηλή κατανάλωση (Yaris Mk2/3, Fiesta, Polo, C3)'
         : 'Solid everyday hatchbacks and small cars with low depreciation'
     },
     {
       id: '10k-20k',
-      label: `${symbol}10,000 – ${symbol}20,000`,
+      label: `${formatPrice(10000, currency)} – ${formatPrice(20000, currency)}`,
       desc: isGreek
         ? 'Σύγχρονα υβριδικά (Yaris Hybrid, Auris) με 0€ τέλη κυκλοφορίας & ελεύθερο δακτύλιο'
         : 'Reliable modern hatchbacks, superminis & efficient self-charging hybrids'
     },
     {
       id: '20k-30k',
-      label: `${symbol}20,000 – ${symbol}30,000`,
+      label: `${formatPrice(20000, currency)} – ${formatPrice(30000, currency)}`,
       desc: isGreek
         ? 'Crossover & οικογενειακά (Corolla Hybrid, Yaris Cross, Octavia, CX-5)'
         : 'Sweet spot: recent compact SUVs, estates & proven electric vehicles'
     },
     {
       id: '30k-40k',
-      label: `${symbol}30,000 – ${symbol}40,000`,
+      label: `${formatPrice(30000, currency)} – ${formatPrice(40000, currency)}`,
       desc: isGreek
         ? 'Ηλεκτρικά (Tesla Model 3/Y, Ioniq 5), executive wagons & μεσαία SUV'
         : 'Long-range electric vehicles, premium wagons & family SUVs'
     },
     {
       id: '40k-60k',
-      label: `${symbol}40,000 – ${symbol}60,000`,
+      label: `${formatPrice(40000, currency)} – ${formatPrice(60000, currency)}`,
       desc: isGreek
         ? 'Executive premium SUV & πολυτελή (Volvo XC60, BMW 3, Macan)'
         : 'Executive saloons, luxury crossovers & high performance'
     },
     {
       id: '60k-plus',
-      label: `${symbol}60,000+`,
+      label: `${formatPrice(60000, currency)}+`,
       desc: isGreek
         ? 'Κορυφαία πολυτέλεια, Porsche & σπορ επιδόσεις'
         : 'Top-tier luxury, sports performance & flagship engineering'
@@ -518,13 +522,16 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       id="custom-budget-min"
                       type="number"
                       inputMode="numeric"
-                      min={1500}
+                      min={convertFromEUR(1500, currency)}
                       step={500}
-                      value={customMin}
+                      value={convertFromEUR(customMin, currency)}
                       onChange={(e) => {
-                        const val = Math.max(1500, parseInt(e.target.value, 10) || 1500);
+                        const displayValue = Math.max(convertFromEUR(1500, currency), parseInt(e.target.value, 10) || convertFromEUR(1500, currency));
+                        const val = Math.max(1500, convertToEUR(displayValue, currency));
+                        const nextMax = Math.max(customMax, val);
                         setCustomMin(val);
-                        setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: val, budgetCustomMax: customMax });
+                        setCustomMax(nextMax);
+                        setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: val, budgetCustomMax: nextMax });
                       }}
                       className="w-full min-h-11 pl-8 pr-3 py-2 text-[15px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
                     />
@@ -543,11 +550,13 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       id="custom-budget-max"
                       type="number"
                       inputMode="numeric"
-                      min={customMin}
+                      min={convertFromEUR(customMin, currency)}
                       step={500}
-                      value={customMax}
+                      value={convertFromEUR(customMax, currency)}
                       onChange={(e) => {
-                        const val = Math.max(customMin, parseInt(e.target.value, 10) || customMin);
+                        const displayMin = convertFromEUR(customMin, currency);
+                        const displayValue = Math.max(displayMin, parseInt(e.target.value, 10) || displayMin);
+                        const val = Math.max(customMin, convertToEUR(displayValue, currency));
                         setCustomMax(val);
                         setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: customMin, budgetCustomMax: val });
                       }}
@@ -616,7 +625,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                     onChange={(e) => {
                       setCustomMonthly(e.target.value);
                       const parsed = parseInt(e.target.value, 10);
-                      setPrefs({ ...prefs, monthlyPaymentMax: isNaN(parsed) ? undefined : parsed });
+                      setPrefs({ ...prefs, monthlyPaymentMax: isNaN(parsed) ? undefined : convertToEUR(parsed, currency) });
                     }}
                     className="w-36 min-h-11 pl-6 pr-2 py-2 text-[15px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
                   />

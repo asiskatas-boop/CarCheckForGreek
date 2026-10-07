@@ -25,6 +25,7 @@ import { ComparisonModal } from './components/ComparisonModal';
 import { MarketplaceListings } from './components/MarketplaceListings';
 import { GarageDrawer } from './components/GarageDrawer';
 import { AllVehiclesCatalog } from './components/AllVehiclesCatalog';
+import { loadCurrency, loadMarketRegion, loadPreferences, loadStringArray, safeSetItem } from './services/storage';
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   budgetId: '1.5k-5k',
@@ -44,55 +45,26 @@ export default function App() {
     return 'advisor';
   });
   const [discoveryState, setDiscoveryState] = useState<'hero' | 'questionnaire' | 'results'>('hero');
-  const [marketRegion, setMarketRegion] = useState<MarketRegion>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_market_region');
-      return (stored as MarketRegion) || 'greece';
-    } catch {
-      return 'greece';
-    }
-  });
+  const [marketRegion, setMarketRegion] = useState<MarketRegion>(() => loadMarketRegion('greece'));
 
-  const [currency, setCurrency] = useState<Currency>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_currency');
-      return (stored as Currency) || 'EUR';
-    } catch {
-      return 'EUR';
-    }
-  });
+  const [currency, setCurrency] = useState<Currency>(() => loadCurrency('EUR'));
 
-  const [userPreferences, setUserPreferences] = useState<UserPreferences>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_user_preferences');
-      return stored ? JSON.parse(stored) : DEFAULT_PREFERENCES;
-    } catch {
-      return DEFAULT_PREFERENCES;
-    }
-  });
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>(() =>
+    loadPreferences({ ...DEFAULT_PREFERENCES, marketRegion: loadMarketRegion('greece'), currency: loadCurrency('EUR') })
+  );
 
   const [recommendations, setRecommendations] = useState<ScoredRecommendation[]>(() => {
     return recommendVehicles({ ...userPreferences, marketRegion });
   });
 
   // Saved Garage IDs
-  const [savedVehicleIds, setSavedVehicleIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_saved_vehicles');
-      return stored ? JSON.parse(stored) : ['toyota-corolla-hybrid-e210'];
-    } catch {
-      return ['toyota-corolla-hybrid-e210'];
-    }
-  });
+  const [savedVehicleIds, setSavedVehicleIds] = useState<string[]>(() =>
+    loadStringArray('carcheck_saved_vehicles', ['toyota-corolla-hybrid-e210']).filter((id) => VEHICLES.some((vehicle) => vehicle.id === id))
+  );
 
-  const [savedListingIds, setSavedListingIds] = useState<string[]>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_saved_listings');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [savedListingIds, setSavedListingIds] = useState<string[]>(() =>
+    loadStringArray('carcheck_saved_listings', []).filter((id) => MARKETPLACE_LISTINGS.some((listing) => listing.id === id))
+  );
 
   // Comparison State
   const [comparedVehicleIds, setComparedVehicleIds] = useState<string[]>([]);
@@ -155,21 +127,21 @@ export default function App() {
 
   // Synchronize Currency with localStorage
   useEffect(() => {
-    localStorage.setItem('carcheck_currency', currency);
+    safeSetItem('carcheck_currency', currency);
     setUserPreferences((prev) => {
       if (prev.currency === currency) return prev;
       const updated = { ...prev, currency };
-      localStorage.setItem('carcheck_user_preferences', JSON.stringify(updated));
+      safeSetItem('carcheck_user_preferences', JSON.stringify(updated));
       return updated;
     });
   }, [currency]);
 
   // Synchronize Market Region with localStorage
   useEffect(() => {
-    localStorage.setItem('carcheck_market_region', marketRegion);
+    safeSetItem('carcheck_market_region', marketRegion);
     setUserPreferences((prev) => {
       const updated = { ...prev, marketRegion };
-      localStorage.setItem('carcheck_user_preferences', JSON.stringify(updated));
+      safeSetItem('carcheck_user_preferences', JSON.stringify(updated));
       setRecommendations(recommendVehicles(updated));
       return updated;
     });
@@ -177,19 +149,19 @@ export default function App() {
 
   // Synchronize Saved vehicles with localStorage
   useEffect(() => {
-    localStorage.setItem('carcheck_saved_vehicles', JSON.stringify(savedVehicleIds));
+    safeSetItem('carcheck_saved_vehicles', JSON.stringify(savedVehicleIds));
   }, [savedVehicleIds]);
 
   // Synchronize Saved listings with localStorage
   useEffect(() => {
-    localStorage.setItem('carcheck_saved_listings', JSON.stringify(savedListingIds));
+    safeSetItem('carcheck_saved_listings', JSON.stringify(savedListingIds));
   }, [savedListingIds]);
 
   // Compute recommendations whenever user preferences change
   const handleUpdatePreferences = (newPrefs: UserPreferences) => {
     const updated = { ...newPrefs, marketRegion };
     setUserPreferences(updated);
-    localStorage.setItem('carcheck_user_preferences', JSON.stringify(updated));
+    safeSetItem('carcheck_user_preferences', JSON.stringify(updated));
     const newRecs = recommendVehicles(updated);
     setRecommendations(newRecs);
     setDiscoveryState('results');
@@ -373,7 +345,7 @@ export default function App() {
       }
 
       setUserPreferences(updatedPrefs);
-      localStorage.setItem('carcheck_user_preferences', JSON.stringify(updatedPrefs));
+      safeSetItem('carcheck_user_preferences', JSON.stringify(updatedPrefs));
       const reRecs = recommendVehicles(updatedPrefs);
       setRecommendations(reRecs);
     }

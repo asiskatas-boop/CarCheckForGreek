@@ -137,7 +137,7 @@ Clicking any recommendation opens the full vehicle dossier:
 
 ---
 
-## 6. Real-Time Marketplace Integration (Car.gr Parity)
+## 6. Reference Marketplace Integration
 
 The **Available Cars** marketplace tab allows users to see real market vehicles:
 - **Locations across Greece:** Athens (Marousi, Glyfada, Kifisia, Peristeri), Thessaloniki (Kalamaria), Patras, Heraklion Crete, Larissa.
@@ -164,5 +164,5 @@ The **Available Cars** marketplace tab allows users to see real market vehicles:
 
 - **Frontend:** React 19 SPA, Tailwind CSS v4, Lucide icons.
 - **Styling Archetype:** Apple-inspired warm-light interface (off-whites, ivory, beige, graphite text, and Apple blue `#0066cc` for primary interactions).
-- **Runtime:** Static React/Vite application on port 3000; no backend or API key is required.
+- **Runtime:** React/Vite application that listens on the host-assigned `PORT` (falling back to 3000 locally); no backend API key is required.
 - **Advisor:** Deterministic local preference refinement and vehicle comparison logic.

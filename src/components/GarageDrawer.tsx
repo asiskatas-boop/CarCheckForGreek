@@ -6,6 +6,7 @@ import { formatPrice } from '../services/currency';
 import { AccessibleDialog } from './AccessibleDialog';
 import { VehicleImage } from './VehicleImage';
 import { X, Bookmark, Star, Trash2, Scale, Edit3, Check, Car, ArrowRight } from 'lucide-react';
+import { loadBooleanRecord, loadStringRecord, safeSetItem } from '../services/storage';
 
 interface GarageDrawerProps {
   isOpen: boolean;
@@ -25,14 +26,10 @@ export const GarageDrawer: React.FC<GarageDrawerProps> = ({
   currency, marketRegion = 'greece', onOpenDetails, onStartComparison
 }) => {
   const isGreek = marketRegion === 'greece';
-  const [notes, setNotes] = useState<Record<string, string>>(() => {
-    try { return JSON.parse(localStorage.getItem('carcheck_garage_notes') || '{}'); } catch { return {}; }
-  });
+  const [notes, setNotes] = useState<Record<string, string>>(() => loadStringRecord('carcheck_garage_notes'));
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
-  const [favorites, setFavorites] = useState<Record<string, boolean>>(() => {
-    try { return JSON.parse(localStorage.getItem('carcheck_garage_favorites') || '{}'); } catch { return {}; }
-  });
+  const [favorites, setFavorites] = useState<Record<string, boolean>>(() => loadBooleanRecord('carcheck_garage_favorites'));
 
   const savedVehicles = VEHICLES.filter((v) => savedVehicleIds.includes(v.id));
   const savedListings = MARKETPLACE_LISTINGS.filter((l) => savedListingIds.includes(l.id));
@@ -40,13 +37,13 @@ export const GarageDrawer: React.FC<GarageDrawerProps> = ({
   const handleSaveNote = (id: string) => {
     const updated = { ...notes, [id]: noteDraft.trim() };
     setNotes(updated);
-    localStorage.setItem('carcheck_garage_notes', JSON.stringify(updated));
+    safeSetItem('carcheck_garage_notes', JSON.stringify(updated));
     setEditingNoteId(null);
   };
   const toggleFavorite = (id: string) => {
     const updated = { ...favorites, [id]: !favorites[id] };
     setFavorites(updated);
-    localStorage.setItem('carcheck_garage_favorites', JSON.stringify(updated));
+    safeSetItem('carcheck_garage_favorites', JSON.stringify(updated));
   };
 
   return (

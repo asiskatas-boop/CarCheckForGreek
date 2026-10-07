@@ -71,9 +71,9 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
   const isGreek = marketRegion === 'greece';
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
-  // Available unique makes & body styles from recommendations
-  const allMakes = ['Toyota', 'Škoda', 'Mazda', 'Tesla', 'Volkswagen', 'BMW', 'Hyundai', 'Volvo', 'Honda', 'Ford', 'Dacia', 'Porsche'];
-  const allFuelTypes = ['Hybrid', 'Petrol', 'Electric', 'Diesel', 'Plug-in Hybrid'];
+  // Derive filter choices from the actual recommendation set so imported/new makes never disappear.
+  const allMakes = Array.from(new Set(recommendations.map((rec) => rec.vehicle.make))).sort((a, b) => a.localeCompare(b));
+  const allFuelTypes = Array.from(new Set(recommendations.map((rec) => rec.vehicle.fuelType))).sort((a, b) => a.localeCompare(b));
 
   const toggleFilterMake = (make: string) => {
     setSmartFilters((prev) => ({
@@ -102,6 +102,12 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
     }
     if (smartFilters.bodyStyles.length > 0 && !smartFilters.bodyStyles.includes(v.bodyStyle)) {
       return false;
+    }
+    if (smartFilters.transmissions.length > 0) {
+      const supportsRequestedTransmission = smartFilters.transmissions.some((requested) =>
+        v.transmission === requested || v.transmission === 'Both available'
+      );
+      if (!supportsRequestedTransmission) return false;
     }
     if (smartFilters.maxPriceEUR && v.typicalPriceMin > smartFilters.maxPriceEUR) {
       return false;
@@ -250,7 +256,8 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                   bodyStyles: [],
                   fuelTypes: [],
                   transmissions: [],
-                  searchQuery: ''
+                  searchQuery: '',
+                  maxPriceEUR: undefined
                 })
               }
               className="min-h-11 px-4 rounded-full bg-[var(--color-accent)] text-white text-[15px] font-semibold"
