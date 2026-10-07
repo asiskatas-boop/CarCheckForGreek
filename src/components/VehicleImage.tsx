@@ -123,7 +123,7 @@ export const VehicleImage: React.FC<VehicleImageProps> = ({
         onError={() => setFailed(true)}
       />
       {showReferenceLabel && (
-        <span className="absolute bottom-2 left-2 rounded-full border border-white/25 bg-slate-950/75 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+        <span className="absolute bottom-2 left-2 rounded-full border border-white/80 bg-[rgba(255,253,249,0.92)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-text)] backdrop-blur-sm shadow-sm">
           {isGreek ? 'Εικόνα αναφοράς μοντέλου' : 'Model reference image'}
         </span>
       )}

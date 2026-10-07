@@ -25,7 +25,6 @@ import { ComparisonModal } from './components/ComparisonModal';
 import { MarketplaceListings } from './components/MarketplaceListings';
 import { GarageDrawer } from './components/GarageDrawer';
 import { AllVehiclesCatalog } from './components/AllVehiclesCatalog';
-import { ScreensExportModal } from './components/ScreensExportModal';
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   budgetId: '1.5k-5k',
@@ -45,16 +44,6 @@ export default function App() {
     return 'advisor';
   });
   const [discoveryState, setDiscoveryState] = useState<'hero' | 'questionnaire' | 'results'>('hero');
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    try {
-      const stored = localStorage.getItem('carcheck_theme');
-      if (stored === 'light' || stored === 'dark') return stored;
-    } catch {
-      // Fall through to the calmer light default.
-    }
-    return 'light';
-  });
-
   const [marketRegion, setMarketRegion] = useState<MarketRegion>(() => {
     try {
       const stored = localStorage.getItem('carcheck_market_region');
@@ -118,9 +107,6 @@ export default function App() {
   // Garage Drawer Open
   const [isGarageOpen, setIsGarageOpen] = useState<boolean>(false);
 
-  // Screen Export Modal Open
-  const [isExportScreensOpen, setIsExportScreensOpen] = useState<boolean>(false);
-
   // Last advisor conversational response
   const [lastAdvisorMessage, setLastAdvisorMessage] = useState<string | undefined>(undefined);
 
@@ -133,13 +119,11 @@ export default function App() {
     searchQuery: ''
   });
 
-  // Respect an explicit theme choice. Light is the default to reduce glare and visual density;
-  // the dark palette remains available with softer contrast rather than pure black/white.
+  // CarCheck intentionally uses a single warm, light appearance.
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('carcheck_theme', theme);
-    document.documentElement.style.colorScheme = theme;
-  }, [theme]);
+    document.documentElement.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
+  }, []);
 
   // Keep the primary views bookmarkable and make browser Back/Forward useful without adding a routing dependency.
   useEffect(() => {
@@ -410,8 +394,6 @@ export default function App() {
         setCurrency={setCurrency}
         marketRegion={marketRegion}
         setMarketRegion={setMarketRegion}
-        theme={theme}
-        onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}
         onResetDiscovery={() => {
           setDiscoveryState('questionnaire');
           setCurrentTab('advisor');
@@ -548,26 +530,9 @@ export default function App() {
               ? 'Οι τιμές, οι αγγελίες και τα φορολογικά στοιχεία είναι ενδεικτικά στιγμιότυπα. Επιβεβαίωσέ τα στην αρχική πηγή πριν από αγορά.'
               : 'Prices, listings, and market data are reference snapshots. Verify current details with the original source before purchasing.'}
           </span>
-          {import.meta.env.DEV && (
-            <button
-              type="button"
-              onClick={() => setIsExportScreensOpen(true)}
-              className="text-xs font-semibold text-[var(--color-accent-text)] underline underline-offset-4"
-            >
-              {marketRegion === 'greece' ? 'Εξαγωγή οθονών (dev)' : 'Export screens (dev)'}
-            </button>
-          )}
         </div>
       </footer>
 
-      {import.meta.env.DEV && (
-        <ScreensExportModal
-          isOpen={isExportScreensOpen}
-          onClose={() => setIsExportScreensOpen(false)}
-          marketRegion={marketRegion}
-          currency={currency}
-        />
-      )}
     </div>
   );
 }

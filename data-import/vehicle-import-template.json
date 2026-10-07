@@ -1,0 +1,79 @@
+{
+  "vehicles": [
+    {
+      "id": "provider-or-carcheck-stable-id",
+      "make": "Toyota",
+      "model": "Corolla",
+      "generation": "E210",
+      "years": "2019–2024",
+      "recommendedYears": "2021–2024",
+      "bodyStyle": "Hatchback",
+      "fuelType": "Hybrid",
+      "transmission": "Automatic",
+      "engineSummary": "1.8 hybrid",
+      "recommendedPowertrain": "1.8 Hybrid e-CVT",
+      "horsepower": 122,
+      "acceleration0to100": 10.9,
+      "fuelEconomy": "4.4 L/100 km",
+      "cargoCapacityLiters": 361,
+      "seats": 5,
+      "drivetrain": "FWD",
+      "typicalPriceMin": 18500,
+      "typicalPriceMax": 24500,
+      "goodBuyPrice": 20000,
+      "excellentBuyPrice": 18800,
+      "marketPriceType": "used",
+      "reliabilityRating": 5,
+      "runningCostLevel": "Very Low",
+      "comfortLevel": 4,
+      "safetyRating": 5,
+      "practicalityScore": 4,
+      "techScore": 4,
+      "engineDisplacementCc": 1798,
+      "greekRoadTaxEur": 0,
+      "athensRingExempt": true,
+      "carGrSearchUrl": "https://www.car.gr/",
+      "imageUrl": "",
+      "pros": [],
+      "cons": [],
+      "bestFor": [],
+      "notIdealFor": [],
+      "knownIssues": [],
+      "inspectionChecklist": [],
+      "defaultExplanation": "",
+      "provenance": {
+        "specifications": {
+          "provider": "Provider name",
+          "kind": "commercial",
+          "sourceRecordId": "provider-derivative-id",
+          "market": "GR",
+          "retrievedAt": "2026-10-07T00:00:00Z"
+        },
+        "pricing": {
+          "provider": "Valuation provider",
+          "kind": "commercial",
+          "sourceRecordId": "valuation-record-id",
+          "market": "GR",
+          "retrievedAt": "2026-10-07T00:00:00Z",
+          "methodology": "Used-market valuation; include mileage/condition assumptions"
+        },
+        "safety": {
+          "provider": "Euro NCAP",
+          "kind": "authoritative",
+          "sourceRecordId": "rating-or-test-id",
+          "market": "EU",
+          "retrievedAt": "2026-10-07T00:00:00Z",
+          "methodology": "Store rating year/protocol with normalized safety fields"
+        },
+        "taxation": {
+          "provider": "AADE / official rule set",
+          "kind": "authoritative",
+          "sourceRecordId": "rule-or-calculation-version",
+          "market": "GR",
+          "retrievedAt": "2026-10-07T00:00:00Z",
+          "methodology": "Store registration date, certified CO2 and the rule version used for the calculation"
+        }
+      }
+    }
+  ]
+}

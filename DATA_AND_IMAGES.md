@@ -93,3 +93,11 @@ Before release, add automated rules such as:
 - reject Euro NCAP stars with no rating year;
 - warn when recalls have not been refreshed recently;
 - never display an image as an exact vehicle image when the provider match is only a generic fallback.
+
+## When you receive the supplier export
+
+Yes: upload the raw supplier data as well. JSON, CSV, or XLSX is fine. Prefer the untouched export plus the provider's data dictionary; do not manually rename or merge rows first.
+
+Use `data-import/README.md` for the handoff checklist and `data-import/vehicle-import-template.json` as the normalized target shape. The supplier file itself can keep its own schema—build an adapter so provider IDs and provenance are not lost.
+
+For normalized JSON, `npm run validate:data -- <file>` performs basic identity, range, duplicate, and provenance checks before the data reaches the UI.

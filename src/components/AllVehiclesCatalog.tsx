@@ -81,7 +81,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-text)] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
           {isGreek ? 'Κατάλογος Οχημάτων' : 'Vehicle Catalog'}
         </h1>
         <p className="text-[15px] text-[var(--color-text-muted)] mt-1 max-w-3xl">
@@ -144,7 +144,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
           <Search className="w-8 h-8 mx-auto text-[var(--color-text-muted)]" aria-hidden="true" />
           <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">{isGreek ? 'Δεν βρέθηκαν οχήματα' : 'No vehicles found'}</h2>
           <p className="mt-2 text-[15px] text-[var(--color-text-muted)]">{isGreek ? 'Δοκίμασε λιγότερα φίλτρα ή καθάρισε την αναζήτηση.' : 'Try fewer filters or clear the search.'}</p>
-          <button type="button" onClick={resetFilters} className="mt-5 min-h-11 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold inline-flex items-center gap-2">
+          <button type="button" onClick={resetFilters} className="mt-5 min-h-11 px-4 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold inline-flex items-center gap-2">
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
             {isGreek ? 'Καθαρισμός φίλτρων' : 'Clear filters'}
           </button>
@@ -156,17 +156,16 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
             const isSaved = savedIds.includes(vehicle.id);
             const listingCount = GET_LISTINGS_FOR_VEHICLE(vehicle.id).length;
             return (
-              <article key={vehicle.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <article key={vehicle.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden transition-colors hover:border-[var(--color-border-strong)] flex flex-col justify-between">
                 <div>
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
                     <VehicleImage vehicle={vehicle} alt={`${vehicle.make} ${vehicle.model}`} marketRegion={marketRegion} showReferenceLabel />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent pointer-events-none" />
-                    <div className="absolute bottom-3 left-3 text-white text-[15px] font-medium">{vehicle.generation} · {vehicle.years}</div>
+                    <div className="absolute bottom-3 left-3 rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm">{vehicle.generation} · {vehicle.years}</div>
                     <div className="absolute top-3 right-3 flex items-center gap-2">
-                      <button type="button" onClick={() => onToggleCompare(vehicle.id)} aria-pressed={isCompared} aria-label={isGreek ? `${isCompared ? 'Αφαίρεση από' : 'Προσθήκη σε'} σύγκριση: ${vehicle.make} ${vehicle.model}` : `${isCompared ? 'Remove from' : 'Add to'} comparison: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isCompared ? 'bg-[var(--color-accent)] text-white' : 'bg-slate-950/80 text-white hover:bg-slate-900'}`}>
+                      <button type="button" onClick={() => onToggleCompare(vehicle.id)} aria-pressed={isCompared} aria-label={isGreek ? `${isCompared ? 'Αφαίρεση από' : 'Προσθήκη σε'} σύγκριση: ${vehicle.make} ${vehicle.model}` : `${isCompared ? 'Remove from' : 'Add to'} comparison: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isCompared ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
                         <Scale className="w-4 h-4" aria-hidden="true" />
                       </button>
-                      <button type="button" onClick={() => onToggleSave(vehicle.id)} aria-pressed={isSaved} aria-label={isGreek ? `${isSaved ? 'Αφαίρεση από' : 'Αποθήκευση στο'} Garage: ${vehicle.make} ${vehicle.model}` : `${isSaved ? 'Remove from' : 'Save to'} garage: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-slate-950/80 text-white hover:bg-slate-900'}`}>
+                      <button type="button" onClick={() => onToggleSave(vehicle.id)} aria-pressed={isSaved} aria-label={isGreek ? `${isSaved ? 'Αφαίρεση από' : 'Αποθήκευση στο'} Garage: ${vehicle.make} ${vehicle.model}` : `${isSaved ? 'Remove from' : 'Save to'} garage: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
                         <Bookmark className="w-4 h-4" aria-hidden="true" />
                       </button>
                     </div>
@@ -176,11 +175,11 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
                     <div className="flex flex-wrap items-center gap-2 text-[15px] text-[var(--color-text-muted)] mb-1 font-medium">
                       <span>{isGreek ? BODY_LABELS_GR[vehicle.bodyStyle] ?? vehicle.bodyStyle : vehicle.bodyStyle}</span><span aria-hidden="true">·</span><span>{isGreek ? FUEL_LABELS_GR[vehicle.fuelType] ?? vehicle.fuelType : vehicle.fuelType}</span><span aria-hidden="true">·</span><span>{vehicle.drivetrain}</span>
                     </div>
-                    <h2 className="text-xl font-extrabold text-[var(--color-text)] tracking-tight">{vehicle.make} {vehicle.model}</h2>
+                    <h2 className="text-xl font-semibold text-[var(--color-text)] tracking-tight">{vehicle.make} {vehicle.model}</h2>
 
                     <div className="mt-3 p-3 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] flex items-center justify-between gap-4">
                       <div><span className="text-[13px] font-semibold text-[var(--color-text-muted)] block">{isGreek ? 'Ενδεικτικό εύρος' : 'Reference range'}</span><span className="text-[15px] font-bold text-[var(--color-text)]">{formatPriceRange(vehicle.typicalPriceMin, vehicle.typicalPriceMax, currency)}</span></div>
-                      <div className="text-right"><span className="text-[13px] font-semibold text-[var(--color-success)] block">{isGreek ? 'Στόχος καλής αγοράς' : 'Good-buy target'}</span><span className="text-[15px] font-extrabold text-[var(--color-success)]">{isGreek ? 'Κάτω από ' : 'Under '}{formatPrice(vehicle.goodBuyPrice, currency)}</span></div>
+                      <div className="text-right"><span className="text-[13px] font-semibold text-[var(--color-success)] block">{isGreek ? 'Στόχος καλής αγοράς' : 'Good-buy target'}</span><span className="text-[15px] font-semibold text-[var(--color-success)]">{isGreek ? 'Κάτω από ' : 'Under '}{formatPrice(vehicle.goodBuyPrice, currency)}</span></div>
                     </div>
 
                     <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[15px] py-3 border-y border-[var(--color-border)]">
@@ -194,7 +193,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
                 </div>
 
                 <div className="p-5 pt-0 flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => onOpenDetails(vehicle)} className="min-h-11 flex-1 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors">
+                  <button type="button" onClick={() => onOpenDetails(vehicle)} className="min-h-11 flex-1 inline-flex items-center justify-center gap-1.5 px-4 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors">
                     <ShieldCheck className="w-4 h-4" aria-hidden="true" />
                     <span>{isGreek ? 'Οδηγός & έλεγχος' : 'Guide & checks'}</span>
                     <ChevronRight className="w-4 h-4" aria-hidden="true" />

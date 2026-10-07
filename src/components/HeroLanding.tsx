@@ -42,7 +42,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
       <section className="relative w-full border-b border-[var(--color-border)] bg-[var(--color-surface)]" aria-labelledby="hero-title">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 lg:py-20 grid lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,.65fr)] gap-10 lg:gap-14 items-center">
           <div className="max-w-3xl">
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-bold tracking-wide text-[var(--color-accent-text)] mb-4">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-4">
               <span>{isGreek ? 'Σύμβουλος αγοράς αυτοκινήτου' : 'Independent vehicle advisor'}</span>
               <span aria-hidden="true">·</span>
               <span>{isGreek ? 'Ελλάδα & Ευρώπη' : 'Greece & Europe'}</span>
@@ -50,7 +50,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
               <span>{isGreek ? 'Έλεγχος πηγών πριν την αγορά' : 'Source checks before you buy'}</span>
             </p>
 
-            <h1 id="hero-title" className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-[var(--color-text)] leading-[1.08]">
+            <h1 id="hero-title" className="text-4xl sm:text-5xl lg:text-[3.5rem] font-semibold tracking-[-0.025em] text-[var(--color-text)] leading-[1.08]">
               {isGreek ? 'Βρες το σωστό αυτοκίνητο χωρίς να χαθείς στις αγγελίες.' : 'Find the right car without getting lost in listings.'}
             </h1>
 
@@ -61,11 +61,11 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
             </p>
 
             <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <button type="button" onClick={onStartDiscovery} className="min-h-12 inline-flex items-center justify-center gap-2.5 px-7 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors group">
+              <button type="button" onClick={onStartDiscovery} className="min-h-12 inline-flex items-center justify-center gap-2.5 px-7 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-semibold transition-colors group">
                 <span>{isGreek ? 'Βρες το αυτοκίνητό μου' : 'Find my car'}</span>
                 <ArrowRight className="w-4 h-4 motion-safe:group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
               </button>
-              <button type="button" onClick={onBrowseAll} className="min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] text-[var(--color-text)] text-[15px] font-semibold hover:border-[var(--color-border-strong)] transition-colors">
+              <button type="button" onClick={onBrowseAll} className="min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-full bg-[var(--color-surface-subtle)] border border-[var(--color-border)] text-[var(--color-text)] text-[15px] font-semibold hover:border-[var(--color-border-strong)] transition-colors">
                 <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
                 <span>{isGreek ? 'Περιήγηση στα μοντέλα' : 'Browse vehicles'}</span>
               </button>
@@ -76,7 +76,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-accent-soft)] text-[var(--color-accent-text)]">
               <CarFront className="h-7 w-7" aria-hidden="true" />
             </div>
-            <h2 className="mt-5 text-xl font-extrabold tracking-tight text-[var(--color-text)]">{isGreek ? 'Λιγότερος θόρυβος. Περισσότερη βεβαιότητα.' : 'Less noise. More confidence.'}</h2>
+            <h2 className="mt-5 text-xl font-semibold tracking-tight text-[var(--color-text)]">{isGreek ? 'Λιγότερος θόρυβος. Περισσότερη βεβαιότητα.' : 'Less noise. More confidence.'}</h2>
             <div className="mt-5 space-y-4">
               {[
                 [isGreek ? 'Καθαρό shortlist' : 'Focused shortlist', isGreek ? 'Λίγες επιλογές με ξεκάθαρο γιατί.' : 'A few choices with a clear reason why.'],
@@ -115,7 +115,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
           <p className="text-sm font-bold text-[var(--color-text)] mb-3">{isGreek ? 'Γρήγορη εκκίνηση' : 'Quick starts'}</p>
           <div className="flex flex-wrap items-center gap-2">
             {presets.map(({ id, icon: Icon, label }) => (
-              <button key={id} type="button" onClick={() => onQuickPreset(id)} className="min-h-11 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-sm font-semibold text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent-text)] transition-colors inline-flex items-center gap-2">
+              <button key={id} type="button" onClick={() => onQuickPreset(id)} className="min-h-11 px-4 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-sm font-semibold text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent-text)] transition-colors inline-flex items-center gap-2">
                 <Icon className="w-4 h-4" aria-hidden="true" />
                 {label}
               </button>

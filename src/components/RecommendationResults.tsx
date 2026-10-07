@@ -163,7 +163,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                     maxPriceEUR: undefined
                   })
                 }
-                className="min-h-11 px-2 text-[15px] text-rose-400 hover:underline"
+                className="min-h-11 px-2 text-[15px] text-[var(--color-danger)] hover:underline"
               >
                 {isGreek ? 'Καθαρισμός φίλτρων' : 'Reset filters'}
               </button>
@@ -226,7 +226,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[var(--color-text)] tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-semibold text-[var(--color-text)] tracking-tight">
               {isGreek ? 'Προτάσεις για εσένα' : 'Curated recommendations'}
             </h2>
             <p className="text-[13px] text-[var(--color-text-muted)]">
@@ -253,7 +253,7 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                   searchQuery: ''
                 })
               }
-              className="min-h-11 px-4 rounded-xl bg-[var(--color-accent)] text-white text-[15px] font-semibold"
+              className="min-h-11 px-4 rounded-full bg-[var(--color-accent)] text-white text-[15px] font-semibold"
             >
               {isGreek ? 'Καθαρισμός φίλτρων' : 'Clear filters'}
             </button>

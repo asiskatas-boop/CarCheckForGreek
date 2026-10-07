@@ -87,64 +87,61 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
       onClose={onClose}
       labelledBy="vehicle-detail-title"
       overlayClassName="overflow-y-auto flex items-center justify-center p-3 sm:p-6 animate-fadeIn"
-      panelClassName="relative w-full max-w-4xl bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
+      panelClassName="relative w-full max-w-4xl bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
     >
-        {/* Modal Top Bar */}
-        <div className="relative h-64 sm:h-80 w-full overflow-hidden shrink-0 bg-slate-950">
+        {/* Vehicle image */}
+        <div className="relative h-64 sm:h-80 w-full overflow-hidden shrink-0 bg-[var(--color-image-fallback)]">
           <VehicleImage vehicle={vehicle} alt={`${vehicle.make} ${vehicle.model}`} marketRegion={marketRegion} eager showReferenceLabel className="object-center" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-black/40" />
-
-          {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 touch-target rounded-xl flex items-center justify-center bg-slate-950/70 hover:bg-slate-900 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700/60"
+            className="absolute top-4 right-4 touch-target rounded-full flex items-center justify-center bg-[rgba(255,253,249,0.92)] hover:bg-[var(--color-surface-raised)] text-[var(--color-text)] transition-colors cursor-pointer border border-white/80 backdrop-blur-md shadow-sm"
             aria-label={isGreek ? 'Κλείσιμο λεπτομερειών οχήματος' : 'Close vehicle details'}
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
 
-          {/* Top Title Overlay */}
-          <div className="absolute bottom-5 left-5 right-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-white">
-            <div>
-              <div className="flex items-center gap-2 text-[13px] font-medium text-[var(--color-accent-text)] mb-1">
-                <span>{vehicle.generation}</span>
-                <span aria-hidden="true">·</span>
-                <span>{vehicle.years}</span>
-                <span aria-hidden="true">·</span>
-                <span>{vehicle.bodyStyle}</span>
-              </div>
-              <h2 id="vehicle-detail-title" className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-                {vehicle.make} {vehicle.model}
-              </h2>
+        {/* Apple-style title and actions live on a calm surface, not over the photo. */}
+        <div className="px-5 sm:px-7 py-5 sm:py-6 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5">
+              <span>{vehicle.generation}</span>
+              <span aria-hidden="true">·</span>
+              <span>{vehicle.years}</span>
+              <span aria-hidden="true">·</span>
+              <span>{vehicle.bodyStyle}</span>
             </div>
+            <h2 id="vehicle-detail-title" className="text-2xl sm:text-4xl font-semibold text-[var(--color-text)] tracking-tight">
+              {vehicle.make} {vehicle.model}
+            </h2>
+          </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onToggleCompare(vehicle.id)}
-                aria-pressed={isCompared}
-                className={`min-h-11 px-3.5 rounded-xl text-[13px] font-semibold backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer ${
-                  isCompared
-                    ? 'bg-[var(--color-accent)] text-white'
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-                }`}
-              >
-                <Scale className="w-4 h-4" />
-                <span>{isCompared ? (isGreek ? 'Στη σύγκριση' : 'Compared') : (isGreek ? 'Σύγκριση' : 'Compare')}</span>
-              </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => onToggleCompare(vehicle.id)}
+              aria-pressed={isCompared}
+              className={`min-h-11 px-4 rounded-full text-[14px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                isCompared
+                  ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
+                  : 'bg-[var(--color-surface-raised)] border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-border-strong)]'
+              }`}
+            >
+              <Scale className="w-4 h-4" />
+              <span>{isCompared ? (isGreek ? 'Στη σύγκριση' : 'Compared') : (isGreek ? 'Σύγκριση' : 'Compare')}</span>
+            </button>
 
-              <button
-                onClick={() => onToggleSave(vehicle.id)}
-                aria-pressed={isSaved}
-                className={`min-h-11 px-3.5 rounded-xl text-[13px] font-semibold backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer ${
-                  isSaved
-                    ? 'bg-[var(--color-accent)] text-white'
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-                }`}
-              >
-                <Bookmark className="w-4 h-4" />
-                <span>{isSaved ? (isGreek ? 'Στο Garage' : 'In Garage') : (isGreek ? 'Αποθήκευση' : 'Save')}</span>
-              </button>
-            </div>
+            <button
+              onClick={() => onToggleSave(vehicle.id)}
+              aria-pressed={isSaved}
+              className={`min-h-11 px-4 rounded-full text-[14px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                isSaved
+                  ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
+                  : 'bg-[var(--color-surface-raised)] border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-border-strong)]'
+              }`}
+            >
+              <Bookmark className="w-4 h-4" />
+              <span>{isSaved ? (isGreek ? 'Στο Garage' : 'In Garage') : (isGreek ? 'Αποθήκευση' : 'Save')}</span>
+            </button>
           </div>
         </div>
 
@@ -189,7 +186,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                     <p className="text-[15px] font-bold text-[var(--color-text)]">Έλεγξε την τρέχουσα αγορά</p>
                     <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">Οι τιμές στη βάση του CarCheck είναι ενδεικτικές. Άνοιξε νέα αναζήτηση για τη σημερινή προσφορά και επιβεβαίωσε κάθε αγγελία στην πηγή.</p>
                   </div>
-                  <a href={vehicle.carGrSearchUrl} target="_blank" rel="noreferrer" className="min-h-11 px-4 rounded-xl text-[13px] font-semibold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white transition-colors flex items-center justify-center gap-1.5 shrink-0">
+                  <a href={vehicle.carGrSearchUrl} target="_blank" rel="noreferrer" className="min-h-11 px-4 rounded-full text-[13px] font-semibold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white transition-colors flex items-center justify-center gap-1.5 shrink-0">
                     <span>Άνοιγμα Car.gr</span><ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                   </a>
                 </div>
@@ -213,7 +210,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                   <span className="text-xs uppercase tracking-wider text-[var(--color-accent-text)] font-semibold">
                     {isGreek ? 'Στόχος «Καλής Αγοράς»' : 'Good-Buy Target'}
                   </span>
-                  <div className="text-lg font-extrabold text-[var(--color-accent-text)] mt-0.5">
+                  <div className="text-lg font-semibold text-[var(--color-accent-text)] mt-0.5">
                     {isGreek ? 'Έως' : 'Up to'} {formatPrice(vehicle.goodBuyPrice, currency)}
                   </div>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
@@ -225,7 +222,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                   <span className="text-xs uppercase tracking-wider text-[var(--color-success)] font-semibold">
                     {isGreek ? 'Εξαιρετικός Στόχος' : 'Excellent-Buy Target'}
                   </span>
-                  <div className="text-lg font-extrabold text-[var(--color-success)] mt-0.5">
+                  <div className="text-lg font-semibold text-[var(--color-success)] mt-0.5">
                     {isGreek ? 'Έως' : 'Up to'} {formatPrice(vehicle.excellentBuyPrice, currency)}
                   </div>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
@@ -266,7 +263,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
 
                   <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)]">
                     <span className="text-[var(--color-text-muted)] font-medium">{isGreek ? 'Πορτμπαγκάζ & Θέσεις' : 'Boot & Seating'}</span>
-                    <div className="font-bold text-white mt-1 text-[15px]">
+                    <div className="font-semibold text-[var(--color-text)] mt-1 text-[15px]">
                       {vehicle.cargoCapacityLiters} L · {vehicle.seats} {isGreek ? 'θέσεις' : 'seats'}
                     </div>
                     <span className="text-xs text-[var(--color-text-muted)]">{isGreek ? 'Μέγιστο' : 'Max'} {vehicle.maxCargoCapacityLiters || 1200} L {isGreek ? 'με αναδίπλωση' : 'folded'}</span>
@@ -280,7 +277,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                       <span className="text-[var(--color-text-muted)] uppercase font-bold text-[10px] tracking-[1.1px]">
                         Τέλη Κυκλοφορίας (Ελλάδα)
                       </span>
-                      <div className="text-[15px] font-extrabold text-[var(--color-accent-text)] mt-0.5">
+                      <div className="text-[15px] font-semibold text-[var(--color-accent-text)] mt-0.5">
                         {vehicle.greekRoadTaxEur === 0 ? '0€ / Έτος (Απαλλαγή)' : `${vehicle.greekRoadTaxEur}€ / Έτος`}
                       </div>
                       <span className="text-xs text-[var(--color-text-muted)]">Βάσει CO2 / κυβικών</span>
@@ -290,7 +287,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                       <span className="text-[var(--color-text-muted)] uppercase font-bold text-[10px] tracking-[1.1px]">
                         Πράσινος Δακτύλιος Αθηνών
                       </span>
-                      <div className="text-[15px] font-extrabold text-white mt-0.5">
+                      <div className="text-[15px] font-semibold text-[var(--color-text)] mt-0.5">
                         {vehicle.athensRingExempt ? '✓ Ελεύθερη Είσοδος Καθημερινά' : 'Μονά / Ζυγά'}
                       </div>
                       <span className="text-xs text-[var(--color-text-muted)]">Κυκλοφορία στο κέντρο</span>
@@ -300,7 +297,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                       <span className="text-[var(--color-text-muted)] uppercase font-bold text-[10px] tracking-[1.1px]">
                         Κυβισμός & Τεκμήριο
                       </span>
-                      <div className="text-[15px] font-extrabold text-white mt-0.5">
+                      <div className="text-[15px] font-semibold text-[var(--color-text)] mt-0.5">
                         {vehicle.engineDisplacementCc ? `${vehicle.engineDisplacementCc} cc` : 'Ηλεκτρικό'}
                       </div>
                       <span className="text-xs text-[var(--color-text-muted)]">Ετήσια φορολογική κλίμακα</span>
@@ -365,7 +362,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                   <ul className="space-y-2 text-[13px] text-[var(--color-text)]">
                     {vehicle.cons.map((c, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-amber-500 font-bold mt-0.5">✕</span>
+                        <span className="text-[var(--color-warning)] font-bold mt-0.5">✕</span>
                         <span className="leading-relaxed">{c}</span>
                       </li>
                     ))}
@@ -410,7 +407,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                           <div
                             className={`w-5 h-5 rounded border mt-0.5 flex items-center justify-center transition-colors ${
                               isChecked
-                                ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white'
+                                ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
                                 : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)]'
                             }`}
                           >
@@ -427,7 +424,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                                   item.importance === 'Critical'
                                     ? 'text-[var(--color-danger)]'
                                     : item.importance === 'Important'
-                                    ? 'text-amber-600 dark:text-amber-400'
+                                    ? 'text-[var(--color-warning)]'
                                     : 'text-[var(--color-text-muted)]'
                                 }`}
                               >
@@ -459,7 +456,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                     <Calendar className="w-4 h-4" />
                     <span>{isGreek ? 'Προτεινόμενες Χρονιές' : 'Recommended Model Years'}</span>
                   </div>
-                  <div className="text-[15px] font-extrabold text-[var(--color-text)]">
+                  <div className="text-[15px] font-semibold text-[var(--color-text)]">
                     {vehicle.recommendedYears}
                   </div>
                   <p className="text-[13px] text-[var(--color-text-muted)] mt-1">
@@ -472,7 +469,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                     <AlertTriangle className="w-4 h-4" />
                     <span>{isGreek ? 'Χρονιές ή Εκδόσεις προς Προσοχή' : 'Years or Trims to Avoid'}</span>
                   </div>
-                  <div className="text-[15px] font-extrabold text-[var(--color-text)]">
+                  <div className="text-[15px] font-semibold text-[var(--color-text)]">
                     {vehicle.yearsToAvoid || (isGreek ? 'Δεν έχουν επισημανθεί συγκεκριμένες χρονιές υψηλού ρίσκου' : 'No high-risk model years identified')}
                   </div>
                   <p className="text-[13px] text-[var(--color-text-muted)] mt-1">
@@ -532,7 +529,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                           <span
                             className={`text-[13px] font-bold uppercase tracking-wider ${
                               l.dealRating === 'Excellent Price'
-                                ? 'text-teal-600 dark:text-teal-400'
+                                ? 'text-[var(--color-success)]'
                                 : l.dealRating === 'Good Price'
                                 ? 'text-[var(--color-success)]'
                                 : 'text-[var(--color-text-muted)]'
@@ -551,7 +548,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                           {l.year} · {l.mileageKm.toLocaleString()} km · {l.transmission} · {l.location}
                         </div>
 
-                        <div className="mt-2 text-base font-extrabold text-[var(--color-text)]">
+                        <div className="mt-2 text-base font-semibold text-[var(--color-text)]">
                           {formatPrice(l.price, currency)}
                         </div>
 

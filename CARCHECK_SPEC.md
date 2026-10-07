@@ -163,6 +163,6 @@ The **Available Cars** marketplace tab allows users to see real market vehicles:
 ## 8. Technical Architecture
 
 - **Frontend:** React 19 SPA, Tailwind CSS v4, Lucide icons.
-- **Styling Archetype:** Editorial luxury automotive design (deep `#181818` canvas, `#303030` hairlines, and iconic `#da291c` Rosso Corsa accents).
+- **Styling Archetype:** Apple-inspired warm-light interface (off-whites, ivory, beige, graphite text, and Apple blue `#0066cc` for primary interactions).
 - **Backend Entry:** `server.ts` running Express with Vite middlewares on port 3000.
 - **AI Integration:** `@google/genai` TypeScript SDK with `gemini-2.5-flash` for conversational preference refinement and vehicle comparison analysis, backed by deterministic fallback heuristics.

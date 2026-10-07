@@ -55,14 +55,14 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
       open
       onClose={onClose}
       labelledBy="comparison-title"
-      panelClassName="w-full max-w-6xl max-h-[94vh] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden my-auto"
+      panelClassName="w-full max-w-6xl max-h-[94vh] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-xl flex flex-col overflow-hidden my-auto"
       overlayClassName="p-2 sm:p-5 items-center justify-center"
     >
       <header className="p-5 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 flex items-center justify-center text-[var(--color-accent-text)] shrink-0"><Scale className="w-5 h-5" aria-hidden="true" /></div>
           <div className="min-w-0">
-            <h2 id="comparison-title" className="text-lg sm:text-xl font-extrabold text-[var(--color-text)] tracking-tight">{isGreek ? 'Σύγκριση οχημάτων' : 'Side-by-side comparison'}</h2>
+            <h2 id="comparison-title" className="text-lg sm:text-xl font-semibold text-[var(--color-text)] tracking-tight">{isGreek ? 'Σύγκριση οχημάτων' : 'Side-by-side comparison'}</h2>
             <p className="text-[15px] text-[var(--color-text-muted)]">{isGreek ? `${vehicles.length} οχήματα με βάση το προφίλ σου` : `${vehicles.length} vehicles based on your profile`}</p>
           </div>
         </div>
@@ -81,10 +81,10 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {vehicles.map((v) => (
                 <article key={v.id} className="relative surface-card p-4 overflow-hidden">
-                  <button type="button" onClick={() => onRemoveVehicle(v.id)} className="touch-target absolute top-2 right-2 rounded-xl bg-black/55 text-white flex items-center justify-center" aria-label={isGreek ? `Αφαίρεση ${v.make} ${v.model} από τη σύγκριση` : `Remove ${v.make} ${v.model} from comparison`}><X className="w-4 h-4" aria-hidden="true" /></button>
+                  <button type="button" onClick={() => onRemoveVehicle(v.id)} className="touch-target absolute top-2 right-2 rounded-full bg-[rgba(255,253,249,0.94)] text-[var(--color-text)] border border-white/80 shadow-sm flex items-center justify-center" aria-label={isGreek ? `Αφαίρεση ${v.make} ${v.model} από τη σύγκριση` : `Remove ${v.make} ${v.model} from comparison`}><X className="w-4 h-4" aria-hidden="true" /></button>
                   <div className="aspect-[16/10] w-full rounded-xl overflow-hidden bg-[var(--color-surface-subtle)] mb-3"><VehicleImage vehicle={v} decorative marketRegion={marketRegion} /></div>
                   <p className="text-[13px] text-[var(--color-text-muted)]">{v.generation} · {v.years}</p>
-                  <h3 className="text-base font-extrabold text-[var(--color-text)]">{v.make} {v.model}</h3>
+                  <h3 className="text-base font-semibold text-[var(--color-text)]">{v.make} {v.model}</h3>
                   <p className="text-[15px] font-bold text-[var(--color-accent-text)] mt-1">{isGreek ? 'Καλή αγορά έως' : 'Good buy up to'} {formatPrice(v.goodBuyPrice, currency)}</p>
                 </article>
               ))}
@@ -111,7 +111,7 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
 
             <section className="p-5 sm:p-6 rounded-2xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/25" aria-labelledby="advisor-verdict-title">
               <div className="flex items-center justify-between gap-3">
-                <h3 id="advisor-verdict-title" className="flex items-center gap-2 text-[var(--color-accent-text)] font-extrabold text-[15px] uppercase tracking-wider"><Sparkles className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Ποιο ταιριάζει καλύτερα;' : 'Which one fits best?'}</h3>
+                <h3 id="advisor-verdict-title" className="flex items-center gap-2 text-[var(--color-accent-text)] font-semibold text-[15px] uppercase tracking-wider"><Sparkles className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Ποιο ταιριάζει καλύτερα;' : 'Which one fits best?'}</h3>
                 {loadingAi && <Loader2 className="w-4 h-4 text-[var(--color-accent-text)] animate-spin" aria-label={isGreek ? 'Ανάλυση σε εξέλιξη' : 'Analysis in progress'} />}
               </div>
               <div className="mt-3 text-[15px] text-[var(--color-text)] leading-relaxed" aria-live="polite">

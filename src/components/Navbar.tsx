@@ -6,9 +6,7 @@ import {
   Globe2,
   Sparkles,
   CarFront,
-  Store,
-  Sun,
-  Moon
+  Store
 } from 'lucide-react';
 import { Currency, MarketRegion } from '../types';
 
@@ -22,8 +20,6 @@ interface NavbarProps {
   setCurrency: (currency: Currency) => void;
   marketRegion: MarketRegion;
   setMarketRegion: (region: MarketRegion) => void;
-  theme: 'light' | 'dark';
-  onToggleTheme: () => void;
   onResetDiscovery: () => void;
 }
 
@@ -37,8 +33,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   setCurrency,
   marketRegion,
   setMarketRegion,
-  theme,
-  onToggleTheme,
   onResetDiscovery
 }) => {
   const isGreek = marketRegion === 'greece';
@@ -59,7 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="touch-target flex items-center gap-2.5 text-left group shrink-0"
               aria-label={isGreek ? 'CarCheck — μετάβαση στον σύμβουλο αγοράς' : 'CarCheck — go to advisor'}
             >
-              <span className="w-9 h-9 rounded-xl bg-[var(--color-accent)] flex items-center justify-center text-[var(--color-accent-on)] font-extrabold tracking-tight text-xs shadow-sm transition-colors group-hover:bg-[var(--color-accent-hover)]">
+              <span className="w-9 h-9 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-accent-text)] font-semibold tracking-tight text-xs transition-colors group-hover:border-[var(--color-border-strong)]">
                 CC
               </span>
               <span className="hidden xs:block sm:block">
@@ -146,21 +140,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className="touch-target hidden sm:inline-flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
-              aria-label={isGreek ? (theme === 'dark' ? 'Χρήση φωτεινού θέματος' : 'Χρήση σκοτεινού θέματος') : (theme === 'dark' ? 'Use light theme' : 'Use dark theme')}
-              title={isGreek ? (theme === 'dark' ? 'Φωτεινό θέμα' : 'Σκοτεινό θέμα') : (theme === 'dark' ? 'Light theme' : 'Dark theme')}
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
-            </button>
-
             {compareCount > 0 && (
               <button
                 type="button"
                 onClick={openCompareModal}
-                className="touch-target inline-flex items-center justify-center gap-1.5 px-3 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-xs font-bold transition-colors"
+                className="touch-target inline-flex items-center justify-center gap-1.5 px-3 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-xs font-bold transition-colors"
                 aria-label={`${isGreek ? 'Σύγκριση' : 'Compare'} ${compareCount}`}
               >
                 <Scale className="w-4 h-4" aria-hidden="true" />

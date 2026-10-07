@@ -1,93 +1,106 @@
 # CarCheck — Master Design System
 
-**Source of truth:** UI/UX Pro Max audit guidance + CarCheck automotive product requirements.  
-**Direction:** dark-first automotive advisor; calm, trustworthy, information-dense without looking like a trading dashboard.
+**Source of truth:** Apple design analysis + the uploaded accessibility/UI skills + CarCheck product requirements.  
+**Direction:** Apple-inspired, warm, quiet, light-only car-buying advisor. Product information leads; chrome recedes.
 
 ## Core principles
 
 - One visual language across Advisor, Vehicles, Marketplace, Comparison, Garage, and Details.
-- Dark slate foundation with **one red action accent**. Green/amber/rose are semantic status colors only.
-- Greek is the default locale. Every customer-facing control and status must support Greek and English.
-- Never present static marketplace samples as live, verified, or current availability. Use “reference”, “snapshot”, or “saved sample” wording and point users to the source for confirmation.
-- Minimum 44×44px target for primary mobile interactions. Visible keyboard focus on every interactive element.
+- **No red brand color and no dark theme.** The product stays on warm whites, ivory, parchment, beige, and graphite.
+- **Apple blue (`#0066CC`) is the only interactive brand color.** Use it for primary actions, links, focus, and selected state borders—not as decoration.
+- Greek is the default locale. Every customer-facing control and status supports Greek and English.
+- Never present static marketplace samples as live, verified, or current availability. Use “reference”, “snapshot”, “saved sample”, or “indicative range” wording and point to the source for confirmation.
+- Minimum 44×44px target for frequent mobile interactions. Visible keyboard focus on every interactive element.
 - No emoji as structural icons; use Lucide consistently.
 - Respect `prefers-reduced-motion`.
+- Favor whitespace, calm hierarchy, and a narrow reading measure over dense dashboard presentation.
 
 ## Tokens
 
-| Role | Light | Dark |
+| Role | Value | Purpose |
 |---|---|---|
-| Canvas | `#F8FAFC` | `#0F1115` |
-| Surface | `#FFFFFF` | `#171A20` |
-| Subtle surface | `#F1F5F9` | `#20242C` |
-| Raised surface | `#FFFFFF` | `#252A33` |
-| Primary text | `#0F172A` | `#F8FAFC` |
-| Muted text | `#475569` | `#CBD5E1` |
-| Border | `#CBD5E1` | `#343B47` |
-| Accent | `#B91C1C` | `#DC2626` |
-| Accent text | `#991B1B` | `#FCA5A5` |
-| Success | `#047857` | `#34D399` |
-| Warning | `#B45309` | `#FBBF24` |
-| Danger | `#B91C1C` | `#F87171` |
+| Canvas | `#F4F1EA` | warm page background |
+| Surface | `#FBF9F4` | primary cards and navigation |
+| Raised surface | `#FFFDF9` | inputs, floating controls, elevated panels |
+| Subtle surface | `#EEE9DF` | grouped controls, selected neutral regions |
+| Strong neutral | `#E5DED2` | progress tracks / nested surfaces |
+| Primary text | `#1D1D1F` | headings and body |
+| Muted text | `#68645D` | secondary copy; WCAG-friendly on warm surfaces |
+| Border | `#DED8CD` | quiet separators |
+| Strong border | `#BBB3A6` | hover/strong separation |
+| Action blue | `#0066CC` | primary CTA / selected / links |
+| Action hover | `#0071E3` | hover / active |
+| Success | `#456B57` | factual positive state only |
+| Warning | `#765B2D` | caution state only |
+| Danger | `#6B4F3B` | destructive state only; deliberately not red |
 
-Use semantic CSS variables from `src/index.css`; do not introduce new raw brand colors inside components.
+Use semantic CSS variables from `src/index.css`; do not introduce raw brand colors inside customer-facing components.
 
 ## Typography
 
-- Family: **Plus Jakarta Sans** for UI and content; JetBrains Mono only for technical/dev surfaces.
-- Body: 16px / 24px.
-- Secondary body: 14px / 20px.
-- Labels/meta: 12–13px / 16px; never use tiny type for essential explanations.
-- Section headings: 20–24px, 700–800.
-- Display: 40–56px, compact tracking.
-- Keep Greek body copy readable; avoid all-caps for long Greek labels.
+- Family: Apple system stack (`-apple-system`, BlinkMacSystemFont, SF Pro where available, Helvetica Neue/system fallback).
+- Display: 40–56px, weight 600, compact tracking.
+- Section headings: 20–32px, weight 600.
+- Body: 16–17px / ~1.5 line height.
+- Secondary body: 14–15px / ~1.45 line height.
+- Labels/meta: 12–13px only for supporting metadata.
+- Avoid extra-bold weights and long all-caps labels. Greek body copy should remain sentence case and relaxed.
 
 ## Shape, spacing, motion
 
-- Controls: 12px radius.
-- Cards/dialogs: 16px radius.
-- Pills: fully rounded, only for tags/segmented controls.
-- Spacing follows a 4/8px ladder: 4, 8, 12, 16, 24, 32, 48.
-- Standard UI motion: 160–220ms, opacity/color/transform only; no layout-shifting hover effects.
-- Under reduced motion, eliminate decorative transforms and near-instant all transitions/animations.
+- Controls: 11px radius or pill for primary/segmented actions.
+- Cards/dialogs: 18px radius.
+- Pills: fully rounded for tags, chips, compact actions, and selected states.
+- Spacing follows a 4/8px ladder: 4, 8, 12, 16, 24, 32, 48, 80.
+- Standard UI motion: 150–220ms, primarily opacity/color. Avoid decorative scaling.
+- Under reduced motion, remove decorative transforms and make transitions effectively instant.
+
+## Image treatment
+
+- Vehicle photography is content, not a dark-theme canvas.
+- Do not add black gradients unless absolutely required for source imagery.
+- Floating image controls use translucent ivory (`rgba(255,253,249,.92)`), graphite text, a white hairline, and blur.
+- Titles and important controls belong on warm surfaces below imagery, not over high-contrast photo overlays.
+- If the licensed model image cannot be resolved, show the labelled neutral placeholder rather than a potentially wrong stock image.
 
 ## Component rules
 
 ### Buttons
-- Primary = red filled with white text.
-- Secondary = neutral surface + visible border.
-- Semantic green is not a general CTA color.
-- Icon-only controls require accessible names and 44px target size.
+- Primary = Apple blue filled with white text, usually pill-shaped.
+- Secondary = warm raised surface + visible neutral border + graphite text.
+- Do not use red as CTA, selected state, hover, or brand accent.
+- Icon-only controls require accessible names and a 44px target.
 - Toggle controls expose `aria-pressed`; disclosure controls expose `aria-expanded`.
 
 ### Navigation
-- Desktop: top navigation with clear active state.
-- Mobile: fixed labelled bottom navigation, maximum five destinations, never icon-only.
+- Warm translucent top navigation, quiet border, restrained active state.
+- Desktop uses text navigation; mobile uses fixed labelled bottom navigation.
 - Production navigation must not expose developer/export tooling.
+- The customer experience is light-only; do not expose a theme toggle.
 
 ### Dialogs & drawers
 All overlays use the shared accessible dialog primitive:
 - `role="dialog"`, `aria-modal="true"`, labelled heading.
 - Focus moves inside on open, is trapped while open, Escape closes, and focus returns to the trigger.
 - Body scroll is locked while open.
-- Backdrop click may close only when clicking the backdrop itself.
+- Panels use warm surfaces; vehicle titles/actions sit below the image instead of on black overlays.
 
 ### Forms
-- Every input has a persistent label (visible preferred; `sr-only` only for compact specialist controls).
+- Every input has a persistent label.
 - 44px minimum input/control height on mobile.
-- Selected state is exposed programmatically.
+- Selected state is exposed programmatically and can use blue border/check + warm surface.
 - Error/help/status text cannot depend on color alone.
 
 ### Marketplace/trust language
 - Static dataset: “reference listing”, “saved snapshot”, “market sample”, “indicative range”.
-- Never: “live”, “verified listing”, “available today”, or a freshness claim without a genuine feed/timestamp.
+- Never: “live”, “verified listing”, “available today”, or freshness claims without a genuine feed/timestamp.
 - Provide a source action when a user needs current availability.
 
 ## Accessibility release checks
 
 - Normal text contrast ≥ 4.5:1.
-- Keyboard-only operation for navigation, filters, comparison, saved garage, tabs, checklists and dialogs.
+- Keyboard-only operation for navigation, filters, comparison, saved garage, tabs, checklists, and dialogs.
 - At 200% text zoom, no controls/content overlap or disappear.
 - Screen-reader state for selected/saved/compared/filter controls.
 - `html[lang]` follows the active locale.
-- Test responsive layouts at 375, 768, 1024 and 1440px.
+- Test responsive layouts at 375, 768, 1024, and 1440px.

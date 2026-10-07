@@ -51,7 +51,7 @@ CarCheck is specialized for both the broader European market and the **Greek Aut
 ## 🛠️ Tech Stack & Architecture
 
 - **Frontend:** React 19, Tailwind CSS v4, Lucide React, Motion.
-- **Design Archetype:** Cinematic automotive design inspired by luxury Italian editorial styling (Rosso Corsa `#da291c`, near-black `#181818`, and subtle `#303030` hairlines).
+- **Design Archetype:** Apple-inspired warm-light interface using off-whites, ivory, beige, graphite text, and Apple blue (`#0066cc`) as the only interactive brand color.
 - **Backend:** Full-stack Express server (`server.ts`) running Vite middlewares on port 3000.
 - **AI Engine:** `@google/genai` TypeScript SDK with `gemini-2.5-flash` for conversational refinement and advisory verdicts.
 

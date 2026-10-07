@@ -401,7 +401,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       {/* Progress Indicator */}
       <div className="mb-8">
-        <div className="flex items-center justify-between text-[13px] font-bold uppercase tracking-[1.1px] text-[#969696] mb-2">
+        <div className="flex items-center justify-between text-[13px] font-bold tracking-normal text-[var(--color-text-muted)] mb-2">
           <span>{isGreek ? `Ερώτηση ${step} από 4` : `Question ${step} of 4`}</span>
           <span>
             {step === 1
@@ -413,7 +413,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
               : isGreek ? 'Τρόπος Ζωής & Δακτύλιος' : 'Lifestyle Tailoring'}
           </span>
         </div>
-        <div className="w-full h-1 bg-[#303030] rounded-xl overflow-hidden">
+        <div className="w-full h-1 bg-[var(--color-surface-strong)] rounded-full overflow-hidden">
           <div
             className="h-full bg-[var(--color-accent)] rounded-xl transition-all duration-300"
             style={{ width: `${(step / 4) * 100}%` }}
@@ -425,13 +425,13 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
       {step === 1 && (
         <div className="space-y-6 animate-fadeIn">
           <div>
-            <div className="text-[13px] font-semibold uppercase tracking-wider text-[var(--color-accent-text)] mb-1">
+            <div className="text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1">
               {isGreek ? 'Βήμα 1 από 4 · Οικονομικές Παράμετροι' : 'Step 1 of 4 · Financial Parameters'}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
               {isGreek ? 'Ποιο είναι το budget σου;' : 'What’s your budget?'}
             </h2>
-            <p className="mt-1.5 text-[15px] text-[#969696]">
+            <p className="mt-1.5 text-[15px] text-[var(--color-text-muted)]">
               {isGreek
                 ? 'Επίλεξε ένα κατά προσέγγιση εύρος τιμής (από 1.500€) ή όρισε το δικό σου ποσό. Αν δεν είσαι σίγουρος, το CarCheck θα υπολογίσει το ιδανικό ποσό.'
                 : 'Select an approximate purchase range (starting from €1,500) or enter a custom amount. If unsure, CarCheck infers a sensible budget.'}
@@ -449,21 +449,21 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   aria-pressed={isSelected}
                   className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
-                      : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
+                      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-base text-white">
+                    <span className="font-semibold text-base text-[var(--color-text)]">
                       {opt.label}
                     </span>
                     {isSelected && (
-                      <div className="w-5 h-5 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                     )}
                   </div>
-                  <p className="text-[13px] text-[#969696] mt-1.5 leading-relaxed">
+                  <p className="text-[13px] text-[var(--color-text-muted)] mt-1.5 leading-relaxed">
                     {opt.desc}
                   </p>
                 </button>
@@ -477,21 +477,21 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
               aria-pressed={showCustomBudget || prefs.budgetId === 'custom'}
               className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                 showCustomBudget || prefs.budgetId === 'custom'
-                  ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
-                  : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
+                  ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
+                  : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold text-base text-white">
+                <span className="font-semibold text-base text-[var(--color-text)]">
                   {isGreek ? 'Προσαρμοσμένο Ποσό (από 1.500€)' : 'Custom Amount (from €1,500)'}
                 </span>
                 {(showCustomBudget || prefs.budgetId === 'custom') && (
-                  <div className="w-5 h-5 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
                 )}
               </div>
-              <p className="text-[13px] text-[#969696] mt-1.5 leading-relaxed">
+              <p className="text-[13px] text-[var(--color-text-muted)] mt-1.5 leading-relaxed">
                 {isGreek
                   ? 'Όρισε ακριβές ελάχιστο και μέγιστο ποσό αγοράς'
                   : 'Define exact minimum and maximum purchase targets'}
@@ -501,17 +501,17 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
 
           {/* Custom Budget Inputs (Shown when custom is selected) */}
           {(showCustomBudget || prefs.budgetId === 'custom') && (
-            <div className="p-4 rounded-xl bg-[#1e1e1e] border border-[var(--color-accent)]/50 animate-fadeIn">
-              <div className="text-[13px] font-bold uppercase tracking-[1.1px] text-[var(--color-accent-text)] mb-3">
+            <div className="p-4 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-accent)]/50 animate-fadeIn">
+              <div className="text-[13px] font-bold tracking-normal text-[var(--color-accent-text)] mb-3">
                 {isGreek ? 'Ορισμός Εύρους Budget (από 1.500€)' : 'Define Budget Target Range (From €1,500)'}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="custom-budget-min" className="text-[13px] text-[#969696] block mb-1">
+                  <label htmlFor="custom-budget-min" className="text-[13px] text-[var(--color-text-muted)] block mb-1">
                     {isGreek ? 'Ελάχιστο Ποσό' : 'Minimum Budget'}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-[#969696]">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-[var(--color-text-muted)]">
                       {symbol}
                     </span>
                     <input
@@ -526,17 +526,17 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                         setCustomMin(val);
                         setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: val, budgetCustomMax: customMax });
                       }}
-                      className="w-full min-h-11 pl-8 pr-3 py-2 text-[15px] rounded-xl border border-[#303030] bg-[#181818] text-white focus:border-[var(--color-accent)] focus:outline-none"
+                      className="w-full min-h-11 pl-8 pr-3 py-2 text-[15px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="custom-budget-max" className="text-[13px] text-[#969696] block mb-1">
+                  <label htmlFor="custom-budget-max" className="text-[13px] text-[var(--color-text-muted)] block mb-1">
                     {isGreek ? 'Μέγιστο Ποσό' : 'Maximum Budget'}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-[#969696]">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-[var(--color-text-muted)]">
                       {symbol}
                     </span>
                     <input
@@ -551,7 +551,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                         setCustomMax(val);
                         setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: customMin, budgetCustomMax: val });
                       }}
-                      className="w-full min-h-11 pl-8 pr-3 py-2 text-[15px] rounded-xl border border-[#303030] bg-[#181818] text-white focus:border-[var(--color-accent)] focus:outline-none"
+                      className="w-full min-h-11 pl-8 pr-3 py-2 text-[15px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -560,13 +560,13 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
           )}
 
           {/* Optional Financing details (non-mandatory) */}
-          <div className="mt-6 p-4 rounded-xl bg-[#242424] border border-[#303030]">
-            <div className="flex items-center justify-between text-[13px] font-semibold text-white mb-3">
+          <div className="mt-6 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+            <div className="flex items-center justify-between text-[13px] font-semibold text-[var(--color-text)] mb-3">
               <span className="flex items-center gap-1.5">
                 <HeartHandshake className="w-4 h-4 text-[var(--color-accent-text)]" />
                 {isGreek ? 'Προαιρετικό: Τρόπος Πληρωμής' : 'Optional: Purchase or Financing Preference'}
               </span>
-              <span className="text-xs font-normal text-[#969696]">
+              <span className="text-xs font-normal text-[var(--color-text-muted)]">
                 {isGreek ? 'Μη υποχρεωτικό' : 'Not mandatory'}
               </span>
             </div>
@@ -589,8 +589,8 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   }
                   className={`min-h-11 px-3 rounded-xl text-[13px] font-medium border text-center transition-colors cursor-pointer ${
                     prefs.paymentMethod === pMethod.id
-                      ? 'border-[var(--color-accent)] bg-[#303030] text-white'
-                      : 'border-[#303030] bg-[#181818] text-[#969696] hover:text-white'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)]'
+                      : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
                   }`}
                 >
                   {pMethod.label}
@@ -600,11 +600,11 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
 
             {prefs.paymentMethod === 'financing' && (
               <div className="mt-3 flex items-center gap-3">
-                <label htmlFor="monthly-payment-max" className="text-[13px] text-[#969696]">
+                <label htmlFor="monthly-payment-max" className="text-[13px] text-[var(--color-text-muted)]">
                   {isGreek ? 'Μέγιστη μηνιαία δόση:' : 'Target monthly payment:'}
                 </label>
                 <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px] text-[#969696]">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px] text-[var(--color-text-muted)]">
                     {symbol}
                   </span>
                   <input
@@ -618,9 +618,9 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                       const parsed = parseInt(e.target.value, 10);
                       setPrefs({ ...prefs, monthlyPaymentMax: isNaN(parsed) ? undefined : parsed });
                     }}
-                    className="w-36 min-h-11 pl-6 pr-2 py-2 text-[15px] rounded-xl border border-[#303030] bg-[#181818] text-white focus:border-[var(--color-accent)] focus:outline-none"
+                    className="w-36 min-h-11 pl-6 pr-2 py-2 text-[15px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
                   />
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#969696]">
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--color-text-muted)]">
                     /μήνα
                   </span>
                 </div>
@@ -634,13 +634,13 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
       {step === 2 && (
         <div className="space-y-6 animate-fadeIn">
           <div>
-            <div className="text-[13px] font-semibold uppercase tracking-wider text-[var(--color-accent-text)] mb-1">
+            <div className="text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1">
               {isGreek ? 'Βήμα 2 από 4 · Προφίλ Χρήσης' : 'Step 2 of 4 · Usage profile'}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
               {isGreek ? 'Για ποια χρήση προορίζεται κυρίως το αυτοκίνητο;' : 'What will you mainly use the car for?'}
             </h2>
-            <p className="mt-1.5 text-[15px] text-[#969696]">
+            <p className="mt-1.5 text-[15px] text-[var(--color-text-muted)]">
               {isGreek
                 ? 'Επίλεξε όσα ισχύουν. Το CarCheck υπολογίζει αυτόματα διαστάσεις, χώρους, κατανάλωση και οδική συμπεριφορά.'
                 : 'Select all that apply. CarCheck uses this to calculate cabin space, ground clearance, fuel efficiency, and driving dynamics automatically.'}
@@ -672,19 +672,19 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   aria-pressed={isSelected}
                   className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[90px] ${
                     isSelected
-                      ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
-                      : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
+                      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     {React.createElement(opt.icon, { className: 'w-5 h-5 text-[var(--color-accent-text)]', 'aria-hidden': true })}
                     {isSelected && (
-                      <div className="w-4 h-4 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
                   </div>
-                  <span className="font-semibold text-[13px] sm:text-[15px] text-white mt-2">
+                  <span className="font-semibold text-[13px] sm:text-[15px] text-[var(--color-text)] mt-2">
                     {localizedLabel}
                   </span>
                 </button>
@@ -692,7 +692,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
             })}
           </div>
 
-          <div className="text-[13px] text-[#969696] flex items-center gap-1.5">
+          <div className="text-[13px] text-[var(--color-text-muted)] flex items-center gap-1.5">
             <span>
               {isGreek
                 ? `Επιλεγμένα: ${prefs.usages.length} χρήσεις`
@@ -707,20 +707,20 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
         <div className="space-y-6 animate-fadeIn">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
             <div>
-              <div className="text-[13px] font-semibold uppercase tracking-wider text-[var(--color-accent-text)] mb-1">
+              <div className="text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1">
                 {isGreek ? 'Βήμα 3 από 4 · Κριτήρια Αξιολόγησης' : 'Step 3 of 4 · Ranking criteria'}
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
                 {isGreek ? 'Τι έχει μεγαλύτερη σημασία για εσένα;' : 'What matters most to you?'}
               </h2>
-              <p className="mt-1.5 text-[15px] text-[#969696]">
+              <p className="mt-1.5 text-[15px] text-[var(--color-text-muted)]">
                 {isGreek
                   ? 'Επίλεξε έως και 3 προτεραιότητες. Ο αλγόριθμος θα δώσει ιδιαίτερο βάρος στην αξιοπιστία ή το χαμηλό κόστος.'
                   : 'Choose up to 3 core priorities. Our engine weights these heavily so reliability or fuel bills truly govern the final choices.'}
               </p>
             </div>
 
-            <div role="status" aria-live="polite" className="self-start sm:self-auto text-[13px] font-semibold px-2.5 py-1 rounded-xl bg-[#303030] text-white">
+            <div role="status" aria-live="polite" className="self-start sm:self-auto text-[13px] font-semibold px-3 py-1.5 rounded-full bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]">
               {isGreek ? `${prefs.priorities.length} από 3 επιλεγμένα` : `${prefs.priorities.length} of 3 selected`}
             </div>
           </div>
@@ -771,21 +771,21 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                     isDisabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
                   } ${
                     isSelected
-                      ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
-                      : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
+                      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[15px] text-white">
+                    <span className="font-semibold text-[15px] text-[var(--color-text)]">
                       {localizedLabel}
                     </span>
                     {isSelected && (
-                      <div className="w-4 h-4 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
                   </div>
-                  <p className="text-[13px] text-[#969696] mt-1 leading-normal">
+                  <p className="text-[13px] text-[var(--color-text-muted)] mt-1 leading-normal">
                     {localizedDesc}
                   </p>
                 </button>
@@ -799,10 +799,10 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
       {step === 4 && (
         <div className="space-y-6 animate-fadeIn">
           <div>
-            <div className="text-[13px] font-semibold uppercase tracking-wider text-[var(--color-accent-text)] mb-1">
+            <div className="text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1">
               {isGreek ? 'Βήμα 4 από 4 · Προσαρμογή στον Τρόπο Ζωής' : 'Step 4 of 4 · Dynamic lifestyle tailoring'}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
               {isGreek
                 ? isFamily ? 'Πόσα άτομα θα επιβαίνουν συνήθως στο αυτοκίνητο;'
                   : isCity ? 'Είναι το εύκολο παρκάρισμα και οι μαζεμένες διαστάσεις η απόλυτη προτεραιότητα;'
@@ -811,7 +811,7 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   : 'Πες μας λίγα λόγια για τον τρόπο ζωής σου.'
                 : dynamicTitle}
             </h2>
-            <p className="mt-1.5 text-[15px] text-[#969696]">
+            <p className="mt-1.5 text-[15px] text-[var(--color-text-muted)]">
               {isGreek
                 ? 'Αυτή η λεπτομέρεια βοηθά το CarCheck να επιλέξει τον κατάλληλο αριθμό θέσεων, όγκο πορτμπαγκάζ και τύπο κίνησης.'
                 : dynamicSubtitle}
@@ -830,21 +830,21 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
                   aria-pressed={isSelected}
                   className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-[var(--color-accent)] bg-[#303030] text-white shadow-xs'
-                      : 'border-[#303030] bg-[#242424] hover:border-[#666666] text-white'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
+                      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[15px] text-white">
+                    <span className="font-semibold text-[15px] text-[var(--color-text)]">
                       {choice.label}
                     </span>
                     {isSelected && (
-                      <div className="w-4 h-4 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
                   </div>
-                  <p className="text-[13px] text-[#969696] mt-1.5 leading-normal">
+                  <p className="text-[13px] text-[var(--color-text-muted)] mt-1.5 leading-normal">
                     {choice.desc}
                   </p>
                 </button>
@@ -855,15 +855,15 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
       )}
 
       {/* Navigation Buttons */}
-      <div className="mt-10 flex items-center justify-between pt-6 border-t border-[#303030]">
+      <div className="mt-10 flex items-center justify-between pt-6 border-t border-[var(--color-border)]">
         {step > 1 ? (
           <button
             type="button"
             onClick={() => setStep(step - 1)}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[#303030] bg-[#242424] text-white text-[13px] font-bold uppercase tracking-[1.2px] hover:bg-[#303030] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-[14px] font-semibold hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>{isGreek ? 'ΠΙΣΩ' : 'BACK'}</span>
+            <span>{isGreek ? 'Πίσω' : 'Back'}</span>
           </button>
         ) : (
           <div />
@@ -878,9 +878,9 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
               (step === 3 && !canProceedStep3)
             }
             onClick={() => setStep(step + 1)}
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-[var(--color-accent)] hover:bg-[#b01e0a] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[13px] font-bold uppercase tracking-[1.4px] transition-colors cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[14px] font-semibold transition-colors cursor-pointer shadow-sm"
           >
-            <span>{isGreek ? 'ΣΥΝΕΧΕΙΑ' : 'CONTINUE'}</span>
+            <span>{isGreek ? 'Συνέχεια' : 'Continue'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         ) : (
@@ -888,10 +888,10 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
             type="button"
             disabled={!canProceedStep4}
             onClick={handleFinish}
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[var(--color-accent)] hover:bg-[#b01e0a] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[13px] font-bold uppercase tracking-[1.4px] transition-all shadow-md cursor-pointer"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[14px] font-semibold transition-colors cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-white" />
-            <span>{isGreek ? 'ΕΥΡΕΣΗ ΑΥΤΟΚΙΝΗΤΩΝ' : 'GENERATE CAR RECOMMENDATIONS'}</span>
+            <span>{isGreek ? 'Εύρεση αυτοκινήτων' : 'Find recommendations'}</span>
           </button>
         )}
       </div>

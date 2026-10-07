@@ -63,7 +63,7 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       <div className="mb-6 flex flex-col lg:flex-row lg:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-text)] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
             {isGreek ? 'Ενδεικτικές Αγγελίες & Σύγκριση Τιμής' : 'Reference Listings & Price Comparison'}
           </h1>
           <p className="text-[15px] text-[var(--color-text-muted)] mt-1 max-w-3xl">
@@ -118,7 +118,7 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
           <Search className="w-8 h-8 mx-auto text-[var(--color-text-muted)]" aria-hidden="true" />
           <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">{isGreek ? 'Δεν βρέθηκαν αγγελίες' : 'No listings found'}</h2>
           <p className="mt-2 text-[15px] text-[var(--color-text-muted)]">{isGreek ? 'Άλλαξε φίλτρα ή εμφάνισε ξανά όλο το αποθηκευμένο δείγμα.' : 'Change the filters or show the full saved dataset again.'}</p>
-          <button type="button" onClick={resetFilters} className="mt-5 min-h-11 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold inline-flex items-center gap-2">
+          <button type="button" onClick={resetFilters} className="mt-5 min-h-11 px-4 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold inline-flex items-center gap-2">
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
             {isGreek ? 'Καθαρισμός φίλτρων' : 'Clear filters'}
           </button>
@@ -129,7 +129,7 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
             const targetVehicle = VEHICLES.find((vehicle) => vehicle.id === listing.vehicleId);
             const isSaved = savedListingIds.includes(listing.id);
             return (
-              <article key={listing.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <article key={listing.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden transition-colors hover:border-[var(--color-border-strong)] flex flex-col justify-between">
                 <div>
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
                     {targetVehicle ? (
@@ -139,18 +139,17 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
                         <ImageOff className="h-7 w-7" aria-hidden="true" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent pointer-events-none" />
-                    <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md px-3 py-1.5 rounded-lg text-[13px] font-bold text-white shadow-sm">{ratingLabel(listing.dealRating, isGreek)}</div>
-                    <button type="button" onClick={() => onToggleSaveListing(listing.id)} aria-pressed={isSaved} aria-label={isGreek ? `${isSaved ? 'Αφαίρεση' : 'Αποθήκευση'} αγγελίας ${listing.title}` : `${isSaved ? 'Remove' : 'Save'} listing ${listing.title}`} className={`absolute top-3 right-3 touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-slate-950/80 text-white hover:bg-slate-900'}`}>
+                    <div className="absolute top-3 left-3 bg-[rgba(255,253,249,0.92)] backdrop-blur-md px-3 py-1.5 rounded-full text-[13px] font-semibold text-[var(--color-text)] border border-white/80 shadow-sm">{ratingLabel(listing.dealRating, isGreek)}</div>
+                    <button type="button" onClick={() => onToggleSaveListing(listing.id)} aria-pressed={isSaved} aria-label={isGreek ? `${isSaved ? 'Αφαίρεση' : 'Αποθήκευση'} αγγελίας ${listing.title}` : `${isSaved ? 'Remove' : 'Save'} listing ${listing.title}`} className={`absolute top-3 right-3 touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
                       <Bookmark className="w-4 h-4" aria-hidden="true" />
                     </button>
-                    <div className="absolute bottom-3 left-3 right-3 text-white text-[15px] font-medium truncate">{isGreek ? 'Δείγμα αγοράς' : 'Market sample'} · {listing.location}</div>
+                    <div className="absolute bottom-3 left-3 right-3 w-fit max-w-[calc(100%-1.5rem)] rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm truncate">{isGreek ? 'Δείγμα αγοράς' : 'Market sample'} · {listing.location}</div>
                   </div>
 
                   <div className="p-5">
                     <div className="flex flex-wrap items-center gap-2 text-[15px] text-[var(--color-text-muted)] mb-1"><span>{listing.year}</span><span aria-hidden="true">·</span><span>{listing.mileageKm.toLocaleString(isGreek ? 'el-GR' : 'en-GB')} km</span><span aria-hidden="true">·</span><span>{listing.transmission}</span></div>
                     <h2 className="text-lg font-bold text-[var(--color-text)] tracking-tight leading-snug">{listing.title}</h2>
-                    <div className="mt-2 text-xl font-extrabold text-[var(--color-text)]">{formatPrice(listing.price, currency)}</div>
+                    <div className="mt-2 text-xl font-semibold text-[var(--color-text)]">{formatPrice(listing.price, currency)}</div>
                     <div className="flex items-center gap-1.5 text-[15px] text-[var(--color-text-muted)] mt-1"><MapPin className="w-4 h-4" aria-hidden="true" /><span>{listing.location}</span></div>
                     <div className="mt-4 p-3 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] text-[15px] text-[var(--color-text-muted)] leading-relaxed">{isGreek ? greekDealSummary(listing.dealRating) : listing.dealExplanation}</div>
                     <div className="mt-3 flex flex-wrap gap-1.5">{listing.keyEquipment.slice(0, 3).map((item) => <span key={item} className="text-[13px] px-2 py-1 rounded-lg bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]">{item}</span>)}</div>
@@ -159,7 +158,7 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
 
                 <div className="p-5 pt-0 border-t border-[var(--color-border)] mt-2 flex flex-wrap items-center gap-2">
                   {targetVehicle && <button type="button" onClick={() => onOpenVehicleDetails(targetVehicle)} className="min-h-11 flex-1 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] text-[15px] font-bold hover:bg-[var(--color-surface-subtle)] transition-colors"><span>{isGreek ? 'Οδηγός μοντέλου' : 'Model guide'}</span><ChevronRight className="w-4 h-4" aria-hidden="true" /></button>}
-                  {listing.carGrDirectUrl && <a href={listing.carGrDirectUrl} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors"><span>{isGreek ? 'Έλεγχος στην πηγή' : 'Check source'}</span><ExternalLink className="w-4 h-4" aria-hidden="true" /></a>}
+                  {listing.carGrDirectUrl && <a href={listing.carGrDirectUrl} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-center gap-1.5 px-4 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors"><span>{isGreek ? 'Έλεγχος στην πηγή' : 'Check source'}</span><ExternalLink className="w-4 h-4" aria-hidden="true" /></a>}
                 </div>
               </article>
             );
