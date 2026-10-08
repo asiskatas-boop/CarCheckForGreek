@@ -16,6 +16,8 @@
     --color-text-muted: #68645d;
     --color-border: #ded8cd;
     --color-border-strong: #bbb3a6;
+    /* Form control outlines need 3:1 against the surface (WCAG 1.4.11). */
+    --color-border-control: #847c70;
 
     --color-accent: #0066cc;
     --color-accent-hover: #0071e3;
@@ -28,7 +30,7 @@
     --color-success-soft: #e8eee8;
     --color-warning: #765b2d;
     --color-warning-soft: #f1eadb;
-    --color-danger: #6b4f3b;
+    --color-danger: #a1362b;
     --color-danger-soft: #eee7df;
     --color-focus-ring: #0071e3;
     --overlay-scrim: rgba(54, 50, 43, 0.34);
@@ -86,7 +88,7 @@
   input,
   select,
   textarea {
-    border-color: var(--color-border);
+    border-color: var(--color-border-control);
     background: var(--color-surface-raised);
     color: var(--color-text);
   }
@@ -110,7 +112,7 @@
 
   ::placeholder {
     color: var(--color-text-muted);
-    opacity: 0.82;
+    opacity: 1;
   }
 }
 
@@ -151,10 +153,10 @@ li {
   text-wrap: pretty;
 }
 
-/* Quiet, neutral scrollbars so chrome stays secondary to content. */
+/* Quiet, neutral scrollbars so chrome stays secondary to content, but still easy to grab. */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -168,6 +170,46 @@ li {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9e968a;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn var(--motion-base) ease-out both;
+}
+
+/* Visually hidden until focused: used for the skip link. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 0.75rem;
+  z-index: 60;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-control);
+  background: var(--color-accent);
+  color: var(--color-accent-on);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+.sr-only-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 @media (max-width: 320px) {

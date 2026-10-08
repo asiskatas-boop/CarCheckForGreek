@@ -54,6 +54,8 @@ export const AccessibleDialog: React.FC<AccessibleDialogProps> = ({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        // A child (e.g. an inline editor) can claim Escape by calling preventDefault().
+        if (event.defaultPrevented) return;
         event.preventDefault();
         closeRef.current();
         return;
@@ -95,7 +97,7 @@ export const AccessibleDialog: React.FC<AccessibleDialogProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-[var(--overlay-scrim)] backdrop-blur-sm flex items-center justify-center ${overlayClassName}`}
+      className={`fixed inset-0 z-50 overscroll-contain bg-[var(--overlay-scrim)] backdrop-blur-sm flex items-center justify-center ${overlayClassName}`}
       onMouseDown={(event) => {
         if (closeOnBackdrop && event.target === event.currentTarget) onClose();
       }}
@@ -108,7 +110,7 @@ export const AccessibleDialog: React.FC<AccessibleDialogProps> = ({
         aria-describedby={describedBy}
         aria-label={ariaLabel}
         tabIndex={-1}
-        className={panelClassName}
+        className={`overscroll-contain ${panelClassName}`}
       >
         {children}
       </div>

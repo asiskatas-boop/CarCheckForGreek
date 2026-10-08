@@ -1,24 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   UserPreferences,
   BudgetRangeId,
   UsageType,
   PriorityType,
-  LifestyleOption,
   Currency,
   PaymentMethod,
   MarketRegion
 } from '../types';
 import { CURRENCY_RATES, convertFromEUR, convertToEUR, formatPrice } from '../services/currency';
+import { plural } from '../services/format';
+import { DYNAMIC_QUESTIONS, DynamicChoice, DynamicQuestionKind } from '../data/lifestyleChoices';
 import {
   ArrowRight,
   ArrowLeft,
   Check,
   Sparkles,
-  HelpCircle,
-  Sliders,
-  DollarSign,
-  Car,
   HeartHandshake,
   Route,
   Building2,
@@ -40,6 +37,58 @@ interface QuestionnaireProps {
   marketRegion?: MarketRegion;
 }
 
+const MIN_BUDGET_EUR = 1500;
+const MAX_PRIORITIES = 3;
+const TOTAL_STEPS = 4;
+
+// Shared card styling for native radio/checkbox inputs. The input itself is visually hidden,
+// so the card shows the keyboard focus ring via :has(:focus-visible).
+const choiceCardClass = (selected: boolean, extra = '') =>
+  `relative block rounded-xl border text-left transition-colors cursor-pointer has-[:focus-visible]:[outline:3px_solid_var(--color-focus-ring)] has-[:focus-visible]:[outline-offset:3px] ${
+    selected
+      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
+      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
+  } ${extra}`;
+
+const SelectedMark: React.FC<{ selected: boolean; size?: 'sm' | 'md' }> = ({ selected, size = 'sm' }) =>
+  selected ? (
+    <span className={`${size === 'md' ? 'w-5 h-5' : 'w-4 h-4'} shrink-0 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center`}>
+      <Check className={`${size === 'md' ? 'w-3.5 h-3.5' : 'w-3 h-3'} stroke-[3]`} />
+    </span>
+  ) : null;
+
+const inputClass =
+  'w-full min-h-11 py-2 text-[15px] rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)]';
+
+const USAGE_OPTIONS: { id: UsageType; en: string; el: string; icon: React.ElementType }[] = [
+  { id: 'daily-commuting', en: 'Daily commuting', el: 'Καθημερινή μετακίνηση', icon: Route },
+  { id: 'city-driving', en: 'City driving & parking', el: 'Κίνηση & παρκάρισμα στην πόλη', icon: Building2 },
+  { id: 'family-use', en: 'Family & kids', el: 'Οικογένεια & παιδιά', icon: Users },
+  { id: 'long-road-trips', en: 'Long road trips / Motorway', el: 'Ταξίδια στην εθνική', icon: Map },
+  { id: 'weekend-driving', en: 'Weekend leisure', el: 'Σαββατοκύριακο & εκδρομές', icon: TentTree },
+  { id: 'business', en: 'Business & client travel', el: 'Επαγγελματικά ταξίδια', icon: Briefcase },
+  { id: 'carrying-equipment', en: 'Carrying bulky equipment', el: 'Μεταφορά εξοπλισμού', icon: Package },
+  { id: 'outdoor-activities', en: 'Outdoor adventures & sports', el: 'Outdoor & βουνό', icon: Trees },
+  { id: 'performance-fun', en: 'Performance & driving fun', el: 'Σπορ οδήγηση & επιδόσεις', icon: Gauge },
+  { id: 'first-car', en: 'First car / New driver', el: 'Πρώτο αυτοκίνητο / Νέος οδηγός', icon: ShieldCheck },
+  { id: 'luxury-comfort', en: 'Luxury & quiet comfort', el: 'Πολυτέλεια & ήσυχη καμπίνα', icon: Gem }
+];
+
+const PRIORITY_OPTIONS: { id: PriorityType; label: { en: string; el: string }; desc: { en: string; el: string } }[] = [
+  { id: 'reliability', label: { en: 'Bulletproof Reliability', el: 'Αδιαπραγμάτευτη Αξιοπιστία' }, desc: { en: 'Minimal breakdown risk & proven durability', el: 'Ελάχιστη πιθανότητα βλαβών και αντοχή στον χρόνο' } },
+  { id: 'low-running-costs', label: { en: 'Low Running Costs', el: 'Χαμηλό Κόστος Συντήρησης (Ανταλλακτικά)' }, desc: { en: 'Cheap parts, low insurance & low service bills', el: 'Φθηνά σέρβις, χαμηλά ασφάλιστρα & προσιτά ανταλλακτικά' } },
+  { id: 'fuel-economy', label: { en: 'Fuel / Energy Economy', el: 'Οικονομία Καυσίμου / Ρεύματος' }, desc: { en: 'Maximum miles per gallon or kWh', el: 'Ελάχιστα λίτρα ανά 100 χλμ ή χαμηλή κατανάλωση kWh' } },
+  { id: 'performance', label: { en: 'Sporty Performance', el: 'Σπορ Επιδόσεις & Οδική Συμπεριφορά' }, desc: { en: 'Sharp handling, quick acceleration & responsiveness', el: 'Άμεση επιτάχυνση, κοφτερό τιμόνι & δυναμική οδήγηση' } },
+  { id: 'comfort', label: { en: 'Quiet Cabin & Composure', el: 'Άνεση & Ηχομόνωση Καμπίνας' }, desc: { en: 'Supple suspension, acoustic glass & comfortable seats', el: 'Απορροφητική ανάρτηση & ξεκούραστα καθίσματα' } },
+  { id: 'practicality', label: { en: 'Maximum Practicality', el: 'Μέγιστη Πρακτικότητα & Χώροι' }, desc: { en: 'Big boot, versatile seats & storage solutions', el: 'Μεγάλο πορτμπαγκάζ και έξυπνες θήκες' } },
+  { id: 'safety', label: { en: 'Top Crash Safety & ADAS', el: 'Κορυφαία Ασφάλεια Crash Test & ADAS' }, desc: { en: '5-star crash ratings & advanced driver assistance', el: '5 αστέρια Euro NCAP & ηλεκτρονικά συστήματα υποβοήθησης' } },
+  { id: 'technology', label: { en: 'Modern Infotainment & Tech', el: 'Σύγχρονη Τεχνολογία & Οθόνες' }, desc: { en: 'Wireless CarPlay, great screens & smart connectivity', el: 'Apple CarPlay / Android Auto και ευκρινείς οθόνες' } },
+  { id: 'resale-value', label: { en: 'High Resale Value', el: 'Υψηλή Μεταπωλητική Αξία' }, desc: { en: 'Slow depreciation curve over 3–5 years', el: 'Αργή πτώση αξίας στην αγορά μεταχειρισμένων' } },
+  { id: 'environmental-impact', label: { en: 'Low Emissions / Green', el: '0€ Τέλη / Ελεύθερος Δακτύλιος' }, desc: { en: 'Zero tailpipe emissions or hybrid efficiency', el: 'Απαλλαγή από τέλη και ελεύθερη είσοδος στο κέντρο' } },
+  { id: 'luxury', label: { en: 'Premium Brand Prestige', el: 'Premium Κύρος Κατασκευαστή' }, desc: { en: 'High-end interior materials and prestige badge', el: 'Υλικά υψηλής ποιότητας και κορυφαία αίσθηση' } },
+  { id: 'design', label: { en: 'Standout Exterior Design', el: 'Εντυπωσιακός Σχεδιασμός' }, desc: { en: 'Eye-catching styling and road presence', el: 'Ξεχωριστή εμφάνιση και δυναμικές γραμμές' } }
+];
+
 export const Questionnaire: React.FC<QuestionnaireProps> = ({
   initialPreferences,
   onComplete,
@@ -47,20 +96,39 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
   marketRegion = 'global'
 }) => {
   const isGreek = marketRegion === 'greece';
+  const lang = isGreek ? 'el' : 'en';
   const [step, setStep] = useState<number>(1);
   const [prefs, setPrefs] = useState<UserPreferences>(initialPreferences);
-  const [showCustomBudget, setShowCustomBudget] = useState<boolean>(false);
-  const [customMin, setCustomMin] = useState<number>(() => Math.max(1500, initialPreferences.budgetCustomMin ?? 1500));
-  const [customMax, setCustomMax] = useState<number>(() => Math.max(initialPreferences.budgetCustomMax ?? 15000, initialPreferences.budgetCustomMin ?? 1500));
+  const [customMin, setCustomMin] = useState<number>(() => Math.max(MIN_BUDGET_EUR, initialPreferences.budgetCustomMin ?? MIN_BUDGET_EUR));
+  const [customMax, setCustomMax] = useState<number>(() =>
+    Math.max(initialPreferences.budgetCustomMax ?? 15000, initialPreferences.budgetCustomMin ?? MIN_BUDGET_EUR)
+  );
+  // Raw text while the user types; clamped only when the field loses focus or the step is submitted.
+  const [minDraft, setMinDraft] = useState<string>(() => String(convertFromEUR(customMin, currency)));
+  const [maxDraft, setMaxDraft] = useState<string>(() => String(convertFromEUR(customMax, currency)));
   const [customMonthly, setCustomMonthly] = useState<string>('');
+  const [stepError, setStepError] = useState<string>('');
+  const [priorityNotice, setPriorityNotice] = useState<string>('');
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   const symbol = CURRENCY_RATES[currency].symbol;
+  const isCustomBudget = prefs.budgetId === 'custom';
+  const minBudgetLabel = formatPrice(MIN_BUDGET_EUR, currency);
 
   useEffect(() => {
     setPrefs((prev) => ({ ...prev, currency, marketRegion }));
+    setMinDraft(String(convertFromEUR(customMin, currency)));
+    setMaxDraft(String(convertFromEUR(customMax, currency)));
+    // Only re-sync when the currency or region changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currency, marketRegion]);
 
-  // Question 1 Budget Options
+  // Move focus to the new question so keyboard and screen reader users land on it.
+  useEffect(() => {
+    headingRef.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0 });
+  }, [step]);
+
   const budgetOptions: { id: BudgetRangeId; label: string; desc: string }[] = [
     {
       id: '1.5k-5k',
@@ -100,16 +168,12 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
     {
       id: '40k-60k',
       label: `${formatPrice(40000, currency)} – ${formatPrice(60000, currency)}`,
-      desc: isGreek
-        ? 'Executive premium SUV & πολυτελή (Volvo XC60, BMW 3, Macan)'
-        : 'Executive saloons, luxury crossovers & high performance'
+      desc: isGreek ? 'Executive premium SUV & πολυτελή (Volvo XC60, BMW 3, Macan)' : 'Executive saloons, luxury crossovers & high performance'
     },
     {
       id: '60k-plus',
       label: `${formatPrice(60000, currency)}+`,
-      desc: isGreek
-        ? 'Κορυφαία πολυτέλεια, Porsche & σπορ επιδόσεις'
-        : 'Top-tier luxury, sports performance & flagship engineering'
+      desc: isGreek ? 'Κορυφαία πολυτέλεια, Porsche & σπορ επιδόσεις' : 'Top-tier luxury, sports performance & flagship engineering'
     },
     {
       id: 'not-sure',
@@ -117,793 +181,441 @@ export const Questionnaire: React.FC<QuestionnaireProps> = ({
       desc: isGreek
         ? 'Το CarCheck θα υπολογίσει ένα λογικό εύρος με βάση τις ανάγκες σου'
         : 'We will infer a sensible range from your lifestyle answers'
+    },
+    {
+      id: 'custom',
+      label: isGreek ? `Προσαρμοσμένο ποσό (από ${minBudgetLabel})` : `Custom amount (from ${minBudgetLabel})`,
+      desc: isGreek ? 'Όρισε ακριβές ελάχιστο και μέγιστο ποσό αγοράς' : 'Define exact minimum and maximum purchase targets'
     }
   ];
 
-  // Question 2 Usages
-  const usageOptions: { id: UsageType; label: string; icon: React.ElementType }[] = [
-    { id: 'daily-commuting', label: 'Daily commuting', icon: Route },
-    { id: 'city-driving', label: 'City driving & parking', icon: Building2 },
-    { id: 'family-use', label: 'Family & kids', icon: Users },
-    { id: 'long-road-trips', label: 'Long road trips / Motorway', icon: Map },
-    { id: 'weekend-driving', label: 'Weekend leisure', icon: TentTree },
-    { id: 'business', label: 'Business & client travel', icon: Briefcase },
-    { id: 'carrying-equipment', label: 'Carrying bulky equipment', icon: Package },
-    { id: 'outdoor-activities', label: 'Outdoor adventures & sports', icon: Trees },
-    { id: 'performance-fun', label: 'Performance & driving fun', icon: Gauge },
-    { id: 'first-car', label: 'First car / New driver', icon: ShieldCheck },
-    { id: 'luxury-comfort', label: 'Luxury & quiet comfort', icon: Gem }
-  ];
-
-  // Question 3 Priorities
-  const priorityOptions: { id: PriorityType; label: string; desc: string }[] = [
-    { id: 'reliability', label: 'Bulletproof Reliability', desc: 'Minimal breakdown risk & proven durability' },
-    { id: 'low-running-costs', label: 'Low Running Costs', desc: 'Cheap parts, low insurance & low service bills' },
-    { id: 'fuel-economy', label: 'Fuel / Energy Economy', desc: 'Maximum miles per gallon or kWh' },
-    { id: 'performance', label: 'Sporty Performance', desc: 'Sharp handling, quick acceleration & responsiveness' },
-    { id: 'comfort', label: 'Quiet Cabin & Composure', desc: 'Supple suspension, acoustic glass & comfortable seats' },
-    { id: 'practicality', label: 'Maximum Practicality', desc: 'Big boot, versatile seats & storage solutions' },
-    { id: 'safety', label: 'Top Crash Safety & ADAS', desc: '5-star crash ratings & advanced driver assistance' },
-    { id: 'technology', label: 'Modern Infotainment & Tech', desc: 'Wireless CarPlay, great screens & smart connectivity' },
-    { id: 'resale-value', label: 'High Resale Value', desc: 'Slow depreciation curve over 3–5 years' },
-    { id: 'environmental-impact', label: 'Low Emissions / Green', desc: 'Zero tailpipe emissions or hybrid efficiency' },
-    { id: 'luxury', label: 'Premium Brand Prestige', desc: 'High-end interior materials and prestige badge' },
-    { id: 'design', label: 'Standout Exterior Design', desc: 'Eye-catching styling and road presence' }
-  ];
-
-  // Determine dynamic question 4 based on previous answers
+  // Which dynamic 4th question applies, based on earlier answers.
   const isFamily = prefs.usages.includes('family-use');
   const isCity = prefs.usages.includes('city-driving') && !isFamily;
   const isPerformance = prefs.usages.includes('performance-fun') && !isFamily && !isCity;
   const isOutdoor = (prefs.usages.includes('outdoor-activities') || prefs.usages.includes('carrying-equipment')) && !isFamily;
+  const questionKind: DynamicQuestionKind = isFamily ? 'family' : isCity ? 'city' : isPerformance ? 'performance' : isOutdoor ? 'outdoor' : 'general';
+  const dynamicQuestion = DYNAMIC_QUESTIONS[questionKind];
 
-  let dynamicTitle = 'Tell us a little about your lifestyle.';
-  let dynamicSubtitle = 'This helps CarCheck dial in seating count, cargo volume, and drivetrain requirements.';
+  const commitCustomBudget = (): { min: number; max: number } => {
+    const minFloor = convertFromEUR(MIN_BUDGET_EUR, currency);
+    const parsedMin = parseInt(minDraft, 10);
+    const minEUR = Math.max(MIN_BUDGET_EUR, convertToEUR(Number.isNaN(parsedMin) ? minFloor : Math.max(minFloor, parsedMin), currency));
+    const parsedMax = parseInt(maxDraft, 10);
+    const maxEUR = Math.max(minEUR, Number.isNaN(parsedMax) ? customMax : convertToEUR(parsedMax, currency));
+    setCustomMin(minEUR);
+    setCustomMax(maxEUR);
+    setMinDraft(String(convertFromEUR(minEUR, currency)));
+    setMaxDraft(String(convertFromEUR(maxEUR, currency)));
+    setPrefs((prev) => (prev.budgetId === 'custom' ? { ...prev, budgetCustomMin: minEUR, budgetCustomMax: maxEUR } : prev));
+    return { min: minEUR, max: maxEUR };
+  };
 
-  interface DynamicChoice {
-    id: string;
-    label: string;
-    desc: string;
-    mapsToLifestyle?: LifestyleOption[];
-  }
-
-  let dynamicChoices: DynamicChoice[] = [];
-
-  if (isFamily) {
-    dynamicTitle = 'How many people will usually be in the car?';
-    dynamicSubtitle = 'We will calculate ideal rear seat room and boot volume for pushchairs.';
-    dynamicChoices = [
-      {
-        id: 'small-fam',
-        label: 'Small family (2–3 people)',
-        desc: 'Need 1 child seat and everyday stroller space',
-        mapsToLifestyle: ['small-family', 'child-seats']
-      },
-      {
-        id: 'standard-fam',
-        label: 'Family of 4 with luggage',
-        desc: 'Two kids, school runs, holiday suitcases and weekly groceries',
-        mapsToLifestyle: ['small-family', 'child-seats', 'lots-of-luggage']
-      },
-      {
-        id: 'large-fam',
-        label: 'Large family (Need 6 or 7 seats)',
-        desc: '3+ kids, carpooling, or extended family needing 3rd row seating',
-        mapsToLifestyle: ['large-family', 'frequent-passengers']
-      },
-      {
-        id: 'dog-fam',
-        label: 'Family with a dog',
-        desc: 'Need dedicated boot space for a dog crate alongside gear',
-        mapsToLifestyle: ['small-family', 'dog-owner', 'lots-of-luggage']
-      }
-    ];
-  } else if (isCity) {
-    dynamicTitle = 'Is easy parking or a compact footprint your top priority?';
-    dynamicSubtitle = 'Urban environments require effortless maneuverability and visibility.';
-    dynamicChoices = [
-      {
-        id: 'tight-parallel',
-        label: 'Strict compact size for tight street parking',
-        desc: 'Sub-4.2 meter car that fits in spaces others drive past',
-        mapsToLifestyle: ['easy-parking', 'drive-alone']
-      },
-      {
-        id: 'underground-garages',
-        label: 'Underground garages & tight ramps',
-        desc: 'Need tight turning circle, cameras and parking sensors',
-        mapsToLifestyle: ['easy-parking']
-      },
-      {
-        id: 'high-crossover',
-        label: 'High seating position for urban visibility',
-        desc: 'Prefer a compact crossover view over low hatchback seating',
-        mapsToLifestyle: ['easy-parking', 'couple']
-      },
-      {
-        id: 'flexible-urban',
-        label: 'Balanced: mainly city with occasional road trip',
-        desc: 'Comfortable on motorways too without feeling bulky in town',
-        mapsToLifestyle: ['motorway-driving']
-      }
-    ];
-  } else if (isPerformance) {
-    dynamicTitle = 'Do you care more about acceleration or handling?';
-    dynamicSubtitle = 'Choose how you like your car to deliver excitement on the road.';
-    dynamicChoices = [
-      {
-        id: 'instant-accel',
-        label: 'Rapid instant acceleration',
-        desc: 'Electric punch or strong turbo torque for rapid overtakes',
-        mapsToLifestyle: ['motorway-driving']
-      },
-      {
-        id: 'chassis-handling',
-        label: 'Sharp chassis balance & cornering agility',
-        desc: 'Go-kart handling feel on twisty B-roads',
-        mapsToLifestyle: ['drive-alone']
-      },
-      {
-        id: 'rwd-balance',
-        label: 'Rear-wheel drive purity & steering feedback',
-        desc: 'Traditional 50:50 sports saloon balance',
-        mapsToLifestyle: ['drive-alone', 'motorway-driving']
-      },
-      {
-        id: 'all-weather-grip',
-        label: 'All-weather traction (AWD grip in wet/snow)',
-        desc: 'High performance usable in rain, sleet, or ice',
-        mapsToLifestyle: ['mountains-snow']
-      }
-    ];
-  } else if (isOutdoor) {
-    dynamicTitle = 'What kind of terrain or gear do you tackle?';
-    dynamicSubtitle = 'Ensures adequate ground clearance, cargo capacity, and traction.';
-    dynamicChoices = [
-      {
-        id: 'snow-mountains',
-        label: 'Snow, ski trips & mountain passes',
-        desc: 'All-Wheel Drive (AWD) is essential for winter conditions',
-        mapsToLifestyle: ['mountains-snow', 'lots-of-luggage']
-      },
-      {
-        id: 'bulky-sports',
-        label: 'Bicycles, surfboards or camping gear',
-        desc: 'Need roof rails, large load bay and rugged interior',
-        mapsToLifestyle: ['lots-of-luggage']
-      },
-      {
-        id: 'gravel-ground',
-        label: 'Rough gravel tracks / rural roads',
-        desc: 'Extra ground clearance (190mm+) to clear rocks & ruts',
-        mapsToLifestyle: ['lots-of-luggage']
-      },
-      {
-        id: 'dog-trails',
-        label: 'Dog walks & wet gear',
-        desc: 'Durable boot lining and practical hatchback or wagon tailgate',
-        mapsToLifestyle: ['dog-owner']
-      }
-    ];
-  } else {
-    // General lifestyle
-    dynamicChoices = [
-      {
-        id: 'alone',
-        label: 'Mostly drive alone',
-        desc: 'Prioritize personal comfort, driving feel and low costs',
-        mapsToLifestyle: ['drive-alone']
-      },
-      {
-        id: 'couple',
-        label: 'Couple (2 people)',
-        desc: 'Balanced space for two with luggage for getaways',
-        mapsToLifestyle: ['couple']
-      },
-      {
-        id: 'small-fam',
-        label: 'Small family with children',
-        desc: 'Safe rear seating with child seat ISOFIX points',
-        mapsToLifestyle: ['small-family', 'child-seats']
-      },
-      {
-        id: 'lots-of-luggage',
-        label: 'Frequently carry lots of luggage or gear',
-        desc: '500+ liter cargo capacity is essential',
-        mapsToLifestyle: ['lots-of-luggage']
-      },
-      {
-        id: 'dog',
-        label: 'Dog owner',
-        desc: 'Easy-access tailgate for our four-legged family member',
-        mapsToLifestyle: ['dog-owner']
-      },
-      {
-        id: 'mountains',
-        label: 'Drive in mountains or snow',
-        desc: 'Confidence on icy slopes and wet climbs',
-        mapsToLifestyle: ['mountains-snow']
-      },
-      {
-        id: 'parking',
-        label: 'Tight city parking is a daily challenge',
-        desc: 'Needs compact exterior dimensions and sensors',
-        mapsToLifestyle: ['easy-parking']
-      },
-      {
-        id: 'motorway',
-        label: 'Regular high-speed motorway driving',
-        desc: 'Need relaxed cruising, adaptive cruise control and quiet cabin',
-        mapsToLifestyle: ['motorway-driving']
-      }
-    ];
-  }
-
-  // Handlers
   const handleSelectBudget = (id: BudgetRangeId) => {
-    if (id === 'custom') {
-      setShowCustomBudget(true);
-      setPrefs({
-        ...prefs,
-        budgetId: 'custom',
-        budgetCustomMin: customMin,
-        budgetCustomMax: customMax
-      });
-    } else {
-      setShowCustomBudget(false);
-      setPrefs({
-        ...prefs,
-        budgetId: id
-      });
-    }
+    setStepError('');
+    setPrefs((prev) =>
+      id === 'custom' ? { ...prev, budgetId: 'custom', budgetCustomMin: customMin, budgetCustomMax: customMax } : { ...prev, budgetId: id }
+    );
   };
 
   const handleToggleUsage = (id: UsageType) => {
-    const exists = prefs.usages.includes(id);
-    const updated = exists ? prefs.usages.filter((u) => u !== id) : [...prefs.usages, id];
-    setPrefs({ ...prefs, usages: updated });
+    setStepError('');
+    setPrefs((prev) => ({
+      ...prev,
+      usages: prev.usages.includes(id) ? prev.usages.filter((u) => u !== id) : [...prev.usages, id]
+    }));
   };
 
   const handleTogglePriority = (id: PriorityType) => {
-    const exists = prefs.priorities.includes(id);
-    if (exists) {
-      setPrefs({
-        ...prefs,
-        priorities: prefs.priorities.filter((p) => p !== id)
-      });
-    } else {
-      if (prefs.priorities.length >= 3) {
-        // limit to 3
-        return;
-      }
-      setPrefs({
-        ...prefs,
-        priorities: [...prefs.priorities, id]
-      });
+    setStepError('');
+    if (prefs.priorities.includes(id)) {
+      setPriorityNotice('');
+      setPrefs((prev) => ({ ...prev, priorities: prev.priorities.filter((p) => p !== id) }));
+      return;
     }
+    if (prefs.priorities.length >= MAX_PRIORITIES) {
+      setPriorityNotice(
+        isGreek ? 'Μπορείς να επιλέξεις έως 3. Αφαίρεσε μία προτεραιότητα για να προσθέσεις άλλη.' : 'You can choose up to 3. Unselect one to add another.'
+      );
+      return;
+    }
+    setPriorityNotice('');
+    setPrefs((prev) => ({ ...prev, priorities: [...prev.priorities, id] }));
   };
 
   const handleSelectDynamicChoice = (choice: DynamicChoice) => {
-    const mappedLifestyle = choice.mapsToLifestyle || [];
-    setPrefs({
-      ...prefs,
-      dynamicAnswer: choice.label,
-      lifestyle: Array.from(new Set([...prefs.lifestyle, ...mappedLifestyle]))
-    });
+    setStepError('');
+    setPrefs((prev) => ({
+      ...prev,
+      // The English label is what the recommendation engine reads.
+      dynamicAnswer: choice.label.en,
+      lifestyle: Array.from(new Set([...prev.lifestyle, ...choice.mapsToLifestyle]))
+    }));
   };
 
-  const canProceedStep1 = true;
-  const canProceedStep2 = prefs.usages.length > 0;
-  const canProceedStep3 = prefs.priorities.length > 0;
-  const canProceedStep4 = Boolean(prefs.dynamicAnswer) || prefs.lifestyle.length > 0;
-
-  const handleFinish = () => {
-    onComplete(prefs);
+  const stepValidationError = (): string => {
+    if (step === 2 && prefs.usages.length === 0) return isGreek ? 'Επίλεξε τουλάχιστον μία χρήση για να συνεχίσεις.' : 'Choose at least one use to continue.';
+    if (step === 3 && prefs.priorities.length === 0) return isGreek ? 'Επίλεξε τουλάχιστον μία προτεραιότητα για να συνεχίσεις.' : 'Choose at least one priority to continue.';
+    if (step === 4 && !prefs.dynamicAnswer && prefs.lifestyle.length === 0) return isGreek ? 'Επίλεξε μία απάντηση για να συνεχίσεις.' : 'Choose an answer to continue.';
+    return '';
   };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    let next = prefs;
+    if (step === 1 && isCustomBudget) {
+      const { min, max } = commitCustomBudget();
+      next = { ...prefs, budgetCustomMin: min, budgetCustomMax: max };
+    }
+    const error = stepValidationError();
+    if (error) {
+      setStepError(error);
+      return;
+    }
+    setStepError('');
+    if (step < TOTAL_STEPS) setStep(step + 1);
+    else onComplete(next);
+  };
+
+  const stepTitles = isGreek
+    ? ['Προϋπολογισμός', 'Χρήση οχήματος', 'Προτεραιότητες', 'Τρόπος ζωής & Δακτύλιος']
+    : ['Budget', 'Usage profile', 'Priorities', 'Lifestyle tailoring'];
+
+  const headingClass = 'text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight focus:outline-none';
+  const eyebrowClass = 'text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1';
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-      {/* Progress Indicator */}
+      <h1 className="sr-only">{isGreek ? 'Βρες το αυτοκίνητό σου' : 'Find your car'}</h1>
+
+      {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between text-[13px] font-bold tracking-normal text-[var(--color-text-muted)] mb-2">
-          <span>{isGreek ? `Ερώτηση ${step} από 4` : `Question ${step} of 4`}</span>
-          <span>
-            {step === 1
-              ? isGreek ? 'Προϋπολογισμός (από 1.500€)' : 'Budget (from €1,500)'
-              : step === 2
-              ? isGreek ? 'Χρήση Οχήματος' : 'Usage Profile'
-              : step === 3
-              ? isGreek ? 'Προτεραιότητες' : 'Priorities'
-              : isGreek ? 'Τρόπος Ζωής & Δακτύλιος' : 'Lifestyle Tailoring'}
-          </span>
+          <span>{isGreek ? `Ερώτηση ${step} από ${TOTAL_STEPS}` : `Question ${step} of ${TOTAL_STEPS}`}</span>
+          <span>{stepTitles[step - 1]}</span>
         </div>
-        <div className="w-full h-1 bg-[var(--color-surface-strong)] rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-[var(--color-surface-strong)] rounded-full overflow-hidden" aria-hidden="true">
           <div
-            className="h-full bg-[var(--color-accent)] rounded-xl transition-all duration-300"
-            style={{ width: `${(step / 4) * 100}%` }}
+            className="h-full w-full origin-left bg-[var(--color-accent)] transition-transform duration-300"
+            style={{ transform: `scaleX(${step / TOTAL_STEPS})` }}
           />
         </div>
       </div>
 
-      {/* Step 1: Budget */}
-      {step === 1 && (
-        <div className="space-y-6 animate-fadeIn">
-          <div>
-            <div className="text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1">
-              {isGreek ? 'Βήμα 1 από 4 · Οικονομικές Παράμετροι' : 'Step 1 of 4 · Financial Parameters'}
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
-              {isGreek ? 'Ποιο είναι το budget σου;' : 'What’s your budget?'}
-            </h2>
-            <p className="mt-1.5 text-[15px] text-[var(--color-text-muted)]">
-              {isGreek
-                ? 'Επίλεξε ένα κατά προσέγγιση εύρος τιμής (από 1.500€) ή όρισε το δικό σου ποσό. Αν δεν είσαι σίγουρος, το CarCheck θα υπολογίσει το ιδανικό ποσό.'
-                : 'Select an approximate purchase range (starting from €1,500) or enter a custom amount. If unsure, CarCheck infers a sensible budget.'}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {budgetOptions.map((opt) => {
-              const isSelected = prefs.budgetId === opt.id && !showCustomBudget;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => handleSelectBudget(opt.id)}
-                  aria-pressed={isSelected}
-                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
-                      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-base text-[var(--color-text)]">
-                      {opt.label}
-                    </span>
-                    {isSelected && (
-                      <div className="w-5 h-5 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[13px] text-[var(--color-text-muted)] mt-1.5 leading-relaxed">
-                    {opt.desc}
-                  </p>
-                </button>
-              );
-            })}
-
-            {/* Custom Budget Card */}
-            <button
-              type="button"
-              onClick={() => handleSelectBudget('custom')}
-              aria-pressed={showCustomBudget || prefs.budgetId === 'custom'}
-              className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
-                showCustomBudget || prefs.budgetId === 'custom'
-                  ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
-                  : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-base text-[var(--color-text)]">
-                  {isGreek ? 'Προσαρμοσμένο Ποσό (από 1.500€)' : 'Custom Amount (from €1,500)'}
+      <form onSubmit={handleSubmit} noValidate>
+        {/* Step 1: Budget */}
+        {step === 1 && (
+          <div className="space-y-6 animate-fadeIn">
+            <fieldset>
+              <legend className="mb-6">
+                <span className={`block ${eyebrowClass}`}>{isGreek ? 'Βήμα 1 από 4 · Οικονομικές παράμετροι' : 'Step 1 of 4 · Financial parameters'}</span>
+                <h2 ref={headingRef} tabIndex={-1} className={headingClass}>
+                  {isGreek ? 'Ποιο είναι το budget σου;' : 'What’s your budget?'}
+                </h2>
+                <span className="block mt-1.5 text-[15px] font-normal text-[var(--color-text-muted)]">
+                  {isGreek
+                    ? `Επίλεξε ένα κατά προσέγγιση εύρος τιμής (από ${minBudgetLabel}) ή όρισε το δικό σου ποσό. Αν δεν είσαι σίγουρος, το CarCheck θα υπολογίσει το ιδανικό ποσό.`
+                    : `Select an approximate purchase range (starting from ${minBudgetLabel}) or enter a custom amount. If unsure, CarCheck infers a sensible budget.`}
                 </span>
-                {(showCustomBudget || prefs.budgetId === 'custom') && (
-                  <div className="w-5 h-5 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </div>
-                )}
-              </div>
-              <p className="text-[13px] text-[var(--color-text-muted)] mt-1.5 leading-relaxed">
-                {isGreek
-                  ? 'Όρισε ακριβές ελάχιστο και μέγιστο ποσό αγοράς'
-                  : 'Define exact minimum and maximum purchase targets'}
-              </p>
-            </button>
-          </div>
+              </legend>
 
-          {/* Custom Budget Inputs (Shown when custom is selected) */}
-          {(showCustomBudget || prefs.budgetId === 'custom') && (
-            <div className="p-4 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-accent)]/50 animate-fadeIn">
-              <div className="text-[13px] font-bold tracking-normal text-[var(--color-accent-text)] mb-3">
-                {isGreek ? 'Ορισμός Εύρους Budget (από 1.500€)' : 'Define Budget Target Range (From €1,500)'}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {budgetOptions.map((opt) => {
+                  const isSelected = prefs.budgetId === opt.id;
+                  return (
+                    <label key={opt.id} className={choiceCardClass(isSelected, 'p-4')}>
+                      <input type="radio" name="budget" value={opt.id} checked={isSelected} onChange={() => handleSelectBudget(opt.id)} className="sr-only" />
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-base text-[var(--color-text)]">{opt.label}</span>
+                        <SelectedMark selected={isSelected} size="md" />
+                      </span>
+                      <span className="block text-[13px] text-[var(--color-text-muted)] mt-1.5 leading-relaxed">{opt.desc}</span>
+                    </label>
+                  );
+                })}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="custom-budget-min" className="text-[13px] text-[var(--color-text-muted)] block mb-1">
-                    {isGreek ? 'Ελάχιστο Ποσό' : 'Minimum Budget'}
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-[var(--color-text-muted)]">
-                      {symbol}
-                    </span>
-                    <input
-                      id="custom-budget-min"
-                      type="number"
-                      inputMode="numeric"
-                      min={convertFromEUR(1500, currency)}
-                      step={500}
-                      value={convertFromEUR(customMin, currency)}
-                      onChange={(e) => {
-                        const displayValue = Math.max(convertFromEUR(1500, currency), parseInt(e.target.value, 10) || convertFromEUR(1500, currency));
-                        const val = Math.max(1500, convertToEUR(displayValue, currency));
-                        const nextMax = Math.max(customMax, val);
-                        setCustomMin(val);
-                        setCustomMax(nextMax);
-                        setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: val, budgetCustomMax: nextMax });
-                      }}
-                      className="w-full min-h-11 pl-8 pr-3 py-2 text-[15px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
-                    />
-                  </div>
-                </div>
+            </fieldset>
 
-                <div>
-                  <label htmlFor="custom-budget-max" className="text-[13px] text-[var(--color-text-muted)] block mb-1">
-                    {isGreek ? 'Μέγιστο Ποσό' : 'Maximum Budget'}
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-[var(--color-text-muted)]">
-                      {symbol}
-                    </span>
-                    <input
-                      id="custom-budget-max"
-                      type="number"
-                      inputMode="numeric"
-                      min={convertFromEUR(customMin, currency)}
-                      step={500}
-                      value={convertFromEUR(customMax, currency)}
-                      onChange={(e) => {
-                        const displayMin = convertFromEUR(customMin, currency);
-                        const displayValue = Math.max(displayMin, parseInt(e.target.value, 10) || displayMin);
-                        const val = Math.max(customMin, convertToEUR(displayValue, currency));
-                        setCustomMax(val);
-                        setPrefs({ ...prefs, budgetId: 'custom', budgetCustomMin: customMin, budgetCustomMax: val });
-                      }}
-                      className="w-full min-h-11 pl-8 pr-3 py-2 text-[15px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
-                    />
+            {isCustomBudget && (
+              <fieldset className="p-4 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-accent)]/50 animate-fadeIn">
+                <legend className="sr-only">{isGreek ? 'Προσαρμοσμένο εύρος budget' : 'Custom budget range'}</legend>
+                <p id="custom-budget-hint" className="text-[13px] font-bold tracking-normal text-[var(--color-accent-text)] mb-3">
+                  {isGreek ? `Ορισμός εύρους budget (από ${minBudgetLabel})` : `Define your budget range (from ${minBudgetLabel})`}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="custom-budget-min" className="text-[13px] text-[var(--color-text-muted)] block mb-1">
+                      {isGreek ? 'Ελάχιστο ποσό' : 'Minimum budget'}
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-[var(--color-text-muted)]" aria-hidden="true">{symbol}</span>
+                      <input
+                        id="custom-budget-min"
+                        name="budgetMin"
+                        type="number"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        min={convertFromEUR(MIN_BUDGET_EUR, currency)}
+                        step={500}
+                        value={minDraft}
+                        aria-describedby="custom-budget-hint"
+                        onChange={(e) => setMinDraft(e.target.value)}
+                        onBlur={commitCustomBudget}
+                        className={`${inputClass} pl-8 pr-3`}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="custom-budget-max" className="text-[13px] text-[var(--color-text-muted)] block mb-1">
+                      {isGreek ? 'Μέγιστο ποσό' : 'Maximum budget'}
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] text-[var(--color-text-muted)]" aria-hidden="true">{symbol}</span>
+                      <input
+                        id="custom-budget-max"
+                        name="budgetMax"
+                        type="number"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        min={convertFromEUR(customMin, currency)}
+                        step={500}
+                        value={maxDraft}
+                        aria-describedby="custom-budget-hint"
+                        onChange={(e) => setMaxDraft(e.target.value)}
+                        onBlur={commitCustomBudget}
+                        className={`${inputClass} pl-8 pr-3`}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Optional Financing details (non-mandatory) */}
-          <div className="mt-6 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
-            <div className="flex items-center justify-between text-[13px] font-semibold text-[var(--color-text)] mb-3">
-              <span className="flex items-center gap-1.5">
-                <HeartHandshake className="w-4 h-4 text-[var(--color-accent-text)]" />
-                {isGreek ? 'Προαιρετικό: Τρόπος Πληρωμής' : 'Optional: Purchase or Financing Preference'}
-              </span>
-              <span className="text-xs font-normal text-[var(--color-text-muted)]">
-                {isGreek ? 'Μη υποχρεωτικό' : 'Not mandatory'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {[
-                { id: 'any', label: isGreek ? 'Μετρητά ή Χρηματοδότηση' : 'Cash or Financing' },
-                { id: 'cash', label: isGreek ? 'Αγορά Μετρητοίς' : 'Cash Purchase' },
-                { id: 'financing', label: isGreek ? 'Χρηματοδότηση / Δάνεια' : 'Financing / Loan' }
-              ].map((pMethod) => (
-                <button
-                  key={pMethod.id}
-                  type="button"
-                  aria-pressed={prefs.paymentMethod === pMethod.id}
-                  onClick={() =>
-                    setPrefs({
-                      ...prefs,
-                      paymentMethod: pMethod.id as PaymentMethod
-                    })
-                  }
-                  className={`min-h-11 px-3 rounded-xl text-[13px] font-medium border text-center transition-colors cursor-pointer ${
-                    prefs.paymentMethod === pMethod.id
-                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)]'
-                      : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                  }`}
-                >
-                  {pMethod.label}
-                </button>
-              ))}
-            </div>
-
-            {prefs.paymentMethod === 'financing' && (
-              <div className="mt-3 flex items-center gap-3">
-                <label htmlFor="monthly-payment-max" className="text-[13px] text-[var(--color-text-muted)]">
-                  {isGreek ? 'Μέγιστη μηνιαία δόση:' : 'Target monthly payment:'}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px] text-[var(--color-text-muted)]">
-                    {symbol}
-                  </span>
-                  <input
-                    id="monthly-payment-max"
-                    type="number"
-                    inputMode="numeric"
-                    placeholder="π.χ. 250"
-                    value={customMonthly}
-                    onChange={(e) => {
-                      setCustomMonthly(e.target.value);
-                      const parsed = parseInt(e.target.value, 10);
-                      setPrefs({ ...prefs, monthlyPaymentMax: isNaN(parsed) ? undefined : convertToEUR(parsed, currency) });
-                    }}
-                    className="w-36 min-h-11 pl-6 pr-2 py-2 text-[15px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
-                  />
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--color-text-muted)]">
-                    /μήνα
-                  </span>
-                </div>
-              </div>
+              </fieldset>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* Step 2: What will you use the car for? */}
-      {step === 2 && (
-        <div className="space-y-6 animate-fadeIn">
-          <div>
-            <div className="text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1">
-              {isGreek ? 'Βήμα 2 από 4 · Προφίλ Χρήσης' : 'Step 2 of 4 · Usage profile'}
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
-              {isGreek ? 'Για ποια χρήση προορίζεται κυρίως το αυτοκίνητο;' : 'What will you mainly use the car for?'}
-            </h2>
-            <p className="mt-1.5 text-[15px] text-[var(--color-text-muted)]">
-              {isGreek
-                ? 'Επίλεξε όσα ισχύουν. Το CarCheck υπολογίζει αυτόματα διαστάσεις, χώρους, κατανάλωση και οδική συμπεριφορά.'
-                : 'Select all that apply. CarCheck uses this to calculate cabin space, ground clearance, fuel efficiency, and driving dynamics automatically.'}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {usageOptions.map((opt) => {
-              const isSelected = prefs.usages.includes(opt.id);
-              const localizedLabel = isGreek
-                ? opt.id === 'daily-commuting' ? 'Καθημερινή μετακίνηση'
-                : opt.id === 'city-driving' ? 'Κίνηση & παρκάρισμα στην πόλη'
-                : opt.id === 'family-use' ? 'Οικογένεια & παιδιά'
-                : opt.id === 'long-road-trips' ? 'Ταξίδια στην εθνική'
-                : opt.id === 'weekend-driving' ? 'Σαββατοκύριακο & εκδρομές'
-                : opt.id === 'business' ? 'Επαγγελματικά ταξίδια'
-                : opt.id === 'carrying-equipment' ? 'Μεταφορά εξοπλισμού'
-                : opt.id === 'outdoor-activities' ? 'Outdoor & βουνό'
-                : opt.id === 'performance-fun' ? 'Σπορ οδήγηση & επιδόσεις'
-                : opt.id === 'first-car' ? 'Πρώτο αυτοκίνητο / Νέος οδηγός'
-                : 'Πολυτέλεια & ήσυχη καμπίνα'
-                : opt.label;
-
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => handleToggleUsage(opt.id)}
-                  aria-pressed={isSelected}
-                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[90px] ${
-                    isSelected
-                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
-                      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    {React.createElement(opt.icon, { className: 'w-5 h-5 text-[var(--color-accent-text)]', 'aria-hidden': true })}
-                    {isSelected && (
-                      <div className="w-4 h-4 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
-                    )}
-                  </div>
-                  <span className="font-semibold text-[13px] sm:text-[15px] text-[var(--color-text)] mt-2">
-                    {localizedLabel}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="text-[13px] text-[var(--color-text-muted)] flex items-center gap-1.5">
-            <span>
-              {isGreek
-                ? `Επιλεγμένα: ${prefs.usages.length} χρήσεις`
-                : `Selected: ${prefs.usages.length} purpose${prefs.usages.length === 1 ? '' : 's'}`}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: What matters most? */}
-      {step === 3 && (
-        <div className="space-y-6 animate-fadeIn">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-            <div>
-              <div className="text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1">
-                {isGreek ? 'Βήμα 3 από 4 · Κριτήρια Αξιολόγησης' : 'Step 3 of 4 · Ranking criteria'}
+            {/* Optional financing preference */}
+            <fieldset className="mt-6 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+              <legend className="sr-only">{isGreek ? 'Τρόπος πληρωμής (προαιρετικό)' : 'Payment method (optional)'}</legend>
+              <div className="flex items-center justify-between text-[13px] font-semibold text-[var(--color-text)] mb-3" aria-hidden="true">
+                <span className="flex items-center gap-1.5">
+                  <HeartHandshake className="w-4 h-4 text-[var(--color-accent-text)]" />
+                  {isGreek ? 'Προαιρετικό: Τρόπος πληρωμής' : 'Optional: Purchase or financing preference'}
+                </span>
+                <span className="text-xs font-normal text-[var(--color-text-muted)]">{isGreek ? 'Μη υποχρεωτικό' : 'Not mandatory'}</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {[
+                  { id: 'any', label: isGreek ? 'Μετρητά ή χρηματοδότηση' : 'Cash or Financing' },
+                  { id: 'cash', label: isGreek ? 'Αγορά μετρητοίς' : 'Cash Purchase' },
+                  { id: 'financing', label: isGreek ? 'Χρηματοδότηση / Δάνειο' : 'Financing / Loan' }
+                ].map((pMethod) => {
+                  const isSelected = prefs.paymentMethod === pMethod.id;
+                  return (
+                    <label
+                      key={pMethod.id}
+                      className={`${choiceCardClass(isSelected, 'min-h-11 px-3 flex items-center justify-center text-center text-[13px] font-medium')} ${
+                        isSelected ? '' : 'text-[var(--color-text-muted)]'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value={pMethod.id}
+                        checked={isSelected}
+                        onChange={() => setPrefs((prev) => ({ ...prev, paymentMethod: pMethod.id as PaymentMethod }))}
+                        className="sr-only"
+                      />
+                      {pMethod.label}
+                    </label>
+                  );
+                })}
+              </div>
+
+              {prefs.paymentMethod === 'financing' && (
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <label htmlFor="monthly-payment-max" className="text-[13px] text-[var(--color-text-muted)]">
+                    {isGreek ? 'Μέγιστη μηνιαία δόση' : 'Target monthly payment'}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-[var(--color-text-muted)]" aria-hidden="true">{symbol}</span>
+                    <input
+                      id="monthly-payment-max"
+                      name="monthlyPayment"
+                      type="number"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      min={0}
+                      placeholder={isGreek ? 'π.χ. 250' : 'e.g. 250'}
+                      value={customMonthly}
+                      aria-describedby="monthly-payment-unit"
+                      onChange={(e) => {
+                        setCustomMonthly(e.target.value);
+                        const parsed = parseInt(e.target.value, 10);
+                        setPrefs((prev) => ({ ...prev, monthlyPaymentMax: Number.isNaN(parsed) ? undefined : convertToEUR(parsed, currency) }));
+                      }}
+                      className={`${inputClass} w-44 pl-7 pr-16`}
+                    />
+                    <span id="monthly-payment-unit" className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--color-text-muted)]">
+                      {isGreek ? '/μήνα' : '/month'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </fieldset>
+          </div>
+        )}
+
+        {/* Step 2: Usage */}
+        {step === 2 && (
+          <fieldset className="space-y-6 animate-fadeIn" aria-describedby={stepError ? 'step-error' : undefined}>
+            <legend className="mb-6">
+              <span className={`block ${eyebrowClass}`}>{isGreek ? 'Βήμα 2 από 4 · Προφίλ χρήσης' : 'Step 2 of 4 · Usage profile'}</span>
+              <h2 ref={headingRef} tabIndex={-1} className={headingClass}>
+                {isGreek ? 'Για ποια χρήση προορίζεται κυρίως το αυτοκίνητο;' : 'What will you mainly use the car for?'}
+              </h2>
+              <span className="block mt-1.5 text-[15px] font-normal text-[var(--color-text-muted)]">
+                {isGreek
+                  ? 'Επίλεξε όσα ισχύουν. Το CarCheck υπολογίζει αυτόματα διαστάσεις, χώρους, κατανάλωση και οδική συμπεριφορά.'
+                  : 'Select all that apply. CarCheck uses this to calculate cabin space, ground clearance, fuel efficiency, and driving dynamics automatically.'}
+              </span>
+            </legend>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {USAGE_OPTIONS.map((opt) => {
+                const isSelected = prefs.usages.includes(opt.id);
+                const Icon = opt.icon;
+                return (
+                  <label key={opt.id} className={choiceCardClass(isSelected, 'p-3.5 flex flex-col justify-between min-h-[90px]')}>
+                    <input type="checkbox" name="usages" value={opt.id} checked={isSelected} onChange={() => handleToggleUsage(opt.id)} className="sr-only" />
+                    <span className="flex items-center justify-between">
+                      <Icon className="w-5 h-5 text-[var(--color-accent-text)]" />
+                      <SelectedMark selected={isSelected} />
+                    </span>
+                    <span className="font-semibold text-[13px] sm:text-[15px] text-[var(--color-text)] mt-2">{opt[lang]}</span>
+                  </label>
+                );
+              })}
+            </div>
+
+            <p className="text-[13px] text-[var(--color-text-muted)]" role="status">
+              {isGreek
+                ? `Επιλεγμένες: ${plural(prefs.usages.length, marketRegion, { one: 'χρήση', other: 'χρήσεις' })}`
+                : `Selected: ${plural(prefs.usages.length, marketRegion, { one: 'purpose', other: 'purposes' })}`}
+            </p>
+          </fieldset>
+        )}
+
+        {/* Step 3: Priorities */}
+        {step === 3 && (
+          <fieldset className="space-y-6 animate-fadeIn" aria-describedby="priority-limit">
+            <legend className="mb-6 w-full">
+              <span className={`block ${eyebrowClass}`}>{isGreek ? 'Βήμα 3 από 4 · Κριτήρια αξιολόγησης' : 'Step 3 of 4 · Ranking criteria'}</span>
+              <h2 ref={headingRef} tabIndex={-1} className={headingClass}>
                 {isGreek ? 'Τι έχει μεγαλύτερη σημασία για εσένα;' : 'What matters most to you?'}
               </h2>
-              <p className="mt-1.5 text-[15px] text-[var(--color-text-muted)]">
+              <span id="priority-limit" className="block mt-1.5 text-[15px] font-normal text-[var(--color-text-muted)]">
                 {isGreek
-                  ? 'Επίλεξε έως και 3 προτεραιότητες. Ο αλγόριθμος θα δώσει ιδιαίτερο βάρος στην αξιοπιστία ή το χαμηλό κόστος.'
-                  : 'Choose up to 3 core priorities. Our engine weights these heavily so reliability or fuel bills truly govern the final choices.'}
-              </p>
+                  ? 'Επίλεξε έως και 3 προτεραιότητες. Ο αλγόριθμος θα δώσει ιδιαίτερο βάρος σε αυτές.'
+                  : 'Choose up to 3 core priorities. Our engine weights these heavily so they truly govern the final choices.'}
+              </span>
+            </legend>
+
+            <div role="status" aria-live="polite" className="flex flex-wrap items-center gap-2 text-[13px] font-semibold">
+              <span className="px-3 py-1.5 rounded-full bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]">
+                {isGreek ? `${prefs.priorities.length} από 3 επιλεγμένες` : `${prefs.priorities.length} of 3 selected`}
+              </span>
+              {priorityNotice && <span className="text-[var(--color-warning)]">{priorityNotice}</span>}
             </div>
 
-            <div role="status" aria-live="polite" className="self-start sm:self-auto text-[13px] font-semibold px-3 py-1.5 rounded-full bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)]">
-              {isGreek ? `${prefs.priorities.length} από 3 επιλεγμένα` : `${prefs.priorities.length} of 3 selected`}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {priorityOptions.map((opt) => {
-              const isSelected = prefs.priorities.includes(opt.id);
-              const isDisabled = !isSelected && prefs.priorities.length >= 3;
-
-              const localizedLabel = isGreek
-                ? opt.id === 'reliability' ? 'Αδιαπραγμάτευτη Αξιοπιστία'
-                : opt.id === 'low-running-costs' ? 'Χαμηλό Κόστος Συντήρησης (Ανταλλακτικά)'
-                : opt.id === 'fuel-economy' ? 'Οικονομία Καυσίμου / Ρεύματος'
-                : opt.id === 'performance' ? 'Σπορ Επιδόσεις & Οδική Συμπεριφορά'
-                : opt.id === 'comfort' ? 'Άνεση & Ηχομόνωση Καμπίνας'
-                : opt.id === 'practicality' ? 'Μέγιστη Πρακτικότητα & Χώροι'
-                : opt.id === 'safety' ? 'Κορυφαία Ασφάλεια Crash Test & ADAS'
-                : opt.id === 'technology' ? 'Σύγχρονη Τεχνολογία & Οθόνες'
-                : opt.id === 'resale-value' ? 'Υψηλή Μεταπωλητική Αξία'
-                : opt.id === 'environmental-impact' ? '0€ Τέλη / Ελεύθερος Δακτύλιος'
-                : opt.id === 'luxury' ? 'Premium Κύρος Κατασκευαστή'
-                : 'Εντυπωσιακός Σχεδιασμός'
-                : opt.label;
-
-              const localizedDesc = isGreek
-                ? opt.id === 'reliability' ? 'Ελάχιστη πιθανότητα βλαβών και αντοχή στο χρόνο'
-                : opt.id === 'low-running-costs' ? 'Φθηνά σέρβις, χαμηλά ασφάλιστρα & προσιτά ανταλλακτικά'
-                : opt.id === 'fuel-economy' ? 'Ελάχιστα λίτρα ανά 100 χλμ ή χαμηλή κατανάλωση kWh'
-                : opt.id === 'performance' ? 'Άμεση επιτάχυνση, κοφτερό τιμόνι & δυναμική οδήγηση'
-                : opt.id === 'comfort' ? 'Απορροφητική ανάρτηση & ξεκούραστα καθίσματα'
-                : opt.id === 'practicality' ? 'Μεγάλο πορτμπαγκάζ και έξυπνες θήκες'
-                : opt.id === 'safety' ? '5 αστέρια Euro NCAP & ηλεκτρονικά συστήματα υποβοήθησης'
-                : opt.id === 'technology' ? 'Apple CarPlay / Android Auto και ευκρινείς οθόνες'
-                : opt.id === 'resale-value' ? 'Αργή πτώση αξίας στην αγορά μεταχειρισμένων'
-                : opt.id === 'environmental-impact' ? 'Απαλλαγή από τέλη και ελεύθερη είσοδος στο κέντρο'
-                : opt.id === 'luxury' ? 'Υλικά υψηλής ποιότητας και κορυφαία αίσθηση'
-                : 'Ξεχωριστή εμφάνιση και δυναμικές γραμμές'
-                : opt.desc;
-
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  disabled={isDisabled}
-                  onClick={() => handleTogglePriority(opt.id)}
-                  aria-pressed={isSelected}
-                  className={`p-3.5 rounded-xl border text-left transition-all ${
-                    isDisabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
-                  } ${
-                    isSelected
-                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
-                      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[15px] text-[var(--color-text)]">
-                      {localizedLabel}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PRIORITY_OPTIONS.map((opt) => {
+                const isSelected = prefs.priorities.includes(opt.id);
+                const atLimit = !isSelected && prefs.priorities.length >= MAX_PRIORITIES;
+                return (
+                  <label key={opt.id} className={`${choiceCardClass(isSelected, 'p-3.5')} ${atLimit ? 'opacity-70' : ''}`}>
+                    <input type="checkbox" name="priorities" value={opt.id} checked={isSelected} onChange={() => handleTogglePriority(opt.id)} className="sr-only" />
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-[15px] text-[var(--color-text)]">{opt.label[lang]}</span>
+                      <SelectedMark selected={isSelected} />
                     </span>
-                    {isSelected && (
-                      <div className="w-4 h-4 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[13px] text-[var(--color-text-muted)] mt-1 leading-normal">
-                    {localizedDesc}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Step 4: Dynamic Lifestyle Question */}
-      {step === 4 && (
-        <div className="space-y-6 animate-fadeIn">
-          <div>
-            <div className="text-[13px] font-semibold tracking-normal text-[var(--color-accent-text)] mb-1">
-              {isGreek ? 'Βήμα 4 από 4 · Προσαρμογή στον Τρόπο Ζωής' : 'Step 4 of 4 · Dynamic lifestyle tailoring'}
+                    <span className="block text-[13px] text-[var(--color-text-muted)] mt-1 leading-normal">{opt.desc[lang]}</span>
+                  </label>
+                );
+              })}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
-              {isGreek
-                ? isFamily ? 'Πόσα άτομα θα επιβαίνουν συνήθως στο αυτοκίνητο;'
-                  : isCity ? 'Είναι το εύκολο παρκάρισμα και οι μαζεμένες διαστάσεις η απόλυτη προτεραιότητα;'
-                  : isPerformance ? 'Σε ενδιαφέρει περισσότερο η επιτάχυνση ή το κράτημα;'
-                  : isOutdoor ? 'Σε τι είδους διαδρομές κινείσαι συνήθως;'
-                  : 'Πες μας λίγα λόγια για τον τρόπο ζωής σου.'
-                : dynamicTitle}
-            </h2>
-            <p className="mt-1.5 text-[15px] text-[var(--color-text-muted)]">
-              {isGreek
-                ? 'Αυτή η λεπτομέρεια βοηθά το CarCheck να επιλέξει τον κατάλληλο αριθμό θέσεων, όγκο πορτμπαγκάζ και τύπο κίνησης.'
-                : dynamicSubtitle}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {dynamicChoices.map((choice) => {
-              const isSelected = prefs.dynamicAnswer === choice.label;
-
-              return (
-                <button
-                  key={choice.id}
-                  type="button"
-                  onClick={() => handleSelectDynamicChoice(choice)}
-                  aria-pressed={isSelected}
-                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? 'border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)] shadow-xs'
-                      : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] text-[var(--color-text)]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[15px] text-[var(--color-text)]">
-                      {choice.label}
-                    </span>
-                    {isSelected && (
-                      <div className="w-4 h-4 rounded-full bg-[var(--color-accent)] text-white flex items-center justify-center">
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[13px] text-[var(--color-text-muted)] mt-1.5 leading-normal">
-                    {choice.desc}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Navigation Buttons */}
-      <div className="mt-10 flex items-center justify-between pt-6 border-t border-[var(--color-border)]">
-        {step > 1 ? (
-          <button
-            type="button"
-            onClick={() => setStep(step - 1)}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-[14px] font-semibold hover:bg-[var(--color-surface-raised)] transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>{isGreek ? 'Πίσω' : 'Back'}</span>
-          </button>
-        ) : (
-          <div />
+          </fieldset>
         )}
 
-        {step < 4 ? (
-          <button
-            type="button"
-            disabled={
-              (step === 1 && !canProceedStep1) ||
-              (step === 2 && !canProceedStep2) ||
-              (step === 3 && !canProceedStep3)
-            }
-            onClick={() => setStep(step + 1)}
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[14px] font-semibold transition-colors cursor-pointer shadow-sm"
-          >
-            <span>{isGreek ? 'Συνέχεια' : 'Continue'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            disabled={!canProceedStep4}
-            onClick={handleFinish}
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[14px] font-semibold transition-colors cursor-pointer"
-          >
-            <Sparkles className="w-4 h-4 text-white" />
-            <span>{isGreek ? 'Εύρεση αυτοκινήτων' : 'Find recommendations'}</span>
-          </button>
+        {/* Step 4: Dynamic lifestyle question */}
+        {step === 4 && (
+          <fieldset className="space-y-6 animate-fadeIn">
+            <legend className="mb-6">
+              <span className={`block ${eyebrowClass}`}>{isGreek ? 'Βήμα 4 από 4 · Προσαρμογή στον τρόπο ζωής' : 'Step 4 of 4 · Lifestyle tailoring'}</span>
+              <h2 ref={headingRef} tabIndex={-1} className={headingClass}>
+                {dynamicQuestion.title[lang]}
+              </h2>
+              <span className="block mt-1.5 text-[15px] font-normal text-[var(--color-text-muted)]">{dynamicQuestion.subtitle[lang]}</span>
+            </legend>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {dynamicQuestion.choices.map((choice) => {
+                const isSelected = prefs.dynamicAnswer === choice.label.en;
+                return (
+                  <label key={choice.id} className={choiceCardClass(isSelected, 'p-4')}>
+                    <input type="radio" name="lifestyle" value={choice.id} checked={isSelected} onChange={() => handleSelectDynamicChoice(choice)} className="sr-only" />
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-[15px] text-[var(--color-text)]">{choice.label[lang]}</span>
+                      <SelectedMark selected={isSelected} />
+                    </span>
+                    <span className="block text-[13px] text-[var(--color-text-muted)] mt-1.5 leading-normal">{choice.desc[lang]}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
         )}
-      </div>
+
+        {/* Navigation */}
+        <div className="mt-10 pt-6 border-t border-[var(--color-border)]">
+          <p id="step-error" role="alert" className={stepError ? 'mb-4 text-[15px] font-semibold text-[var(--color-danger)]' : ''}>
+            {stepError}
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setStepError('');
+                  setStep(step - 1);
+                }}
+                className="min-h-11 inline-flex items-center gap-2 px-5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] text-[15px] font-semibold hover:bg-[var(--color-surface-raised)] transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>{isGreek ? 'Πίσω' : 'Back'}</span>
+              </button>
+            ) : (
+              <span />
+            )}
+
+            <button
+              type="submit"
+              className="min-h-11 inline-flex items-center gap-2 px-7 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-semibold transition-colors shadow-sm"
+            >
+              {step < TOTAL_STEPS ? (
+                <>
+                  <span>{isGreek ? 'Συνέχεια' : 'Continue'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>{isGreek ? 'Εύρεση αυτοκινήτων' : 'Find Recommendations'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   );
 };

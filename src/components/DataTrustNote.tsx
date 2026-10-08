@@ -28,8 +28,8 @@ export const DataTrustNote: React.FC<DataTrustNoteProps> = ({ marketRegion, comp
                   ? 'Κάθε κρίσιμο πεδίο πρέπει να κρατά πάροχο, αγορά και ημερομηνία ανάκτησης ώστε να μπορεί να ελεγχθεί ξανά.'
                   : 'Each critical field should retain its provider, market, and retrieval date so it can be re-checked.')
               : (isGreek
-                  ? 'Οι τρέχουσες εγγραφές είναι seed data. Για παραγωγή, σύνδεσε JATO για προδιαγραφές/εκδόσεις, autobiz για αξίες μεταχειρισμένων και τις επίσημες πηγές για φόρους, CO₂, ασφάλεια και ανακλήσεις.'
-                  : 'The current records are seed data. For production, connect JATO for specifications/versions, autobiz for used values, and official sources for taxes, CO₂, safety, and recalls.')}
+                  ? 'Οι τιμές, οι προδιαγραφές και τα φορολογικά στοιχεία είναι ενδεικτικά και δεν ενημερώνονται αυτόματα. Επιβεβαίωσε τα κρίσιμα στοιχεία στις επίσημες πηγές πριν από αγορά.'
+                  : 'Prices, specifications, and tax details are reference values and are not updated automatically. Confirm critical details with official sources before you buy.')}
           </p>
           {!compact && (
             <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--color-text-muted)]">
