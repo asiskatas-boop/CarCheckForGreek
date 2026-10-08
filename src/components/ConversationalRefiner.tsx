@@ -34,12 +34,12 @@ export const ConversationalRefiner: React.FC<ConversationalRefinerProps> = ({
   };
 
   return (
-    <section className="surface-card p-4 sm:p-5 mb-8" aria-labelledby="refiner-title">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/12 border border-[var(--color-accent)]/30 flex items-center justify-center text-[var(--color-accent-text)]"><Bot className="w-5 h-5" aria-hidden="true" /></div>
+    <section className="surface-card p-3 sm:p-5 mb-5 sm:mb-8" aria-labelledby="refiner-title">
+      <div className="flex items-center gap-3 mb-2 sm:mb-4">
+        <div className="hidden sm:flex w-10 h-10 rounded-full bg-[var(--color-accent)]/12 border border-[var(--color-accent)]/30 items-center justify-center text-[var(--color-accent-text)]"><Bot className="w-5 h-5" aria-hidden="true" /></div>
         <div>
           <h2 id="refiner-title" className="text-[15px] font-bold text-[var(--color-text)]">{isGreek ? 'Προσαρμογή με τον σύμβουλο' : 'Refine with the advisor'}</h2>
-          <p className="text-[15px] text-[var(--color-text-muted)]">{isGreek ? 'Πες τι θέλεις να αλλάξει χωρίς να ξεκινήσεις ξανά.' : 'Tell CarCheck what to change without restarting.'}</p>
+          <p className="hidden sm:block text-[15px] text-[var(--color-text-muted)]">{isGreek ? 'Πες τι θέλεις να αλλάξει χωρίς να ξεκινήσεις ξανά.' : 'Tell CarCheck what to change without restarting.'}</p>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ export const ConversationalRefiner: React.FC<ConversationalRefinerProps> = ({
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} noValidate>
-        <label htmlFor="advisor-refinement" className="block mb-1 text-[15px] font-semibold text-[var(--color-text)]">{isGreek ? 'Τι θέλεις να αλλάξεις;' : 'What would you like to change?'}</label>
+        <label htmlFor="advisor-refinement" className="sr-only sm:not-sr-only sm:block sm:mb-1 text-[15px] font-semibold text-[var(--color-text)]">{isGreek ? 'Τι θέλεις να αλλάξεις;' : 'What would you like to change?'}</label>
         <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0">
             <input id="advisor-refinement" name="refinement" type="text" autoComplete="off" enterKeyHint="send" value={input} onChange={(e) => { setInput(e.target.value); if (error) setError(''); }} aria-invalid={error ? true : undefined} aria-describedby={error ? 'advisor-refinement-error' : undefined} placeholder={isGreek ? 'π.χ. «κάτι φθηνότερο», «μόνο SUV»…' : 'e.g. “something cheaper”, “only SUVs”…'} className="min-h-11 w-full px-4 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-canvas)] text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]" />
@@ -65,9 +65,9 @@ export const ConversationalRefiner: React.FC<ConversationalRefinerProps> = ({
         {error && <p id="advisor-refinement-error" className="mt-1.5 text-[13px] font-semibold text-[var(--color-danger)]">{error}</p>}
       </form>
 
-      <div className="mt-3 flex items-center gap-2 flex-wrap" role="group" aria-label={isGreek ? 'Γρήγορες προτάσεις' : 'Quick suggestions'}>
+      <div className="mt-3 -mx-3 px-3 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label={isGreek ? 'Γρήγορες προτάσεις' : 'Quick suggestions'}>
         {suggestedPrompts.map((promptText) => (
-          <button key={promptText} type="button" onClick={() => handleSend(promptText)} className="min-h-10 px-3 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[13px] font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-accent-text)] hover:border-[var(--color-accent)]">
+          <button key={promptText} type="button" onClick={() => handleSend(promptText)} className="shrink-0 whitespace-nowrap min-h-11 px-3 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[13px] font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-accent-text)] hover:border-[var(--color-accent)]">
             {promptText}
           </button>
         ))}

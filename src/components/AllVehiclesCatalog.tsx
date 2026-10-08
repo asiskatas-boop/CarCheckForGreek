@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDebouncedValue, useUrlParam } from '../hooks/useUrlState';
 import { Vehicle, Currency, MarketRegion } from '../types';
 import { VEHICLES } from '../data/vehicles';
 import { formatPrice, formatPriceRange } from '../services/currency';
-import { Search, ChevronRight, Scale, Bookmark, ShieldCheck, RotateCcw } from 'lucide-react';
+import { Search, ChevronRight, Scale, Bookmark, ShieldCheck, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { GET_LISTINGS_FOR_VEHICLE } from '../data/listings';
 import { VehicleImage } from './VehicleImage';
 import { DataTrustNote } from './DataTrustNote';
@@ -55,6 +55,11 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
     return b.reliabilityRating - a.reliabilityRating;
   });
 
+  // On phones the dropdowns sit behind a toggle so the cars are visible straight away.
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const activeFilterCount = (selectedBody !== 'all' ? 1 : 0) + (selectedFuel !== 'all' ? 1 : 0) + (sortBy !== 'reliability' ? 1 : 0);
+  const mobileHidden = showMobileFilters ? '' : 'hidden md:block';
+
   const countText = isGreek
     ? plural(filteredVehicles.length, marketRegion, { one: 'όχημα', other: 'οχήματα' })
     : plural(filteredVehicles.length, marketRegion, { one: 'vehicle', other: 'vehicles' });
@@ -68,23 +73,21 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-      <div className="mb-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 animate-fadeIn">
+      <div className="mb-4 sm:mb-6">
         <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
           {isGreek ? 'Κατάλογος Οχημάτων' : 'Vehicle Catalog'}
         </h1>
-        <p className="text-[15px] text-[var(--color-text-muted)] mt-1 max-w-3xl">
+        <p className="hidden sm:block text-[15px] text-[var(--color-text-muted)] mt-1 max-w-3xl">
           {isGreek
             ? 'Εξερεύνησε τα οχήματα που έχουμε αναλύσει, με ενδεικτικές τιμές, αξιοπιστία και οδηγό ελέγχου πριν την αγορά.'
             : 'Explore analyzed vehicles with reference price ranges, reliability ratings, and pre-purchase inspection guidance.'}
         </p>
       </div>
 
-      <div className="mb-5"><DataTrustNote marketRegion={marketRegion} compact /></div>
-
-      <section aria-label={isGreek ? 'Φίλτρα οχημάτων' : 'Vehicle filters'} className="mb-6 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] grid grid-cols-1 md:grid-cols-4 gap-3">
+      <section aria-label={isGreek ? 'Φίλτρα οχημάτων' : 'Vehicle filters'} className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] grid grid-cols-1 md:grid-cols-4 gap-3">
         <label className="md:col-span-1 text-[15px] font-semibold text-[var(--color-text)]">
-          <span className="block mb-1.5">{isGreek ? 'Αναζήτηση' : 'Search'}</span>
+          <span className="sr-only md:not-sr-only md:block md:mb-1.5">{isGreek ? 'Αναζήτηση' : 'Search'}</span>
           <span className="relative block">
             <Search className="w-4 h-4 text-[var(--color-text-muted)] absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
             <input
@@ -100,7 +103,18 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
           </span>
         </label>
 
-        <label className="text-[15px] font-semibold text-[var(--color-text)]">
+        <button
+          type="button"
+          onClick={() => setShowMobileFilters(!showMobileFilters)}
+          aria-expanded={showMobileFilters}
+          className="md:hidden min-h-11 px-4 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-subtle)] text-[15px] font-semibold text-[var(--color-text)] inline-flex items-center justify-center gap-2"
+        >
+          <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
+          {isGreek ? 'Φίλτρα & ταξινόμηση' : 'Filters & sort'}
+          {activeFilterCount > 0 && <span className="tabular-nums">({activeFilterCount})</span>}
+        </button>
+
+        <label className={`${mobileHidden} text-[15px] font-semibold text-[var(--color-text)]`}>
           <span className="block mb-1.5">{isGreek ? 'Αμάξωμα' : 'Body style'}</span>
           <select name="body" value={selectedBody} onChange={(event) => setSelectedBody(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
             <option value="all">{isGreek ? 'Όλα τα αμαξώματα' : 'All body styles'}</option>
@@ -108,7 +122,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
           </select>
         </label>
 
-        <label className="text-[15px] font-semibold text-[var(--color-text)]">
+        <label className={`${mobileHidden} text-[15px] font-semibold text-[var(--color-text)]`}>
           <span className="block mb-1.5">{isGreek ? 'Καύσιμο' : 'Powertrain'}</span>
           <select name="fuel" value={selectedFuel} onChange={(event) => setSelectedFuel(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
             <option value="all">{isGreek ? 'Όλοι οι τύποι' : 'All powertrains'}</option>
@@ -116,7 +130,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
           </select>
         </label>
 
-        <label className="text-[15px] font-semibold text-[var(--color-text)]">
+        <label className={`${mobileHidden} text-[15px] font-semibold text-[var(--color-text)]`}>
           <span className="block mb-1.5">{isGreek ? 'Ταξινόμηση' : 'Sort by'}</span>
           <select name="sort" value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
             <option value="reliability">{isGreek ? 'Υψηλότερη αξιοπιστία' : 'Highest reliability'}</option>
@@ -149,7 +163,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
             return (
               <article key={vehicle.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden transition-colors hover:border-[var(--color-border-strong)] flex flex-col justify-between">
                 <div>
-                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
+                  <div className="relative aspect-[16/9] sm:aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
                     <VehicleImage vehicle={vehicle} alt={`${vehicle.make} ${vehicle.model}`} marketRegion={marketRegion} showReferenceLabel />
                     <div className="absolute bottom-10 left-3 rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm">{vehicle.generation} · {vehicle.years}</div>
                     <div className="absolute top-3 right-3 flex items-center gap-2">
@@ -162,7 +176,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
                     </div>
                   </div>
 
-                  <div className="p-5">
+                  <div className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-center gap-2 text-[15px] text-[var(--color-text-muted)] mb-1 font-medium">
                       <span>{bodyLabel(vehicle.bodyStyle, marketRegion)}</span><span aria-hidden="true">·</span><span>{fuelLabel(vehicle.fuelType, marketRegion)}</span><span aria-hidden="true">·</span><span>{drivetrainLabel(vehicle.drivetrain, marketRegion)}</span>
                     </div>
@@ -183,7 +197,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
                   </div>
                 </div>
 
-                <div className="p-5 pt-0 flex flex-wrap items-center gap-2">
+                <div className="p-4 pt-0 sm:p-5 sm:pt-0 flex flex-wrap items-center gap-2">
                   <button type="button" onClick={() => onOpenDetails(vehicle)} className="min-h-11 flex-1 inline-flex items-center justify-center gap-1.5 px-4 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors">
                     <ShieldCheck className="w-4 h-4" aria-hidden="true" />
                     <span>{isGreek ? 'Οδηγός & έλεγχος' : 'Guide & checks'}</span>
@@ -196,6 +210,8 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
           })}
         </div>
       )}
+
+      <div className="mt-8"><DataTrustNote marketRegion={marketRegion} compact /></div>
     </div>
   );
 };

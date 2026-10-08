@@ -20,6 +20,7 @@ import { GET_LISTINGS_FOR_VEHICLE } from '../data/listings';
 import { AccessibleDialog } from './AccessibleDialog';
 import { VehicleImage } from './VehicleImage';
 import { DataTrustNote } from './DataTrustNote';
+import { carGrVehicleUrl } from '../services/carGr';
 import { loadBooleanRecord, safeSetItem } from '../services/storage';
 import { bodyLabel, dealRatingLabel, drivetrainLabel, formatNumber, fuelLabel, transmissionLabel } from '../services/format';
 
@@ -91,16 +92,16 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
       open={Boolean(vehicle)}
       onClose={onClose}
       labelledBy="vehicle-detail-title"
-      overlayClassName="flex items-center justify-center p-3 sm:p-6 animate-fadeIn"
-      panelClassName="relative w-full max-w-4xl bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-xl overflow-hidden my-auto max-h-[92dvh] flex flex-col"
+      overlayClassName="flex items-center justify-center p-0 sm:p-6 animate-fadeIn"
+      panelClassName="relative w-full max-w-4xl bg-[var(--color-surface)] sm:rounded-2xl sm:border border-[var(--color-border)] shadow-xl overflow-y-auto sm:overflow-hidden my-auto h-[100dvh] sm:h-auto sm:max-h-[92dvh] flex flex-col"
     >
         {/* Vehicle image */}
-        <div className="relative h-64 sm:h-80 w-full overflow-hidden shrink-0 bg-[var(--color-image-fallback)]">
+        <div className="relative h-44 sm:h-80 w-full overflow-hidden shrink-0 bg-[var(--color-image-fallback)]">
           <VehicleImage vehicle={vehicle} alt={`${vehicle.make} ${vehicle.model}`} marketRegion={marketRegion} eager showReferenceLabel className="object-center" />
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 touch-target rounded-full flex items-center justify-center bg-[rgba(255,253,249,0.92)] hover:bg-[var(--color-surface-raised)] text-[var(--color-text)] transition-colors cursor-pointer border border-white/80 backdrop-blur-md shadow-sm"
+            className="fixed sm:absolute top-3 right-3 sm:top-4 sm:right-4 z-20 touch-target rounded-full flex items-center justify-center bg-[rgba(255,253,249,0.92)] hover:bg-[var(--color-surface-raised)] text-[var(--color-text)] transition-colors cursor-pointer border border-white/80 backdrop-blur-md shadow-sm"
             aria-label={isGreek ? 'Κλείσιμο λεπτομερειών οχήματος' : 'Close vehicle details'}
           >
             <X className="w-5 h-5" />
@@ -108,7 +109,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
         </div>
 
         {/* Apple-style title and actions live on a calm surface, not over the photo. */}
-        <div className="px-5 sm:px-7 py-5 sm:py-6 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="px-4 sm:px-7 py-4 sm:py-6 border-b border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5">
               <span>{vehicle.generation}</span>
@@ -157,7 +158,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
         <div
           role="tablist"
           aria-label={isGreek ? 'Ενότητες οχήματος' : 'Vehicle sections'}
-          className="px-5 border-b border-[var(--color-border)] bg-[var(--color-surface-subtle)] flex items-center gap-2 sm:gap-4 overflow-x-auto shrink-0"
+          className="sticky top-0 z-10 pl-2 pr-16 sm:px-5 border-b border-[var(--color-border)] bg-[var(--color-surface-subtle)] grid grid-cols-2 sm:flex sm:items-center gap-x-2 sm:gap-4 sm:overflow-x-auto shrink-0"
         >
           {tabs.map((tab) => (
             <button
@@ -170,7 +171,7 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
               tabIndex={activeTab === tab.id ? 0 : -1}
               onClick={() => setActiveTab(tab.id)}
               onKeyDown={(event) => handleTabKeyDown(event, tab.id)}
-              className={`min-h-12 px-2 text-[15px] font-bold border-b-2 transition-colors whitespace-nowrap ${
+              className={`min-h-12 px-2 py-1 text-sm sm:text-[15px] font-bold border-b-2 transition-colors sm:whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'border-[var(--color-accent)] text-[var(--color-accent-text)]'
                   : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
@@ -182,19 +183,17 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
         </div>
 
         {/* Scrollable Tab Content */}
-        <div id={`vehicle-panel-${activeTab}`} role="tabpanel" aria-labelledby={`vehicle-tab-${activeTab}`} tabIndex={0} className="p-5 sm:p-7 overflow-y-auto overscroll-contain space-y-6">
+        <div id={`vehicle-panel-${activeTab}`} role="tabpanel" aria-labelledby={`vehicle-tab-${activeTab}`} tabIndex={0} className="p-4 sm:p-7 sm:overflow-y-auto overscroll-contain space-y-6">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-6 animate-fadeIn">
-              <DataTrustNote marketRegion={marketRegion} compact />
-
-              {isGreek && vehicle.carGrSearchUrl && (
+              {isGreek && (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
                   <div>
                     <p className="text-[15px] font-bold text-[var(--color-text)]">Έλεγξε την τρέχουσα αγορά</p>
                     <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)]">Οι τιμές στη βάση του CarCheck είναι ενδεικτικές. Άνοιξε νέα αναζήτηση για τη σημερινή προσφορά και επιβεβαίωσε κάθε αγγελία στην πηγή.</p>
                   </div>
-                  <a href={vehicle.carGrSearchUrl} target="_blank" rel="noreferrer" className="min-h-11 px-4 rounded-full text-[13px] font-semibold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white transition-colors flex items-center justify-center gap-1.5 shrink-0">
+                  <a href={carGrVehicleUrl(vehicle)} target="_blank" rel="noreferrer" className="min-h-11 px-4 rounded-full text-[13px] font-semibold bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white transition-colors flex items-center justify-center gap-1.5 shrink-0">
                     <span>Άνοιγμα <span translate="no">Car.gr</span></span><span className="sr-only"> (ανοίγει σε νέα καρτέλα)</span><ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                   </a>
                 </div>
@@ -389,6 +388,8 @@ export const VehicleDetailModal: React.FC<VehicleDetailModalProps> = ({
                   </ul>
                 </div>
               </div>
+
+              <DataTrustNote marketRegion={marketRegion} compact />
             </div>
           )}
 

@@ -76,7 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="w-9 h-9 rounded-xl bg-[var(--color-surface-subtle)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-accent-text)] font-semibold tracking-tight text-xs transition-colors group-hover:border-[var(--color-border-strong)]">
                 CC
               </span>
-              <span className="hidden xs:block sm:block">
+              <span className="block">
                 <span className="font-bold text-lg tracking-tight text-[var(--color-text)]">
                   Car<span className="text-[var(--color-accent-text)]">Check</span>
                 </span>

@@ -177,28 +177,28 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
   const announcedCount = useDebouncedValue(countText);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 animate-fadeIn">
       <h1 className="sr-only">{isGreek ? 'Προτάσεις αυτοκινήτων για το προφίλ σου' : 'Car recommendations for your profile'}</h1>
       {/* Profile Bar */}
-      <div className="mb-6 p-4 surface-card flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-wider text-[var(--color-accent-text)] mb-2">
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 surface-card flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[13px] font-bold text-[var(--color-accent-text)] mb-1 sm:mb-2">
             <Sparkles className="w-4 h-4" aria-hidden="true" />
             <span>{isGreek ? 'Το προφίλ οδήγησής σου' : 'Your driving profile'}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-[var(--color-text-muted)]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm sm:text-[15px] text-[var(--color-text-muted)]">
             <span>{isGreek ? 'Προϋπολογισμός' : 'Budget'}: <strong className="text-[var(--color-text)]">{labelFor(userPreferences.budgetId, isGreek)}</strong></span>
-            <span>{isGreek ? 'Χρήση' : 'Use'}: <strong className="text-[var(--color-text)]">{userPreferences.usages.map((v) => labelFor(v, isGreek)).join(', ') || (isGreek ? 'Γενική' : 'General')}</strong></span>
+            <span className="hidden sm:inline">{isGreek ? 'Χρήση' : 'Use'}: <strong className="text-[var(--color-text)]">{userPreferences.usages.map((v) => labelFor(v, isGreek)).join(', ') || (isGreek ? 'Γενική' : 'General')}</strong></span>
             <span>{isGreek ? 'Προτεραιότητες' : 'Priorities'}: <strong className="text-[var(--color-text)]">{userPreferences.priorities.map((v) => labelFor(v, isGreek)).join(', ') || (isGreek ? 'Ισορροπημένα' : 'Balanced')}</strong></span>
-            {userPreferences.dynamicAnswer && <span>{isGreek ? 'Επιπλέον' : 'Also'}: <strong className="text-[var(--color-text)]">{dynamicAnswerLabel(userPreferences.dynamicAnswer, marketRegion)}</strong></span>}
+            {userPreferences.dynamicAnswer && <span className="hidden sm:inline">{isGreek ? 'Επιπλέον' : 'Also'}: <strong className="text-[var(--color-text)]">{dynamicAnswerLabel(userPreferences.dynamicAnswer, marketRegion)}</strong></span>}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <button type="button" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-controls={showFilters ? 'smart-filters-panel' : undefined} className={`min-h-11 px-4 rounded-xl text-[15px] font-semibold border flex items-center gap-2 ${showFilters || hasActiveFilters ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-accent-text)]' : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)]'}`}>
-            <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Έξυπνα φίλτρα' : 'Smart filters'}{hasActiveFilters && <span className="tabular-nums">({activeFilters.length})</span>}
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 shrink-0">
+          <button type="button" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-controls={showFilters ? 'smart-filters-panel' : undefined} className={`min-h-11 px-3 sm:px-4 rounded-xl text-sm sm:text-[15px] font-semibold border flex items-center justify-center gap-2 ${showFilters || hasActiveFilters ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-accent-text)]' : 'border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)]'}`}>
+            <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Φίλτρα' : 'Filters'}{hasActiveFilters && <span className="tabular-nums">({activeFilters.length})</span>}
           </button>
-          <button type="button" onClick={onRestartDiscovery} className="min-h-11 px-4 rounded-xl text-[15px] font-semibold border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] flex items-center gap-2">
-            <RotateCcw className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Νέες απαντήσεις' : 'Redo questions'}
+          <button type="button" onClick={onRestartDiscovery} className="min-h-11 px-3 sm:px-4 rounded-xl text-sm sm:text-[15px] font-semibold border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[var(--color-text)] flex items-center justify-center gap-2">
+            <RotateCcw className="w-4 h-4 shrink-0" aria-hidden="true" /><span className="whitespace-nowrap">{isGreek ? 'Νέα αναζήτηση' : 'Start over'}</span>
           </button>
         </div>
       </div>
@@ -286,7 +286,6 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
         </div>
       )}
 
-      <div className="mb-5"><DataTrustNote marketRegion={marketRegion} compact /></div>
 
       {/* Conversational Refiner Bar */}
       <ConversationalRefiner
@@ -344,6 +343,9 @@ export const RecommendationResults: React.FC<RecommendationResultsProps> = ({
           </div>
         )}
       </div>
+
+      {/* Data caveat sits below the results so the cars come first on small screens. */}
+      <div className="mt-8"><DataTrustNote marketRegion={marketRegion} compact /></div>
     </div>
   );
 };
