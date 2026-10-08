@@ -65,8 +65,7 @@ export const VehicleImage: React.FC<VehicleImageProps> = ({
       >
         <div className="flex max-w-[80%] flex-col items-center gap-2 text-center text-[var(--color-text-muted)]">
           {(carImageFailed || declaredFailed) ? <ImageOff className="h-7 w-7" aria-hidden="true" /> : <CarFront className="h-8 w-8" aria-hidden="true" />}
-          <span className="text-sm font-semibold text-[var(--color-text)]">{vehicle.make} {vehicle.model}</span>
-          <span className="text-[13px] leading-snug">
+          <span className="hidden sm:block text-[13px] leading-snug">
             {(carImageFailed || declaredFailed)
               ? (isGreek ? 'Η εικόνα του οχήματος δεν είναι διαθέσιμη' : 'Vehicle image unavailable')
               : (isGreek ? 'Δεν βρέθηκε εικόνα αναφοράς για αυτό το μοντέλο' : 'No reference image found for this model')}

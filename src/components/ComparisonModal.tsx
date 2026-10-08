@@ -52,10 +52,10 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
       open
       onClose={onClose}
       labelledBy="comparison-title"
-      panelClassName="w-full max-w-6xl max-h-[94dvh] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-xl flex flex-col overflow-hidden my-auto"
-      overlayClassName="p-2 sm:p-5 items-center justify-center"
+      panelClassName="w-full max-w-6xl h-[100dvh] sm:h-auto sm:max-h-[94dvh] bg-[var(--color-surface)] sm:border border-[var(--color-border)] sm:rounded-2xl shadow-xl flex flex-col overflow-hidden my-auto"
+      overlayClassName="p-0 sm:p-5 items-center justify-center"
     >
-      <div className="p-5 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4 shrink-0">
+      <div className="p-4 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 flex items-center justify-center text-[var(--color-accent-text)] shrink-0"><Scale className="w-5 h-5" aria-hidden="true" /></div>
           <div className="min-w-0">
@@ -66,7 +66,7 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
         <button type="button" onClick={onClose} className="touch-target rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)] hover:text-[var(--color-text)] flex items-center justify-center" aria-label={isGreek ? 'Κλείσιμο σύγκρισης' : 'Close comparison'}><X className="w-5 h-5" aria-hidden="true" /></button>
       </div>
 
-      <div className="p-5 sm:p-7 overflow-y-auto overscroll-contain space-y-7">
+      <div className="p-4 sm:p-7 overflow-y-auto overscroll-contain space-y-6 sm:space-y-7">
         {vehicles.length === 0 ? (
           <div className="text-center py-14">
             <Scale className="w-11 h-11 text-[var(--color-text-muted)] mx-auto mb-4" aria-hidden="true" />

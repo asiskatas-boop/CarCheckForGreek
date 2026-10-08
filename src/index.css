@@ -105,6 +105,12 @@
     outline-offset: 3px;
   }
 
+  /* Headings and regions focused by script (after a view change) are not controls,
+     so they don't need a visible ring. */
+  [tabindex='-1']:focus {
+    outline: none;
+  }
+
   ::selection {
     background: #dcecff;
     color: var(--color-text);

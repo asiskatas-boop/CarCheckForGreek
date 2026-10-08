@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.mjs",
+    "prebuild": "node scripts/pull-carimages.mjs || exit 0",
     "build": "vite build",
     "preview": "node server.mjs",
     "start": "node server.mjs",

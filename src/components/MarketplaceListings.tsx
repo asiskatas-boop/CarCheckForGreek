@@ -8,6 +8,7 @@ import { VEHICLES } from '../data/vehicles';
 import { MapPin, Bookmark, ChevronRight, Search, ExternalLink, RotateCcw, Info, ImageOff } from 'lucide-react';
 import { VehicleImage } from './VehicleImage';
 import { DataTrustNote } from './DataTrustNote';
+import { carGrListingUrl } from '../services/carGr';
 
 interface MarketplaceListingsProps {
   currency: Currency;
@@ -62,8 +63,8 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-      <div className="mb-6 flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 animate-fadeIn">
+      <div className="mb-4 sm:mb-6 flex flex-col lg:flex-row lg:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--color-text)] tracking-tight">
             {isGreek ? 'Ενδεικτικές Αγγελίες & Σύγκριση Τιμής' : 'Reference Listings & Price Comparison'}
@@ -74,13 +75,12 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
               : 'Listing snapshots from the CarCheck dataset for comparison against reference market values. This is not a live availability feed.'}
           </p>
         </div>
-        <div className="flex items-start gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-3 text-[13px] text-[var(--color-text-muted)] max-w-md">
+        <div className="hidden sm:flex items-start gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] p-3 text-[13px] text-[var(--color-text-muted)] max-w-md">
           <Info className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
           <span>{isGreek ? 'Άνοιξε την αρχική πηγή για τρέχουσα τιμή και διαθεσιμότητα πριν επικοινωνήσεις με πωλητή.' : 'Open the original source to confirm current price and availability before contacting a seller.'}</span>
         </div>
       </div>
 
-      <div className="mb-5"><DataTrustNote marketRegion={marketRegion} compact /></div>
 
       {filterVehicleId && (
         <div className="mb-4 flex flex-wrap items-center gap-3 p-3 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 text-[15px] text-[var(--color-accent-text)]">
@@ -91,7 +91,7 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
         </div>
       )}
 
-      <section aria-label={isGreek ? 'Φίλτρα αγγελιών' : 'Listing filters'} className="mb-6 p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-4 items-end">
+      <section aria-label={isGreek ? 'Φίλτρα αγγελιών' : 'Listing filters'} className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-3 sm:gap-4 items-end">
         <label className="text-[15px] font-semibold text-[var(--color-text)]">
           <span className="block mb-1.5">{isGreek ? 'Αναζήτηση αγγελιών' : 'Search listings'}</span>
           <span className="relative block">
@@ -131,10 +131,11 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
           {filteredListings.map((listing) => {
             const targetVehicle = VEHICLES.find((vehicle) => vehicle.id === listing.vehicleId);
             const isSaved = savedListingIds.includes(listing.id);
+            const carGrUrl = carGrListingUrl(listing, targetVehicle);
             return (
               <article key={listing.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden transition-colors hover:border-[var(--color-border-strong)] flex flex-col justify-between">
                 <div>
-                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
+                  <div className="relative aspect-[16/9] sm:aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-subtle)]">
                     {targetVehicle ? (
                       <VehicleImage
                         vehicle={targetVehicle}
@@ -155,7 +156,7 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
                     <div className="absolute bottom-10 left-3 right-3 w-fit max-w-[calc(100%-1.5rem)] rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm truncate">{isGreek ? 'Δείγμα αγοράς' : 'Market sample'} · {listing.location}</div>
                   </div>
 
-                  <div className="p-5">
+                  <div className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-center gap-2 text-[15px] text-[var(--color-text-muted)] mb-1"><span>{listing.year}</span><span aria-hidden="true">·</span><span>{formatNumber(listing.mileageKm, marketRegion)} km</span><span aria-hidden="true">·</span><span>{transmissionLabel(listing.transmission, marketRegion)}</span></div>
                     <h2 className="text-lg font-bold text-[var(--color-text)] tracking-tight leading-snug">{listing.title}</h2>
                     <div className="mt-2 text-xl font-semibold text-[var(--color-text)]">{formatPrice(listing.price, currency)}</div>
@@ -165,15 +166,17 @@ export const MarketplaceListings: React.FC<MarketplaceListingsProps> = ({
                   </div>
                 </div>
 
-                <div className="p-5 pt-0 border-t border-[var(--color-border)] mt-2 flex flex-wrap items-center gap-2">
+                <div className="p-4 pt-4 sm:p-5 border-t border-[var(--color-border)] mt-2 flex flex-wrap items-center gap-2">
                   {targetVehicle && <button type="button" onClick={() => onOpenVehicleDetails(targetVehicle)} className="min-h-11 flex-1 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] text-[15px] font-bold hover:bg-[var(--color-surface-subtle)] transition-colors"><span>{isGreek ? 'Οδηγός μοντέλου' : 'Model guide'}</span><ChevronRight className="w-4 h-4" aria-hidden="true" /></button>}
-                  {listing.carGrDirectUrl && <a href={listing.carGrDirectUrl} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-center gap-1.5 px-4 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors"><span>{isGreek ? 'Έλεγχος στην πηγή' : 'Check source'}</span><span className="sr-only">{isGreek ? ` για ${listing.title} (ανοίγει σε νέα καρτέλα)` : ` for ${listing.title} (opens in a new tab)`}</span><ExternalLink className="w-4 h-4" aria-hidden="true" /></a>}
+                  {carGrUrl && <a href={carGrUrl} target="_blank" rel="noreferrer" className="min-h-11 inline-flex items-center justify-center gap-1.5 px-4 rounded-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-[15px] font-bold transition-colors"><span>{isGreek ? 'Έλεγχος στην πηγή' : 'Check source'}</span><span className="sr-only">{isGreek ? ` για ${listing.title} (ανοίγει σε νέα καρτέλα)` : ` for ${listing.title} (opens in a new tab)`}</span><ExternalLink className="w-4 h-4" aria-hidden="true" /></a>}
                 </div>
               </article>
             );
           })}
         </div>
       )}
+
+      <div className="mt-8"><DataTrustNote marketRegion={marketRegion} compact /></div>
     </div>
   );
 };
