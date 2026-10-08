@@ -30,11 +30,11 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
 }) => {
   const isGreek = marketRegion === 'greece';
   const presets = [
-    { id: 'greek-budget-city', icon: CarFront, label: isGreek ? 'Πόλης 1.500€–3.500€' : 'Budget city car €1.5k–€3.5k' },
-    { id: 'greek-zero-tax', icon: Leaf, label: isGreek ? '0€ τέλη & Δακτύλιος' : 'Zero road tax & city ring' },
-    { id: 'city-reliability', icon: HeartHandshake, label: isGreek ? 'Αξιόπιστο υβριδικό 10k–20k' : 'Reliable hybrid €10k–€20k' },
-    { id: 'family-wagon', icon: Luggage, label: isGreek ? 'Οικογενειακό με χώρους 20k–30k' : 'Family space €20k–€30k' },
-    { id: 'electric-tech', icon: BatteryCharging, label: isGreek ? 'Ηλεκτρικό 30k–40k' : 'Electric tech €30k–€40k' }
+    { id: 'greek-budget-city', icon: CarFront, label: isGreek ? 'Πόλης 1.500–3.500 €' : 'Budget city car €1,500–€3,500' },
+    { id: 'greek-zero-tax', icon: Leaf, label: isGreek ? '0 € τέλη & Δακτύλιος' : 'Zero road tax & city ring' },
+    { id: 'city-reliability', icon: HeartHandshake, label: isGreek ? 'Αξιόπιστο υβριδικό 10.000–20.000 €' : 'Reliable hybrid €10,000–€20,000' },
+    { id: 'family-wagon', icon: Luggage, label: isGreek ? 'Οικογενειακό με χώρους 20.000–30.000 €' : 'Family space €20,000–€30,000' },
+    { id: 'electric-tech', icon: BatteryCharging, label: isGreek ? 'Ηλεκτρικό 30.000–40.000 €' : 'Electric tech €30,000–€40,000' }
   ];
 
   return (
@@ -96,7 +96,7 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-left">
           {[
-            { icon: Zap, title: isGreek ? 'Budget από 1.500€' : 'From €1,500', body: isGreek ? 'Επιλογές από οικονομικά αυτοκίνητα πόλης έως σύγχρονα υβριδικά.' : 'Options from inexpensive city cars to modern hybrids.' },
+            { icon: Zap, title: isGreek ? 'Budget από 1.500 €' : 'From €1,500', body: isGreek ? 'Επιλογές από οικονομικά αυτοκίνητα πόλης έως σύγχρονα υβριδικά.' : 'Options from inexpensive city cars to modern hybrids.' },
             { icon: Gauge, title: isGreek ? 'Ελληνική αγορά' : 'Personal fit', body: isGreek ? 'Τέλη, τεκμήρια και Δακτύλιος μπαίνουν στην αξιολόγηση όπου υπάρχουν δεδομένα.' : 'Recommendations are weighted around your actual priorities.' },
             { icon: ShieldCheck, title: isGreek ? 'Οδηγός ελέγχου' : 'Inspection guide', body: isGreek ? 'Checklist πριν την αγορά για συνηθισμένα σημεία φθοράς και γνωστές αδυναμίες.' : 'Pre-purchase checklist for common wear points and known issues.' },
             { icon: CheckCircle2, title: isGreek ? 'Διαφανείς τιμές' : 'Price context', body: isGreek ? 'Ενδεικτικά εύρη και σύνδεσμοι πηγών — όχι ισχυρισμός ζωντανής διαθεσιμότητας.' : 'Reference ranges and source links — not a claim of live availability.' }
@@ -112,8 +112,8 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
         </div>
 
         <div className="mt-10 text-left">
-          <p className="text-sm font-bold text-[var(--color-text)] mb-3">{isGreek ? 'Γρήγορη εκκίνηση' : 'Quick starts'}</p>
-          <div className="flex flex-wrap items-center gap-2">
+          <h2 id="quick-starts-title" className="text-sm font-bold text-[var(--color-text)] mb-3">{isGreek ? 'Γρήγορη εκκίνηση' : 'Quick starts'}</h2>
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-labelledby="quick-starts-title">
             {presets.map(({ id, icon: Icon, label }) => (
               <button key={id} type="button" onClick={() => onQuickPreset(id)} className="min-h-11 px-4 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-sm font-semibold text-[var(--color-text)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent-text)] transition-colors inline-flex items-center gap-2">
                 <Icon className="w-4 h-4" aria-hidden="true" />

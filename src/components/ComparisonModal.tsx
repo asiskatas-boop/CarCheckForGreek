@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
+import { runningCostLabel, drivetrainLabel, formatNumber, fuelLabel, plural, transmissionLabel } from '../services/format';
 import { Vehicle, Currency, UserPreferences, MarketRegion } from '../types';
 import { formatPrice, formatPriceRange } from '../services/currency';
 import { AccessibleDialog } from './AccessibleDialog';
@@ -28,13 +29,22 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
   vehicles, onClose, currency, marketRegion = 'greece', userPreferences, onRemoveVehicle
 }) => {
   const isGreek = marketRegion === 'greece';
-  const [aiAnalysis, setAiAnalysis] = useState<{ headline?: string; tradeOffs?: string[]; verdict?: string } | null>(null);
+  // Derived synchronously, so there is no empty first render or flash.
+  const aiAnalysis = useMemo<{ headline?: string; tradeOffs?: string[]; verdict?: string } | null>(
+    () => (vehicles.length > 0 ? compareLocally(vehicles, userPreferences, marketRegion) : null),
+    [vehicles, userPreferences, marketRegion]
+  );
 
-  useEffect(() => {
-    setAiAnalysis(compareLocally(vehicles, userPreferences, marketRegion));
-  }, [vehicles, userPreferences, marketRegion]);
-
-  const gridStyle = { gridTemplateColumns: `minmax(140px, .8fr) repeat(${Math.max(vehicles.length, 1)}, minmax(160px, 1fr))` };
+  const num = (value: number, options?: Intl.NumberFormatOptions) => formatNumber(value, marketRegion, options);
+  const rows: [string, (v: Vehicle) => string][] = [
+    [isGreek ? 'Ενδεικτική τιμή αγοράς' : 'Reference market price', (v) => formatPriceRange(v.typicalPriceMin, v.typicalPriceMax, currency)],
+    [isGreek ? 'Αξιοπιστία' : 'Reliability', (v) => `${num(v.reliabilityRating)} / 5`],
+    [isGreek ? 'Καύσιμο & κατανάλωση' : 'Fuel & consumption', (v) => `${fuelLabel(v.fuelType, marketRegion)} · ${v.fuelEconomy}`],
+    [isGreek ? 'Ισχύς & 0–100' : 'Power & 0–100', (v) => `${num(v.horsepower)} hp · ${num(v.acceleration0to100, { maximumFractionDigits: 1 })} s`],
+    [isGreek ? 'Χώρος αποσκευών' : 'Boot capacity', (v) => `${num(v.cargoCapacityLiters)} L · ${plural(v.seats, marketRegion, isGreek ? { one: 'θέση', other: 'θέσεις' } : { one: 'seat', other: 'seats' })}`],
+    [isGreek ? 'Κόστος χρήσης' : 'Running cost', (v) => runningCostLabel(v.runningCostLevel, marketRegion)],
+    [isGreek ? 'Κιβώτιο & κίνηση' : 'Transmission & drivetrain', (v) => `${transmissionLabel(v.transmission, marketRegion)} · ${drivetrainLabel(v.drivetrain, marketRegion)}`]
+  ];
   const priorities = userPreferences.priorities.map((p) => priorityLabel(p, isGreek)).join(isGreek ? ', ' : ', ');
 
   return (
@@ -42,21 +52,21 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
       open
       onClose={onClose}
       labelledBy="comparison-title"
-      panelClassName="w-full max-w-6xl max-h-[94vh] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-xl flex flex-col overflow-hidden my-auto"
+      panelClassName="w-full max-w-6xl max-h-[94dvh] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-xl flex flex-col overflow-hidden my-auto"
       overlayClassName="p-2 sm:p-5 items-center justify-center"
     >
-      <header className="p-5 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4 shrink-0">
+      <div className="p-5 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 flex items-center justify-center text-[var(--color-accent-text)] shrink-0"><Scale className="w-5 h-5" aria-hidden="true" /></div>
           <div className="min-w-0">
             <h2 id="comparison-title" className="text-lg sm:text-xl font-semibold text-[var(--color-text)] tracking-tight">{isGreek ? 'Σύγκριση οχημάτων' : 'Side-by-side comparison'}</h2>
-            <p className="text-[15px] text-[var(--color-text-muted)]">{isGreek ? `${vehicles.length} οχήματα με βάση το προφίλ σου` : `${vehicles.length} vehicles based on your profile`}</p>
+            <p className="text-[15px] text-[var(--color-text-muted)]">{isGreek ? `${plural(vehicles.length, marketRegion, { one: 'όχημα', other: 'οχήματα' })} με βάση το προφίλ σου` : `${plural(vehicles.length, marketRegion, { one: 'vehicle', other: 'vehicles' })} based on your profile`}</p>
           </div>
         </div>
         <button type="button" onClick={onClose} className="touch-target rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-surface-subtle)] hover:text-[var(--color-text)] flex items-center justify-center" aria-label={isGreek ? 'Κλείσιμο σύγκρισης' : 'Close comparison'}><X className="w-5 h-5" aria-hidden="true" /></button>
-      </header>
+      </div>
 
-      <div className="p-5 sm:p-7 overflow-y-auto space-y-7">
+      <div className="p-5 sm:p-7 overflow-y-auto overscroll-contain space-y-7">
         {vehicles.length === 0 ? (
           <div className="text-center py-14">
             <Scale className="w-11 h-11 text-[var(--color-text-muted)] mx-auto mb-4" aria-hidden="true" />
@@ -77,30 +87,44 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
               ))}
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]" aria-label={isGreek ? 'Πίνακας σύγκρισης' : 'Comparison table'}>
-              <div className="min-w-max text-[15px]">
-                {[
-                  [isGreek ? 'Ενδεικτική τιμή αγοράς' : 'Reference market price', (v: Vehicle) => formatPriceRange(v.typicalPriceMin, v.typicalPriceMax, currency)],
-                  [isGreek ? 'Αξιοπιστία' : 'Reliability', (v: Vehicle) => `${v.reliabilityRating} / 5`],
-                  [isGreek ? 'Καύσιμο & κατανάλωση' : 'Fuel & consumption', (v: Vehicle) => `${v.fuelType} · ${v.fuelEconomy}`],
-                  [isGreek ? 'Ισχύς & 0–100' : 'Power & 0–100', (v: Vehicle) => `${v.horsepower} hp · ${v.acceleration0to100}s`],
-                  [isGreek ? 'Χώρος αποσκευών' : 'Boot capacity', (v: Vehicle) => `${v.cargoCapacityLiters} L · ${v.seats} ${isGreek ? 'θέσεις' : 'seats'}`],
-                  [isGreek ? 'Κόστος χρήσης' : 'Running cost', (v: Vehicle) => v.runningCostLevel],
-                  [isGreek ? 'Κιβώτιο & κίνηση' : 'Transmission & drivetrain', (v: Vehicle) => `${v.transmission} · ${v.drivetrain}`]
-                ].map(([label, formatter], index) => (
-                  <div key={String(label)} className={`grid p-4 gap-4 ${index % 2 ? '' : 'bg-[var(--color-surface-subtle)]'}`} style={gridStyle}>
-                    <div className="font-bold text-[var(--color-text-muted)]">{String(label)}</div>
-                    {vehicles.map((v) => <div key={v.id} className="font-semibold text-[var(--color-text)]">{(formatter as (v: Vehicle) => string)(v)}</div>)}
-                  </div>
-                ))}
-              </div>
+            <div
+              className="overflow-x-auto rounded-2xl border border-[var(--color-border)]"
+              role="region"
+              aria-labelledby="comparison-table-caption"
+              tabIndex={0}
+            >
+              <table className="w-full min-w-max text-[15px] text-left border-collapse">
+                <caption id="comparison-table-caption" className="sr-only">
+                  {isGreek ? 'Πίνακας σύγκρισης οχημάτων' : 'Vehicle comparison table'}
+                </caption>
+                <thead>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <td className="p-4 min-w-[140px]" />
+                    {vehicles.map((v) => (
+                      <th key={v.id} scope="col" className="p-4 min-w-[160px] font-semibold text-[var(--color-text)]">
+                        {v.make} {v.model}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(([label, formatter], index) => (
+                    <tr key={label} className={index % 2 ? '' : 'bg-[var(--color-surface-subtle)]'}>
+                      <th scope="row" className="p-4 font-bold text-[var(--color-text-muted)] align-top">{label}</th>
+                      {vehicles.map((v) => (
+                        <td key={v.id} className="p-4 font-semibold text-[var(--color-text)] align-top tabular-nums">{formatter(v)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             <section className="p-5 sm:p-6 rounded-2xl bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/25" aria-labelledby="advisor-verdict-title">
               <div className="flex items-center justify-between gap-3">
-                <h3 id="advisor-verdict-title" className="flex items-center gap-2 text-[var(--color-accent-text)] font-semibold text-[15px] uppercase tracking-wider"><Sparkles className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Ποιο ταιριάζει καλύτερα;' : 'Which one fits best?'}</h3>
+                <h3 id="advisor-verdict-title" className="flex items-center gap-2 text-[var(--color-accent-text)] font-semibold text-[15px]"><Sparkles className="w-4 h-4" aria-hidden="true" />{isGreek ? 'Ποιο ταιριάζει καλύτερα;' : 'Which one fits best?'}</h3>
               </div>
-              <div className="mt-3 text-[15px] text-[var(--color-text)] leading-relaxed" aria-live="polite">
+              <div className="mt-3 text-[15px] text-[var(--color-text)] leading-relaxed">
                 {aiAnalysis ? (
                   <div className="space-y-3">
                     {aiAnalysis.headline && <p className="font-bold">{aiAnalysis.headline}</p>}

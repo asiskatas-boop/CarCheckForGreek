@@ -93,31 +93,32 @@ export const VehicleImage: React.FC<VehicleImageProps> = ({
         />
 
         {showReferenceLabel && (
-          <span className="absolute bottom-2 left-2 rounded-full border border-white/80 bg-[rgba(255,253,249,0.92)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-text)] backdrop-blur-sm shadow-sm">
+          <span className="absolute bottom-2 left-2 rounded-full border border-white/80 bg-[rgba(255,253,249,0.92)] px-2.5 py-1 text-xs font-medium text-[var(--color-text)] backdrop-blur-sm shadow-sm">
             {isGreek ? 'Εικόνα αναφοράς μοντέλου' : 'Model reference image'}
           </span>
         )}
       </div>
 
       {requiresCredit && eligibleCarImage && (
-        <figcaption className="flex shrink-0 flex-wrap items-center gap-x-1 gap-y-0.5 border-t border-[var(--color-border)] bg-[var(--color-surface-raised)] px-2 py-1 text-[9px] leading-tight text-[var(--color-text-muted)] sm:text-[10px]">
+        <figcaption className="flex shrink-0 flex-wrap items-center gap-x-2 border-t border-[var(--color-border)] bg-[var(--color-surface-raised)] px-2 text-xs leading-tight text-[var(--color-text-muted)]">
           <a
             href={eligibleCarImage.sourcePageUrl}
             target="_blank"
             rel="noreferrer"
-            className="break-words underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
-            title={eligibleCarImage.creditText}
+            className="inline-flex min-h-6 min-w-0 items-center truncate underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
           >
             {eligibleCarImage.creditText}
+            <span className="sr-only">{isGreek ? ' (ανοίγει σε νέα καρτέλα)' : ' (opens in a new tab)'}</span>
           </a>
           <span aria-hidden="true">·</span>
           <a
             href={eligibleCarImage.licenseUrl}
             target="_blank"
             rel="noreferrer"
-            className="shrink-0 underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
+            className="inline-flex min-h-6 shrink-0 items-center underline decoration-transparent underline-offset-2 hover:decoration-current focus-visible:decoration-current"
           >
             {eligibleCarImage.licenseCode}
+            <span className="sr-only">{isGreek ? ' (άδεια χρήσης, ανοίγει σε νέα καρτέλα)' : ' (license, opens in a new tab)'}</span>
           </a>
         </figcaption>
       )}

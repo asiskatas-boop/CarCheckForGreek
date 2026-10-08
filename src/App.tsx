@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Currency,
   MarketRegion,
@@ -37,15 +37,50 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   lifestyle: ['easy-parking']
 };
 
+type MainTab = 'advisor' | 'all-cars' | 'marketplace';
+type DiscoveryState = 'hero' | 'questionnaire' | 'results';
+
+// Each primary view has its own hash so it can be bookmarked and Back/Forward work.
+const HASH_FOR: Record<string, string> = {
+  'advisor:hero': '#advisor',
+  'advisor:questionnaire': '#advisor/questions',
+  'advisor:results': '#advisor/results',
+  'all-cars': '#vehicles',
+  marketplace: '#marketplace'
+};
+
+const viewFromHash = (fullHash: string): { tab: MainTab; discovery: DiscoveryState } => {
+  // Filter state may follow the view in a query string, e.g. #vehicles?fuel=Hybrid.
+  const hash = fullHash.split('?')[0];
+  if (hash === '#vehicles') return { tab: 'all-cars', discovery: 'hero' };
+  if (hash === '#marketplace') return { tab: 'marketplace', discovery: 'hero' };
+  if (hash === '#advisor/questions') return { tab: 'advisor', discovery: 'questionnaire' };
+  if (hash === '#advisor/results') return { tab: 'advisor', discovery: 'results' };
+  return { tab: 'advisor', discovery: 'hero' };
+};
+
+const hashForView = (tab: MainTab, discovery: DiscoveryState) => (tab === 'advisor' ? HASH_FOR[`advisor:${discovery}`] : HASH_FOR[tab]);
+
+const applyDocumentLanguage = (region: MarketRegion) => {
+  // Set synchronously so locale-aware formatters see the right language on the same render.
+  document.documentElement.lang = region === 'greece' ? 'el' : 'en';
+  document.title = region === 'greece' ? 'CarCheck — Σύμβουλος Αγοράς Αυτοκινήτου' : 'CarCheck — Intelligent Car Discovery & Advisor';
+};
+
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<'advisor' | 'all-cars' | 'marketplace' | 'garage'>(() => {
-    if (typeof window === 'undefined') return 'advisor';
-    if (window.location.hash === '#vehicles') return 'all-cars';
-    if (window.location.hash === '#marketplace') return 'marketplace';
-    return 'advisor';
+  const initialView = typeof window === 'undefined' ? viewFromHash('') : viewFromHash(window.location.hash);
+  const [currentTab, setCurrentTab] = useState<MainTab>(initialView.tab);
+  const [discoveryState, setDiscoveryState] = useState<DiscoveryState>(initialView.discovery);
+  const [marketRegion, setMarketRegionState] = useState<MarketRegion>(() => {
+    const region = loadMarketRegion('greece');
+    applyDocumentLanguage(region);
+    return region;
   });
-  const [discoveryState, setDiscoveryState] = useState<'hero' | 'questionnaire' | 'results'>('hero');
-  const [marketRegion, setMarketRegion] = useState<MarketRegion>(() => loadMarketRegion('greece'));
+  const setMarketRegion = (region: MarketRegion) => {
+    applyDocumentLanguage(region);
+    setMarketRegionState(region);
+  };
+  const [announcement, setAnnouncement] = useState('');
 
   const [currency, setCurrency] = useState<Currency>(() => loadCurrency('EUR'));
 
@@ -98,15 +133,24 @@ export default function App() {
   }, []);
 
   // Keep the primary views bookmarkable and make browser Back/Forward useful without adding a routing dependency.
+  const isFirstUrlSync = useRef(true);
   useEffect(() => {
-    const hash = currentTab === 'all-cars' ? '#vehicles' : currentTab === 'marketplace' ? '#marketplace' : '#advisor';
-    if (window.location.hash !== hash) window.history.pushState(null, '', hash);
-  }, [currentTab]);
+    const hash = hashForView(currentTab, discoveryState);
+    if (window.location.hash.split('?')[0] === hash) {
+      isFirstUrlSync.current = false;
+      return;
+    }
+    // The first sync only normalises the URL; it must not add an extra Back step.
+    if (isFirstUrlSync.current) window.history.replaceState(null, '', hash);
+    else window.history.pushState(null, '', hash);
+    isFirstUrlSync.current = false;
+  }, [currentTab, discoveryState]);
 
   useEffect(() => {
     const syncViewFromUrl = () => {
-      const hash = window.location.hash;
-      setCurrentTab(hash === '#vehicles' ? 'all-cars' : hash === '#marketplace' ? 'marketplace' : 'advisor');
+      const view = viewFromHash(window.location.hash);
+      setCurrentTab(view.tab);
+      setDiscoveryState(view.discovery);
     };
     window.addEventListener('popstate', syncViewFromUrl);
     window.addEventListener('hashchange', syncViewFromUrl);
@@ -116,14 +160,24 @@ export default function App() {
     };
   }, []);
 
-  // Keep document language and market metadata in sync with the selected region.
+  // After a view change, move focus to the new page heading so keyboard and screen reader users
+  // know the content changed. The questionnaire focuses its own question heading.
+  const isFirstViewRender = useRef(true);
   useEffect(() => {
-    const isGreek = marketRegion === 'greece';
-    document.documentElement.lang = isGreek ? 'el' : 'en';
-    document.title = isGreek
-      ? 'CarCheck — Σύμβουλος Αγοράς Αυτοκινήτου'
-      : 'CarCheck — Intelligent Car Discovery & Advisor';
-  }, [marketRegion]);
+    if (isFirstViewRender.current) {
+      isFirstViewRender.current = false;
+      return;
+    }
+    if (currentTab === 'advisor' && discoveryState === 'questionnaire') return;
+    const frame = requestAnimationFrame(() => {
+      const heading = document.querySelector<HTMLElement>('#main-content h1');
+      if (!heading) return;
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+      window.scrollTo({ top: 0 });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [currentTab, discoveryState]);
 
   // Synchronize Currency with localStorage
   useEffect(() => {
@@ -182,18 +236,31 @@ export default function App() {
     );
   };
 
-  // Toggle Vehicle in Comparison (Max 3)
+  const vehicleName = (id: string) => {
+    const vehicle = VEHICLES.find((v) => v.id === id);
+    return vehicle ? `${vehicle.make} ${vehicle.model}` : id;
+  };
+
+  // Toggle Vehicle in Comparison (Max 3). When full, the oldest car is replaced and the change is announced.
   const handleToggleCompare = (id: string) => {
-    setComparedVehicleIds((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((item) => item !== id);
-      }
-      if (prev.length >= 3) {
-        // Replace oldest or cap at 3
-        return [prev[1], prev[2], id];
-      }
-      return [...prev, id];
-    });
+    const isGreek = marketRegion === 'greece';
+    if (comparedVehicleIds.includes(id)) {
+      setComparedVehicleIds(comparedVehicleIds.filter((item) => item !== id));
+      setAnnouncement(isGreek ? `Αφαιρέθηκε από τη σύγκριση: ${vehicleName(id)}` : `Removed ${vehicleName(id)} from comparison`);
+      return;
+    }
+    if (comparedVehicleIds.length >= 3) {
+      const [oldest, ...rest] = comparedVehicleIds;
+      setComparedVehicleIds([...rest, id]);
+      setAnnouncement(
+        isGreek
+          ? `Η σύγκριση χωράει έως 3 οχήματα. Το ${vehicleName(oldest)} αντικαταστάθηκε από το ${vehicleName(id)}.`
+          : `Comparison holds up to 3 cars. ${vehicleName(oldest)} was replaced by ${vehicleName(id)}.`
+      );
+      return;
+    }
+    setComparedVehicleIds([...comparedVehicleIds, id]);
+    setAnnouncement(isGreek ? `Προστέθηκε στη σύγκριση: ${vehicleName(id)}` : `Added ${vehicleName(id)} to comparison`);
   };
 
   // Quick Preset Click from Hero Landing
@@ -361,9 +428,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-canvas)] text-[var(--color-text)] transition-colors pb-20 md:pb-0">
+      <a href="#main-content" className="skip-link">
+        {marketRegion === 'greece' ? 'Μετάβαση στο περιεχόμενο' : 'Skip to content'}
+      </a>
+
+      {/* App-wide announcements (comparison changes etc.) */}
+      <div className="sr-only-live" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
+
       {/* Navbar */}
       <Navbar
         currentTab={currentTab}
+        isGarageOpen={isGarageOpen}
         setCurrentTab={(tab) => {
           if (tab === 'garage') {
             setIsGarageOpen(true);
@@ -385,7 +462,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         {currentTab === 'advisor' && (
           <>
             {discoveryState === 'hero' && (

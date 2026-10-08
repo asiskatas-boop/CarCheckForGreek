@@ -17,13 +17,19 @@ export class AppErrorBoundary extends React.Component<React.PropsWithChildren, A
 
   render() {
     if (this.state.hasError) {
+      // The app may have crashed before rendering, so read the language App last set.
+      const isGreek = typeof document === 'undefined' || document.documentElement.lang !== 'en';
       return (
         <main className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-text)] px-5 py-16">
           <section className="mx-auto max-w-xl surface-card p-6 sm:p-8">
-            <p className="text-[13px] font-semibold text-[var(--color-accent-text)]">CarCheck</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">Η εφαρμογή δεν μπόρεσε να φορτώσει σωστά</h1>
+            <p className="text-[13px] font-semibold text-[var(--color-accent-text)]" translate="no">CarCheck</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+              {isGreek ? 'Η εφαρμογή δεν μπόρεσε να φορτώσει σωστά' : 'CarCheck couldn’t load properly'}
+            </h1>
             <p className="mt-3 text-[15px] text-[var(--color-text-muted)]">
-              Δοκίμασε επαναφόρτωση. Αν το πρόβλημα παραμένει, τα τοπικά δεδομένα του browser μπορεί να είναι ασύμβατα με τη νέα έκδοση.
+              {isGreek
+                ? 'Δοκίμασε να ανανεώσεις τη σελίδα. Αν το πρόβλημα παραμένει, τα αποθηκευμένα δεδομένα του προγράμματος περιήγησης μπορεί να μην είναι συμβατά με τη νέα έκδοση. Η επαναφορά διαγράφει τα αποθηκευμένα οχήματα, τις σημειώσεις και τις προτιμήσεις σου.'
+                : 'Try reloading the page. If the problem continues, data saved in your browser may not match the new version. Resetting deletes your saved cars, notes, and preferences.'}
             </p>
             <button
               type="button"
@@ -39,7 +45,7 @@ export class AppErrorBoundary extends React.Component<React.PropsWithChildren, A
               }}
               className="mt-5 min-h-11 rounded-full bg-[var(--color-accent)] px-5 text-[15px] font-semibold text-white"
             >
-              Επαναφορά τοπικών δεδομένων και reload
+              {isGreek ? 'Επαναφορά αποθηκευμένων δεδομένων και ανανέωση' : 'Reset Saved Data and Reload'}
             </button>
           </section>
         </main>

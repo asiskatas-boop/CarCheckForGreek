@@ -1,4 +1,5 @@
 import { Currency } from '../types';
+import { activeLocale } from './format';
 
 export const CURRENCY_RATES: Record<Currency, { symbol: string; rateFromEUR: number; code: string }> = {
   EUR: { symbol: '€', rateFromEUR: 1.0, code: 'EUR' },
@@ -16,17 +17,19 @@ export function convertToEUR(amount: number, fromCurrency: Currency): number {
   return Math.round(amount / rate);
 }
 
-export function formatPrice(amountEUR: number, currency: Currency): string {
-  const converted = convertFromEUR(amountEUR, currency);
-  const symbol = CURRENCY_RATES[currency].symbol;
+const currencyFormatter = (currency: Currency) =>
+  new Intl.NumberFormat(activeLocale(), {
+    style: 'currency',
+    currency: CURRENCY_RATES[currency].code,
+    maximumFractionDigits: 0
+  });
 
-  return `${symbol}${converted.toLocaleString()}`;
+/** Formats a EUR amount in the chosen currency using the active UI locale (e.g. "12.000 €" in Greek). */
+export function formatPrice(amountEUR: number, currency: Currency): string {
+  return currencyFormatter(currency).format(convertFromEUR(amountEUR, currency));
 }
 
 export function formatPriceRange(minEUR: number, maxEUR: number, currency: Currency): string {
-  const cMin = convertFromEUR(minEUR, currency);
-  const cMax = convertFromEUR(maxEUR, currency);
-  const symbol = CURRENCY_RATES[currency].symbol;
-
-  return `${symbol}${cMin.toLocaleString()} – ${symbol}${cMax.toLocaleString()}`;
+  const formatter = currencyFormatter(currency);
+  return `${formatter.format(convertFromEUR(minEUR, currency))} – ${formatter.format(convertFromEUR(maxEUR, currency))}`;
 }

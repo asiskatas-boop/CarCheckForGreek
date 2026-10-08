@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useDebouncedValue, useUrlParam } from '../hooks/useUrlState';
 import { Vehicle, Currency, MarketRegion } from '../types';
 import { VEHICLES } from '../data/vehicles';
 import { formatPrice, formatPriceRange } from '../services/currency';
@@ -6,6 +7,7 @@ import { Search, ChevronRight, Scale, Bookmark, ShieldCheck, RotateCcw } from 'l
 import { GET_LISTINGS_FOR_VEHICLE } from '../data/listings';
 import { VehicleImage } from './VehicleImage';
 import { DataTrustNote } from './DataTrustNote';
+import { bodyLabel, drivetrainLabel, formatNumber, fuelLabel, plural } from '../services/format';
 
 interface AllVehiclesCatalogProps {
   currency: Currency;
@@ -18,25 +20,6 @@ interface AllVehiclesCatalogProps {
   onViewListings: (vehicleId: string) => void;
 }
 
-const BODY_LABELS_GR: Record<string, string> = {
-  Hatchback: 'Χάτσμπακ',
-  'Estate / Wagon': 'Στέισον βάγκον',
-  'Compact SUV': 'Compact SUV',
-  'Mid-size SUV': 'Μεσαίο SUV',
-  'Large SUV': 'Μεγάλο SUV',
-  'City car': 'Αυτοκίνητο πόλης',
-  Sedan: 'Σεντάν',
-  Crossover: 'Crossover'
-};
-
-const FUEL_LABELS_GR: Record<string, string> = {
-  Hybrid: 'Υβριδικό',
-  Petrol: 'Βενζίνη',
-  Electric: 'Ηλεκτρικό',
-  Diesel: 'Diesel',
-  'Plug-in Hybrid': 'Plug-in υβριδικό'
-};
-
 export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
   currency,
   marketRegion = 'global',
@@ -48,10 +31,11 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
   onViewListings
 }) => {
   const isGreek = marketRegion === 'greece';
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBody, setSelectedBody] = useState('all');
-  const [selectedFuel, setSelectedFuel] = useState('all');
-  const [sortBy, setSortBy] = useState<'price-asc' | 'price-desc' | 'reliability' | 'power'>('reliability');
+  const [searchQuery, setSearchQuery] = useUrlParam('q', '');
+  const [selectedBody, setSelectedBody] = useUrlParam('body', 'all');
+  const [selectedFuel, setSelectedFuel] = useUrlParam('fuel', 'all');
+  const [sortParam, setSortBy] = useUrlParam('sort', 'reliability');
+  const sortBy = (['price-asc', 'price-desc', 'reliability', 'power'].includes(sortParam) ? sortParam : 'reliability') as 'price-asc' | 'price-desc' | 'reliability' | 'power';
 
   const bodyStyles = ['Hatchback', 'Estate / Wagon', 'Compact SUV', 'Mid-size SUV', 'Large SUV', 'City car', 'Sedan', 'Crossover'];
   const fuelTypes = ['Hybrid', 'Petrol', 'Electric', 'Diesel', 'Plug-in Hybrid'];
@@ -70,6 +54,11 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
     if (sortBy === 'power') return b.horsepower - a.horsepower;
     return b.reliabilityRating - a.reliabilityRating;
   });
+
+  const countText = isGreek
+    ? plural(filteredVehicles.length, marketRegion, { one: 'όχημα', other: 'οχήματα' })
+    : plural(filteredVehicles.length, marketRegion, { one: 'vehicle', other: 'vehicles' });
+  const announcedCount = useDebouncedValue(countText);
 
   const resetFilters = () => {
     setSearchQuery('');
@@ -100,33 +89,36 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
             <Search className="w-4 h-4 text-[var(--color-text-muted)] absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
             <input
               type="search"
+              name="q"
+              autoComplete="off"
+              spellCheck={false}
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={isGreek ? 'Toyota, Octavia, Tesla…' : 'Toyota, Octavia, Tesla…'}
-              className="w-full min-h-11 pl-9 pr-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+              className="w-full min-h-11 pl-9 pr-3 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
             />
           </span>
         </label>
 
         <label className="text-[15px] font-semibold text-[var(--color-text)]">
           <span className="block mb-1.5">{isGreek ? 'Αμάξωμα' : 'Body style'}</span>
-          <select value={selectedBody} onChange={(event) => setSelectedBody(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
+          <select name="body" value={selectedBody} onChange={(event) => setSelectedBody(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
             <option value="all">{isGreek ? 'Όλα τα αμαξώματα' : 'All body styles'}</option>
-            {bodyStyles.map((body) => <option key={body} value={body}>{isGreek ? BODY_LABELS_GR[body] ?? body : body}</option>)}
+            {bodyStyles.map((body) => <option key={body} value={body}>{bodyLabel(body, marketRegion)}</option>)}
           </select>
         </label>
 
         <label className="text-[15px] font-semibold text-[var(--color-text)]">
           <span className="block mb-1.5">{isGreek ? 'Καύσιμο' : 'Powertrain'}</span>
-          <select value={selectedFuel} onChange={(event) => setSelectedFuel(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
+          <select name="fuel" value={selectedFuel} onChange={(event) => setSelectedFuel(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
             <option value="all">{isGreek ? 'Όλοι οι τύποι' : 'All powertrains'}</option>
-            {fuelTypes.map((fuel) => <option key={fuel} value={fuel}>{isGreek ? FUEL_LABELS_GR[fuel] ?? fuel : fuel}</option>)}
+            {fuelTypes.map((fuel) => <option key={fuel} value={fuel}>{fuelLabel(fuel, marketRegion)}</option>)}
           </select>
         </label>
 
         <label className="text-[15px] font-semibold text-[var(--color-text)]">
           <span className="block mb-1.5">{isGreek ? 'Ταξινόμηση' : 'Sort by'}</span>
-          <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
+          <select name="sort" value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="w-full min-h-11 px-3 rounded-xl border border-[var(--color-border-control)] bg-[var(--color-surface-subtle)] text-[15px] text-[var(--color-text)]">
             <option value="reliability">{isGreek ? 'Υψηλότερη αξιοπιστία' : 'Highest reliability'}</option>
             <option value="price-asc">{isGreek ? 'Τιμή: χαμηλή → υψηλή' : 'Price: low to high'}</option>
             <option value="price-desc">{isGreek ? 'Τιμή: υψηλή → χαμηλή' : 'Price: high to low'}</option>
@@ -135,9 +127,8 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
         </label>
       </section>
 
-      <div className="mb-4 text-[15px] text-[var(--color-text-muted)]" aria-live="polite">
-        {isGreek ? `${filteredVehicles.length} οχήματα` : `${filteredVehicles.length} vehicles`}
-      </div>
+      <p className="mb-4 text-[15px] text-[var(--color-text-muted)]" aria-hidden="true">{countText}</p>
+      <div className="sr-only-live" role="status" aria-live="polite">{announcedCount}</div>
 
       {filteredVehicles.length === 0 ? (
         <div className="surface-card py-14 px-6 text-center">
@@ -162,18 +153,18 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
                     <VehicleImage vehicle={vehicle} alt={`${vehicle.make} ${vehicle.model}`} marketRegion={marketRegion} showReferenceLabel />
                     <div className="absolute bottom-10 left-3 rounded-full bg-[rgba(255,253,249,0.92)] border border-white/80 px-3 py-1.5 text-[13px] font-medium text-[var(--color-text)] backdrop-blur-md shadow-sm">{vehicle.generation} · {vehicle.years}</div>
                     <div className="absolute top-3 right-3 flex items-center gap-2">
-                      <button type="button" onClick={() => onToggleCompare(vehicle.id)} aria-pressed={isCompared} aria-label={isGreek ? `${isCompared ? 'Αφαίρεση από' : 'Προσθήκη σε'} σύγκριση: ${vehicle.make} ${vehicle.model}` : `${isCompared ? 'Remove from' : 'Add to'} comparison: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isCompared ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
+                      <button type="button" onClick={() => onToggleCompare(vehicle.id)} aria-pressed={isCompared} aria-label={isGreek ? `Σύγκριση: ${vehicle.make} ${vehicle.model}` : `Compare ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isCompared ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
                         <Scale className="w-4 h-4" aria-hidden="true" />
                       </button>
-                      <button type="button" onClick={() => onToggleSave(vehicle.id)} aria-pressed={isSaved} aria-label={isGreek ? `${isSaved ? 'Αφαίρεση από' : 'Αποθήκευση στο'} Garage: ${vehicle.make} ${vehicle.model}` : `${isSaved ? 'Remove from' : 'Save to'} garage: ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
-                        <Bookmark className="w-4 h-4" aria-hidden="true" />
+                      <button type="button" onClick={() => onToggleSave(vehicle.id)} aria-pressed={isSaved} aria-label={isGreek ? `Αποθήκευση: ${vehicle.make} ${vehicle.model}` : `Save ${vehicle.make} ${vehicle.model}`} className={`touch-target min-w-11 rounded-xl backdrop-blur-md transition-colors inline-flex items-center justify-center ${isSaved ? 'bg-[var(--color-accent)] text-white' : 'bg-[rgba(255,253,249,0.92)] text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] border border-white/80 shadow-sm'}`}>
+                        <Bookmark className="w-4 h-4" fill={isSaved ? 'currentColor' : 'none'} aria-hidden="true" />
                       </button>
                     </div>
                   </div>
 
                   <div className="p-5">
                     <div className="flex flex-wrap items-center gap-2 text-[15px] text-[var(--color-text-muted)] mb-1 font-medium">
-                      <span>{isGreek ? BODY_LABELS_GR[vehicle.bodyStyle] ?? vehicle.bodyStyle : vehicle.bodyStyle}</span><span aria-hidden="true">·</span><span>{isGreek ? FUEL_LABELS_GR[vehicle.fuelType] ?? vehicle.fuelType : vehicle.fuelType}</span><span aria-hidden="true">·</span><span>{vehicle.drivetrain}</span>
+                      <span>{bodyLabel(vehicle.bodyStyle, marketRegion)}</span><span aria-hidden="true">·</span><span>{fuelLabel(vehicle.fuelType, marketRegion)}</span><span aria-hidden="true">·</span><span>{drivetrainLabel(vehicle.drivetrain, marketRegion)}</span>
                     </div>
                     <h2 className="text-xl font-semibold text-[var(--color-text)] tracking-tight">{vehicle.make} {vehicle.model}</h2>
 
@@ -185,7 +176,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
                     <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[15px] py-3 border-y border-[var(--color-border)]">
                       <div><span className="text-[13px] text-[var(--color-text-muted)]">{isGreek ? 'Ισχύς' : 'Power'}</span><div className="font-bold text-[var(--color-text)]">{vehicle.horsepower} hp</div></div>
                       <div><span className="text-[13px] text-[var(--color-text-muted)]">{isGreek ? 'Αξιοπιστία' : 'Reliability'}</span><div className="font-bold text-[var(--color-text)]">{vehicle.reliabilityRating}/5</div></div>
-                      <div><span className="text-[13px] text-[var(--color-text-muted)]">{isGreek ? 'Χώρος' : 'Boot'}</span><div className="font-bold text-[var(--color-text)]">{vehicle.cargoCapacityLiters} L</div></div>
+                      <div><span className="text-[13px] text-[var(--color-text-muted)]">{isGreek ? 'Χώρος' : 'Boot'}</span><div className="font-bold text-[var(--color-text)]">{formatNumber(vehicle.cargoCapacityLiters, marketRegion)} L</div></div>
                     </div>
 
                     <p className="mt-3 text-[15px] text-[var(--color-text-muted)] line-clamp-2">{vehicle.defaultExplanation}</p>
@@ -198,7 +189,7 @@ export const AllVehiclesCatalog: React.FC<AllVehiclesCatalogProps> = ({
                     <span>{isGreek ? 'Οδηγός & έλεγχος' : 'Guide & checks'}</span>
                     <ChevronRight className="w-4 h-4" aria-hidden="true" />
                   </button>
-                  {listingCount > 0 && <button type="button" onClick={() => onViewListings(vehicle.id)} className="min-h-11 px-4 rounded-xl border border-[var(--color-border)] text-[15px] font-bold text-[var(--color-text)] hover:bg-[var(--color-surface-subtle)] transition-colors">{listingCount} {isGreek ? 'ενδεικτικές αγγελίες' : 'listings'}</button>}
+                  {listingCount > 0 && <button type="button" onClick={() => onViewListings(vehicle.id)} className="min-h-11 px-4 rounded-xl border border-[var(--color-border)] text-[15px] font-bold text-[var(--color-text)] hover:bg-[var(--color-surface-subtle)] transition-colors">{plural(listingCount, marketRegion, isGreek ? { one: 'ενδεικτική αγγελία', other: 'ενδεικτικές αγγελίες' } : { one: 'listing', other: 'listings' })}</button>}
                 </div>
               </article>
             );
