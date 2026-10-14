@@ -22,8 +22,8 @@ on the extension card. Saved ads are kept.
 ## Daily use
 
 1. Open a car group or Marketplace › Vehicles on Facebook.
-2. Scroll as usual. Each saved ad gets a small yellow label with what was read.
-   A white dashed label means something is missing (e.g. year): tap
+2. Scroll as usual (or use auto-scroll below). Each ad gets a small label with
+   what was read. An orange dot means something is missing (e.g. year): tap
    "Δείτε περισσότερα" on the post if the text is cut, and it re-reads it.
 3. Open comments on posts you care about: the seller's "πουλήθηκε" or
    "έπεσε στα 7.500" and buyers' offers are picked up too.
