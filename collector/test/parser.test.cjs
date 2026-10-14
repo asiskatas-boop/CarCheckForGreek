@@ -113,3 +113,19 @@ test('price is still found when km uses χιλ.', () => {
   const r = parseAd('Corsa 2011 120.000 χιλ. 4.500€');
   assert.equal(r.fields.price, 4500);
 });
+
+test('label/value layout (Facebook vehicle post)', () => {
+  const text = 'Citroen C3\n9.500 €\n10 / 2020\nΧιλιόμετρα\n111.000 χλμ\nΚαύσιμο\nΠετρέλαιο\nΚυβικά\n1.499 cc\nΙπποδύναμη\n102 hp\nΠόρτες\n5\nΣασμάν\nΧειροκίνητη\nΔυνατότητα ανταλλαγής';
+  const f = parseAd(text).fields;
+  assert.equal(f.km, 111000);
+  assert.equal(f.year, 2020);
+  assert.equal(f.cc, 1499);
+  assert.equal(f.hp, 102);
+  assert.equal(f.fuel, 'Πετρέλαιο');
+  assert.equal(f.gearbox, 'Χειροκίνητο');
+  assert.equal(f.price, 9500);
+});
+
+test('label then value on next line, no unit', () => {
+  assert.equal(parseAd('Clio 2015 6.000€\nΧιλιόμετρα\n135000').fields.km, 135000);
+});

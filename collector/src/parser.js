@@ -173,7 +173,7 @@
     const out = [];
     let m;
     // "120.000 km", "120k km", "120 χιλ. χλμ", "120 χιλιάδες χλμ", "120.000 χιλιόμετρα"
-    const re = new RegExp(NUM + '\\s*\\+?\\s*(k|χιλ\\.?|χιλιαδεσ|χιλιαδων|t)?\\s*' + KM_UNIT, 'g');
+    const re = new RegExp(NUM + '[ \\t]*\\+?[ \\t]*(k|χιλ\\.?|χιλιαδεσ|χιλιαδων|t)?[ \\t]*' + KM_UNIT, 'g');
     while ((m = re.exec(t))) {
       // "2012 Km 145000": the year sits right before the unit, not the km.
       if (!m[2] && /^(19[89]\d|20[0-3]\d)$/.test(m[1])) continue;
@@ -181,7 +181,7 @@
       if (v) out.push({ v, i: m.index, w: 3 });
     }
     // "χιλιόμετρα: 120.000", "Km 120000", "οδόμετρο 🛣️ 120 χιλ", "διανυθέντα - 98.000"
-    const re2 = new RegExp(KM_KEY + '[^\\d\\n]{0,12}?' + NUM + '\\s*(k|χιλ\\.?|χιλιαδεσ)?', 'g');
+    const re2 = new RegExp(KM_KEY + '[^\\d]{0,14}?' + NUM + '\\s*(k|χιλ\\.?|χιλιαδεσ)?', 'g');
     while ((m = re2.exec(t))) {
       const after = t.slice(m.index + m[0].length, m.index + m[0].length + 8);
       if (/^\s*(€|ευρ|eur)/.test(after)) continue;
@@ -189,7 +189,7 @@
       if (v) out.push({ v, i: m.index, w: 2 });
     }
     // "120.000 χιλ." / "120χιλ" with no unit (not money): thousands of km
-    const re3 = new RegExp(NUM + '\\s*(χιλ\\.?|χιλιαδεσ)(?![α-ω])(?!\\s*(?:€|ευρ|eur|\\.?\\s*ευρ))', 'g');
+    const re3 = new RegExp(NUM + '[ \\t]*(χιλ\\.?|χιλιαδεσ)(?![α-ω])(?!\\s*(?:€|ευρ|eur|\\.?\\s*ευρ))', 'g');
     while ((m = re3.exec(t))) {
       const n = /^\d+[.,]\d{1,2}$/.test(m[1]) ? toFloat(m[1]) : toInt(m[1]);
       if (n < 1000 && n <= 60) continue; // "8 χιλ." is more likely a price
@@ -247,8 +247,14 @@
       y = y.length === 2 ? (parseInt(y, 10) > (THIS_YEAR % 100) + 1 ? 1900 : 2000) + parseInt(y, 10) : parseInt(y, 10);
       if (y >= 1980 && y <= THIS_YEAR + 1) return y;
     }
+    // Month/year like "10 / 2020" or "03/2016" (first registration).
+    m = /(?:^|[^\d])(?:0?[1-9]|1[0-2])\s*\/\s*((?:19[89]|20[0-3])\d)(?!\d)/.exec(t);
+    if (m) {
+      const y = parseInt(m[1], 10);
+      if (y <= THIS_YEAR + 1) return y;
+    }
     // Bare 4-digit year not used as money, km or cc.
-    const bare = /(^|[^\d.,])((?:19[89]\d|20[0-3]\d))(?![\d.,]*\s*(?:€|ευρω|ευρο|eur|km|χλμ|cc|κ\.?εκ|κυβικ|χιλ))(?!\d)/g;
+    const bare = /(^|[^\d.,])((?:19[89]\d|20[0-3]\d))(?![\d.,]*[ \t]*(?:€|ευρω|ευρο|eur|km|χλμ|cc|κ\.?εκ|κυβικ|χιλ))(?!\d)/g;
     while ((m = bare.exec(t))) {
       const y = parseInt(m[2], 10);
       if (y >= 1980 && y <= THIS_YEAR + 1) return y;
@@ -258,9 +264,9 @@
   }
 
   function findCc(t) {
-    let m = /(?:^|[^\d])(\d{3,4})\s*(?:cc|κ\.?εκ\.?|κυβικ[α-ω]*)/.exec(t);
+    let m = /(?:^|[^\d.,])(\d[.,]?\d{3}|\d{3})\s*(?:cc|κ\.?εκ\.?|κυβικ[α-ω]*)/.exec(t) || /κυβικ[α-ω]*[^\d]{0,6}(\d[.,]?\d{3})/.exec(t);
     if (m) {
-      const v = parseInt(m[1], 10);
+      const v = toInt(m[1]);
       if (v >= 600 && v <= 6500) return v;
     }
     m = /(?:^|[^\d.,])([0-6][.,]\d)\s*(?:l\b|lt\b|λιτρ[α-ω]*|tsi|tdi|tfsi|vvt-?i|vti|hdi|dci|crdi|cdti|cdi|ecoboost|mpi|gdi|jtd|multijet|t?jet|tce|puretech|thp|d-?4d|vtec|i-?dtec|bluehdi|skyactiv|hybrid|turbo|16v|8v|benzin|diesel|tdci|βενζιν|πετρελ|υβριδ)/.exec(t);
