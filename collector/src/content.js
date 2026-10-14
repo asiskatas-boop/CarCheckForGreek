@@ -4,6 +4,9 @@
  */
 (function () {
   'use strict';
+  // Guard against being injected twice (install-time injection + page load).
+  if (globalThis.__ccCollectorLoaded) return;
+  globalThis.__ccCollectorLoaded = true;
   const P = globalThis.CCParser;
   const X = globalThis.CCExtract;
 
@@ -106,6 +109,10 @@
     };
   }
 
+  // What the last scan saw, for the popup's "this page" line and diagnostics.
+  let lastStatus = { page: null, found: 0, carAds: 0, at: null, error: null };
+  let lastItems = [];
+
   function scanNow() {
     if (!enabled || document.hidden) return;
     let items;
@@ -113,11 +120,15 @@
       items = X.scan(document);
     } catch (e) {
       console.warn('[ChekCAReto] scan failed', e);
+      lastStatus = { ...lastStatus, error: String(e), at: Date.now() };
       return;
     }
+    lastItems = items;
+    let carAds = 0;
     const batch = [];
     for (const item of items) {
       const rec = toRecord(item);
+      if (rec.isCarAd) carAds++;
       if (!rec.isCarAd && !rec.sold) continue;
       const fp = fnv(JSON.stringify([rec.text, rec.comments, rec.sold]));
       if (sent.get(rec.key) !== fp) {
@@ -126,19 +137,58 @@
       }
       if (rec.isCarAd) chip(item, rec);
     }
+    lastStatus = { page: X.pageType(location), found: items.length, carAds, at: Date.now(), error: null };
     if (batch.length) {
       chrome.runtime.sendMessage({ type: 'capture', items: batch, scannedGroup: X.pageType(location) === 'group' ? batch[0].groupId : null }).catch(() => {});
     }
   }
 
-  let timer = null;
+  // Throttle, not debounce: Facebook changes the page constantly, so a
+  // debounce would keep postponing the scan forever.
+  let last = 0;
+  let pending = null;
   function schedule() {
-    clearTimeout(timer);
-    timer = setTimeout(scanNow, 900);
+    if (pending) return;
+    const wait = Math.max(250, 1200 - (Date.now() - last));
+    pending = setTimeout(() => {
+      pending = null;
+      last = Date.now();
+      scanNow();
+    }, wait);
   }
 
   addEventListener('scroll', schedule, { passive: true });
   addEventListener('click', schedule, true); // e.g. after "See more" or opening comments
   new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('visibilitychange', schedule);
+  setInterval(() => {
+    if (!document.hidden) schedule();
+  }, 3000);
+  schedule();
+
+  // Popup asks what this page looks like.
+  chrome.runtime.onMessage.addListener((msg, _s, reply) => {
+    if (!msg) return false;
+    if (msg.type === 'status') {
+      reply({ ...lastStatus, enabled, url: location.pathname });
+      return false;
+    }
+    if (msg.type === 'diagnose') {
+      const q = (sel) => document.querySelectorAll(sel).length;
+      reply({
+        version: chrome.runtime.getManifest().version,
+        url: location.pathname,
+        page: X.pageType(location),
+        counts: { feed: q('[role="feed"]'), feedChildren: q('[role="feed"] > div'), posinset: q('[aria-posinset]'), articles: q('[role="article"]'), messages: q('[data-ad-comet-preview="message"], [data-ad-preview="message"]'), marketplaceLinks: q('a[href*="/marketplace/item/"]') },
+        status: lastStatus,
+        samples: lastItems.slice(0, 8).map((it) => {
+          const text = P.scrub(it.text);
+          const r = P.parseAd(text);
+          return { source: it.source, postId: it.postId, text: text.slice(0, 400), fields: r.fields, kind: r.kind, isCarAd: r.isCarAd, comments: it.comments.length };
+        }),
+      });
+      return false;
+    }
+    return false;
+  });
 })();

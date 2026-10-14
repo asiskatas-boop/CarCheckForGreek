@@ -132,3 +132,17 @@ chrome.runtime.onStartup.addListener(async () => {
   const { stats } = await load([]);
   await badge(stats.newToday);
 });
+
+// Tabs that were already open before install/update don't get the content
+// script automatically: add it to them so there's no need to reload Facebook.
+chrome.runtime.onInstalled.addListener(async () => {
+  const tabs = await chrome.tabs.query({ url: ['https://*.facebook.com/*'] });
+  for (const t of tabs) {
+    try {
+      await chrome.scripting.insertCSS({ target: { tabId: t.id }, files: ['src/content.css'] });
+      await chrome.scripting.executeScript({ target: { tabId: t.id }, files: ['src/parser.js', 'src/extract.js', 'src/content.js'] });
+    } catch (e) {
+      // Tab may be discarded or not allow scripts; it'll pick it up on reload.
+    }
+  }
+});

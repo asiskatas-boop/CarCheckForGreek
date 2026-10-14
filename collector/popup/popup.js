@@ -31,6 +31,7 @@ async function render() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => []);
   const onFb = tab && /^https:\/\/([a-z]+\.)?facebook\.com\/(groups|marketplace|commerce)/.test(tab.url || '');
   $('hint').hidden = !!onFb;
+  await pageStatus(tab, onFb);
 
   const list = $('recent');
   list.textContent = '';
@@ -68,6 +69,30 @@ async function render() {
     list.append(li);
   }
   render.cache = { posts, groups };
+}
+
+async function pageStatus(tab, onFb) {
+  const el = $('pagestatus');
+  el.hidden = !onFb;
+  if (!onFb) return;
+  let st = null;
+  try {
+    st = await chrome.tabs.sendMessage(tab.id, { type: 'status' });
+  } catch (e) {
+    st = null;
+  }
+  el.classList.toggle('warn', !st || !st.found || !st.carAds);
+  if (!st) {
+    el.textContent = 'Η επέκταση δεν τρέχει σε αυτή την καρτέλα. Ξαναφόρτωσε τη σελίδα του Facebook (F5) και κάνε λίγο scroll.';
+  } else if (!st.enabled) {
+    el.textContent = 'Η συλλογή είναι σε παύση.';
+  } else if (!st.at) {
+    el.textContent = 'Περιμένω να φορτώσει η σελίδα. Κάνε λίγο scroll.';
+  } else if (!st.found) {
+    el.textContent = 'Δεν βρίσκω αναρτήσεις σε αυτή τη σελίδα. Πάτα «Αντιγραφή διάγνωσης» και στείλ’ το μου.';
+  } else {
+    el.textContent = 'Σε αυτή τη σελίδα: ' + st.found + ' αναρτήσεις στην οθόνη, ' + st.carAds + ' αγγελίες αυτοκινήτων.' + (st.carAds ? '' : ' Αν βλέπεις αγγελίες, πάτα «Αντιγραφή διάγνωσης» και στείλ’ το μου.');
+  }
 }
 
 function download(name, content, type) {
@@ -137,6 +162,19 @@ $('json').addEventListener('click', async () => {
   const { posts, groups } = await loadAll();
   const out = posts.map((p) => ({ ...p, maybeGone: maybeGone(p, groups) }));
   download('chekcareto-' + stamp() + '.json', JSON.stringify({ exportedAt: new Date().toISOString(), groups, posts: out }, null, 1), 'application/json');
+});
+
+$('diag').addEventListener('click', async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  let d;
+  try {
+    d = await chrome.tabs.sendMessage(tab.id, { type: 'diagnose' });
+  } catch (e) {
+    d = { error: 'Η επέκταση δεν τρέχει σε αυτή την καρτέλα: ' + String(e), url: tab && tab.url ? new URL(tab.url).pathname : null };
+  }
+  await navigator.clipboard.writeText(JSON.stringify(d, null, 1));
+  $('diag').textContent = 'Αντιγράφηκε. Κάνε επικόλληση στη συνομιλία';
+  setTimeout(() => ($('diag').textContent = 'Αντιγραφή διάγνωσης σελίδας'), 4000);
 });
 
 $('clear').addEventListener('click', async () => {
