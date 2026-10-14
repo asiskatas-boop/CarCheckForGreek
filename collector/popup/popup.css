@@ -1,0 +1,51 @@
+:root {
+  --ink: #000;
+  --mute: #666;
+  --line: #e6e6e6;
+  --soft: #f7f7f7;
+  --accent: #ffed00;
+}
+* { box-sizing: border-box; }
+body {
+  width: 360px;
+  margin: 0;
+  padding: 16px;
+  background: #fff;
+  color: var(--ink);
+  font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+header { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.mark {
+  width: 32px; height: 32px; display: grid; place-items: center;
+  background: #000; color: var(--accent); font-weight: 700; font-size: 18px;
+}
+h1 { margin: 0; font-size: 18px; line-height: 1.1; }
+.sub { margin: 2px 0 0; color: var(--mute); font-size: 12px; }
+h2 { font-size: 13px; margin: 16px 0 6px; }
+.toggles { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; cursor: pointer; }
+.row + .row { border-top: 1px solid var(--line); }
+input[type='checkbox'] { width: 18px; height: 18px; accent-color: #000; cursor: pointer; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 14px; }
+.stats div { background: #fff; padding: 10px 12px; }
+.stats strong { display: block; font-size: 22px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--mute); font-size: 12px; }
+.hint { background: var(--soft); padding: 10px 12px; margin: 12px 0 0; font-size: 13px; }
+.recent { list-style: none; margin: 0; padding: 0; max-height: 220px; overflow-y: auto; }
+.recent li { border-bottom: 1px solid var(--line); }
+.recent a, .recent .item { display: block; padding: 8px 0; color: inherit; text-decoration: none; }
+.recent a:hover .t { text-decoration: underline; }
+.t { font-weight: 600; }
+.d { color: var(--mute); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; margin-top: 3px; font-size: 11px; border: 1px dashed #000; padding: 0 5px; }
+.tag.sold { border-style: solid; background: #000; color: #fff; }
+.empty { color: var(--mute); font-size: 13px; margin: 4px 0 0; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+button {
+  height: 40px; border: 1px solid #000; background: #fff; color: #000;
+  font: 600 14px/1 inherit; font-family: inherit; border-radius: 2px; cursor: pointer;
+}
+button.primary { background: var(--accent); }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+button.link { border: 0; height: auto; padding: 10px 0 0; background: none; font-weight: 400; text-decoration: underline; color: var(--mute); }
+footer { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--mute); font-size: 12px; }
