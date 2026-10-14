@@ -32,7 +32,6 @@ async function render() {
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => []);
   const onFb = tab && /^https:\/\/([a-z]+\.)?facebook\.com\/(groups|marketplace|commerce)/.test(tab.url || '');
-  $('hint').hidden = !!onFb;
   await pageStatus(tab, onFb);
 
   const list = $('recent');
@@ -48,6 +47,10 @@ async function render() {
       wrap.target = '_blank';
       wrap.rel = 'noopener';
     } else wrap.className = 'item';
+    if (p.sold) wrap.classList.add('sold');
+    else if (p.missing && p.missing.length) wrap.classList.add('review');
+    const box = document.createElement('div');
+    box.className = 'txt';
     const t = document.createElement('div');
     t.className = 't';
     t.textContent = [f.make, f.model, f.year].filter(Boolean).join(' ') || 'Χωρίς μάρκα';
@@ -55,18 +58,17 @@ async function render() {
     d.className = 'd';
     const last = p.prices && p.prices.length ? p.prices[p.prices.length - 1].price : f.price;
     d.textContent = [last != null ? nf.format(last) + ' €' : null, f.km != null ? nf.format(f.km) + ' χλμ' : null, f.place].filter(Boolean).join(', ');
-    wrap.append(t, d);
-    if (p.sold) {
-      const tag = document.createElement('span');
-      tag.className = 'tag sold';
-      tag.textContent = 'Πουλήθηκε';
-      wrap.append(tag);
-    } else if (p.missing && p.missing.length) {
-      const tag = document.createElement('span');
-      tag.className = 'tag';
-      tag.textContent = 'Λείπει: ' + p.missing.map((k) => LABEL[k]).join(', ');
-      wrap.append(tag);
+    let tag = null;
+    if (p.sold) tag = 'Πουλήθηκε';
+    else if (p.missing && p.missing.length) tag = 'Λείπει: ' + p.missing.map((k) => LABEL[k]).join(', ');
+    if (tag) {
+      const s = document.createElement('span');
+      s.className = 'tag';
+      s.textContent = (d.textContent ? '. ' : '') + tag;
+      d.append(s);
     }
+    box.append(t, d);
+    wrap.append(box);
     li.append(wrap);
     list.append(li);
   }
@@ -75,8 +77,14 @@ async function render() {
 
 async function pageStatus(tab, onFb) {
   const el = $('pagestatus');
-  el.hidden = !onFb;
-  if (!onFb) return;
+  const auto = $('auto');
+  auto.hidden = true;
+  $('autohint').hidden = true;
+  el.classList.remove('warn');
+  if (!onFb) {
+    el.textContent = 'Άνοιξε ένα γκρουπ αυτοκινήτων ή το Marketplace στο Facebook. Οι αγγελίες που βλέπεις αποθηκεύονται μόνες τους.';
+    return;
+  }
   let st = null;
   try {
     st = await chrome.tabs.sendMessage(tab.id, { type: 'status' });
@@ -93,6 +101,12 @@ async function pageStatus(tab, onFb) {
   } else if (!st.found) {
     el.textContent = 'Δεν βρίσκω αναρτήσεις σε αυτή τη σελίδα. Πάτα «Αντιγραφή διάγνωσης» και στείλ’ το μου.';
   } else {
+    auto.hidden = false;
+    $('autohint').hidden = !!(st.auto && st.auto.running);
+    auto.dataset.tab = tab.id;
+    auto.dataset.running = st.auto && st.auto.running ? '1' : '';
+    auto.textContent = st.auto && st.auto.running ? 'Παύση αυτόματης κύλισης' : 'Έναρξη αυτόματης κύλισης';
+    auto.classList.toggle('stop', !!(st.auto && st.auto.running));
     el.textContent = 'Σε αυτή τη σελίδα: ' + st.found + ' αναρτήσεις στην οθόνη, ' + st.carAds + ' αγγελίες αυτοκινήτων.' + (st.carAds ? '' : ' Αν βλέπεις αγγελίες, πάτα «Αντιγραφή διάγνωσης» και στείλ’ το μου.');
   }
 }
@@ -185,6 +199,16 @@ $('clear').addEventListener('click', async () => {
   if (!confirm('Διαγραφή ' + posts.length + ' αγγελιών από αυτόν τον υπολογιστή; Κατέβασε πρώτα CSV αν τις θέλεις.')) return;
   await chrome.runtime.sendMessage({ type: 'clear' });
   render();
+});
+
+$('auto').addEventListener('click', async () => {
+  const b = $('auto');
+  const on = !b.dataset.running;
+  try {
+    await chrome.tabs.sendMessage(Number(b.dataset.tab), { type: 'autoscroll', on });
+  } catch (e) {}
+  if (on) window.close(); // get out of the way so the page is visible
+  else render();
 });
 
 async function saveSettings() {

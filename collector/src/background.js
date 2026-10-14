@@ -117,6 +117,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
     serial(() => capture(msg.items || [], msg.scannedGroup)).then(reply, (e) => reply({ error: String(e) }));
     return true;
   }
+  if (msg && msg.type === 'notify') {
+    chrome.notifications.create({ type: 'basic', iconUrl: chrome.runtime.getURL('icons/128.png'), title: msg.title || 'ChekCAReto', message: msg.message || '', priority: 1 });
+    return false;
+  }
   if (msg && msg.type === 'clear') {
     serial(async () => {
       const all = await chrome.storage.local.get(null);

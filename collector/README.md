@@ -29,6 +29,23 @@ on the extension card. Saved ads are kept.
    "έπεσε στα 7.500" and buyers' offers are picked up too.
 4. The number on the icon is today's new ads. Click it for totals and downloads.
 
+### Auto-scroll
+
+Click the icon, then **Έναρξη αυτόματης κύλισης**. It scrolls slowly
+(a few seconds per screen, with longer breaks) and stops by itself, with a
+sound and a notification, when:
+
+- Facebook opens a dialog, a warning ("προσωρινά αποκλεισμένος"), a login or a check page,
+- you scroll or press a key yourself (it pauses, press Συνέχεια to resume),
+- it reaches ads you already collected on an earlier day (you're caught up),
+- the feed ends, or after 20 minutes / 300 ads in one go.
+
+It only runs while the tab is in front of you. Use it in short sessions:
+Facebook can limit accounts that look automated.
+
+Labels on posts: green dot saved, orange saved but something is missing,
+blue marked sold, grey seen but not saved (no price).
+
 Tip: scroll the same groups every day. Ads that vanish after you have
 scanned their group again for 3+ days are marked `maybe_gone` (probably sold).
 

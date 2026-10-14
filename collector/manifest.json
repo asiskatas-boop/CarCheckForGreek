@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "ChekCAReto Collector",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "Αποθηκεύει τιμή, χιλιόμετρα και χρονιά από αγγελίες αυτοκινήτων που βλέπεις στο Facebook, για τον οδηγό τιμών ChekCAReto.",
   "permissions": [
     "storage",
     "unlimitedStorage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "notifications"
   ],
   "background": {
     "service_worker": "src/background.js"
