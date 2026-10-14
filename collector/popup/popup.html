@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<title>ChekCAReto</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="mark" aria-hidden="true">✓</div>
+    <div>
+      <h1>ChekCAReto</h1>
+      <p class="sub">Συλλογή αγγελιών αυτοκινήτων</p>
+    </div>
+  </header>
+
+  <section class="toggles">
+    <label class="row">
+      <span>Συλλογή ενεργή</span>
+      <input type="checkbox" id="enabled" role="switch">
+    </label>
+    <label class="row">
+      <span>Σήμανση πάνω στις αγγελίες</span>
+      <input type="checkbox" id="chips" role="switch">
+    </label>
+  </section>
+
+  <section class="stats" aria-label="Σύνοψη">
+    <div><strong id="s-today">0</strong><span>νέες σήμερα</span></div>
+    <div><strong id="s-total">0</strong><span>σύνολο</span></div>
+    <div><strong id="s-review">0</strong><span>θέλουν έλεγχο</span></div>
+    <div><strong id="s-sold">0</strong><span>πουλήθηκαν</span></div>
+  </section>
+
+  <p id="pagestatus" class="pagestatus" hidden></p>
+  <p id="hint" class="hint" hidden>Άνοιξε ένα γκρουπ αυτοκινήτων ή το Marketplace στο Facebook και κάνε scroll όπως πάντα. Οι αγγελίες που βλέπεις αποθηκεύονται μόνες τους.</p>
+
+  <section>
+    <h2>Τελευταίες</h2>
+    <ol id="recent" class="recent"></ol>
+    <p id="empty" class="empty">Δεν έχει αποθηκευτεί καμία αγγελία ακόμα.</p>
+  </section>
+
+  <section class="actions">
+    <button id="csv" class="primary">Λήψη CSV</button>
+    <button id="json">Λήψη JSON</button>
+  </section>
+  <div class="links">
+    <button id="diag" class="link">Αντιγραφή διάγνωσης σελίδας</button>
+    <button id="clear" class="link">Διαγραφή όλων</button>
+  </div>
+
+  <footer>Δεν αποθηκεύονται ονόματα, τηλέφωνα ή φωτογραφίες. Όλα μένουν σε αυτόν τον υπολογιστή μέχρι να τα κατεβάσεις.</footer>
+  <script src="popup.js"></script>
+</body>
+</html>

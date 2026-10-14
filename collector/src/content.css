@@ -1,0 +1,16 @@
+.cc-chip {
+  display: block;
+  margin: 8px 12px;
+  padding: 6px 10px;
+  border-left: 3px solid #000;
+  background: #ffed00;
+  color: #000;
+  font: 600 12px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  border-radius: 2px;
+  pointer-events: none;
+}
+.cc-chip[data-state='review'] {
+  background: #fff;
+  border: 1px dashed #000;
+  border-left-width: 3px;
+}
