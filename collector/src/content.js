@@ -62,7 +62,7 @@
 
   const LABEL = { make: 'μάρκα', year: 'έτος', km: 'χλμ', price: 'τιμή' };
 
-  function chip(item, rec) {
+  function chip(item, rec, note) {
     if (!showChips || !item.el || !item.el.isConnected || item.el.tagName === 'A') return;
     let c = item.el.querySelector(':scope > .cc-chip, .cc-chip');
     if (!c) {
@@ -78,9 +78,10 @@
       f.price != null ? fmt(f.price) + ' €' : null,
     ].filter(Boolean);
     let txt = 'ChekCAReto: ' + (bits.join(', ') || 'αποθηκεύτηκε');
-    if (rec.missing.length) txt += '. Λείπει: ' + rec.missing.map((k) => LABEL[k]).join(', ');
+    if (note) txt = 'ChekCAReto: ' + (bits.length ? bits.join(', ') + '. ' : '') + note;
+    if (!note && rec.missing.length) txt += '. Λείπει: ' + rec.missing.map((k) => LABEL[k]).join(', ');
     if (rec.truncated) txt += '. Πάτα «Δείτε περισσότερα» για όλο το κείμενο';
-    const state = rec.missing.length ? 'review' : 'ok';
+    const state = note ? 'skip' : rec.missing.length ? 'review' : 'ok';
     if (c.textContent !== txt) c.textContent = txt;
     if (c.dataset.state !== state) c.dataset.state = state;
   }
@@ -132,6 +133,10 @@
     for (const item of items) {
       const rec = toRecord(item);
       if (rec.isCarAd) carAds++;
+      // Looks like a car for sale but has no price: say so, don't save it.
+      if (!rec.isCarAd && rec.kind === 'sale' && rec.parsed.price == null && (rec.parsed.make || rec.parsed.km || rec.parsed.year)) {
+        chip(item, rec, 'Δεν αποθηκεύτηκε: η ανάρτηση δεν γράφει τιμή');
+      }
       if (!rec.isCarAd && !rec.sold) continue;
       const fp = fnv(JSON.stringify([rec.text, rec.comments, rec.sold]));
       if (sent.get(rec.key) !== fp) {

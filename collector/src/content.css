@@ -14,3 +14,9 @@
   border: 1px dashed #000;
   border-left-width: 3px;
 }
+.cc-chip[data-state='skip'] {
+  background: #f2f2f2;
+  color: #444;
+  border: 1px solid #ccc;
+  border-left: 3px solid #999;
+}

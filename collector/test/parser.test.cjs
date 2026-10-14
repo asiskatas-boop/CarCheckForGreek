@@ -145,3 +145,7 @@ for (const [text, want] of realPosts) {
     for (const [k, v] of Object.entries(want)) assert.equal(f[k], v, k);
   });
 }
+
+test('car ad mentioning replaced parts is still a sale', () => {
+  assert.equal(parseAd('Το αυτοκίνητο έχει 212 χιλιαδες χιλιόμετρα\nΈχει γίνει πρόσφατα αλλαγή σασμάν').kind, 'sale');
+});

@@ -349,7 +349,9 @@
   function findKind(t) {
     const head = t.slice(0, 120);
     if (/(^|[^a-zα-ω])(ζητειται|ζητειτε|ζητω|ζηταω|ψαχνω|αναζητω|αγοραζω|θελω να αγορασω)/.test(head)) return 'wanted';
-    if (/ανταλλακτικ|ζαντεσ|ζαντα\b|ελαστικ|λαστιχα|σασμαν|καθισματα|φαναρια|προφυλακτηρ|ηχοσυστημ|ραδιοcd|οθονη android|για ανταλλακτικα/.test(t) && !/\d\s*(?:km|χλμ)/.test(t)) return 'parts';
+    // Parts are named at the start ("Πωλούνται ζάντες..."); a car ad may
+    // mention parts later ("αλλαγή σασμάν"), so only look at the opening.
+    if (/ανταλλακτικ|ζαντεσ|ζαντα(?![α-ω])|ελαστικ|λαστιχα|σασμαν|καθισματα|φαναρια|προφυλακτηρ|ηχοσυστημ|ραδιο ?cd|οθονη android|για ανταλλακτικα/.test(t.slice(0, 60)) && !/\d\s*(?:km|χλμ|χιλιομετρ)/.test(t)) return 'parts';
     if (/ενοικιαση|ενοικιαζεται|rent a car|leasing/.test(head)) return 'rental';
     return 'sale';
   }
