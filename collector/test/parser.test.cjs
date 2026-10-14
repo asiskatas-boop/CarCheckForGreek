@@ -89,3 +89,27 @@ test('scrub removes phones and emails', () => {
   assert.ok(!/\d{6,}/.test(s.replace(/\s|-/g, '')), s);
   assert.ok(!s.includes('@'));
 });
+
+const kmCases = [
+  ['Toyota Yaris 2010 5.000€ χιλιόμετρα: 120.000', 120000],
+  ['Golf 2012 Km 145000 τιμή 7000', 145000],
+  ['Corsa 2011 120.000 χιλ. 4.500€', 120000],
+  ['Clio 2014 98χιλ 6.200 ευρώ', 98000],
+  ['Polo 2013 οδόμετρο 🛣️ 110 χιλ, 6500€', 110000],
+  ['Fiesta 2009 150k, 3.900€', 150000],
+  ['i10 2015 Κm 80.000 τιμη 5.800', 80000],
+  ['Micra 2008 125.000 κμ 2.900€', 125000],
+  ['Aygo 2012 xlm 90000 4000e', 90000],
+  ['Swift 2010, διανυθέντα - 132.000, 4.300€', 132000],
+  ['Punto 2007 175.000 χλμ. 2.500€', 175000],
+  ['Astra 2015 1.6 diesel 180.000+ km 7.900€', 180000],
+  ['Πωλείται Yaris 2016, 8 χιλ. ευρώ, 99.000 χλμ', 99000],
+];
+for (const [text, km] of kmCases) {
+  test('km: ' + text.slice(0, 30), () => assert.equal(parseAd(text).fields.km, km));
+}
+
+test('price is still found when km uses χιλ.', () => {
+  const r = parseAd('Corsa 2011 120.000 χιλ. 4.500€');
+  assert.equal(r.fields.price, 4500);
+});

@@ -158,26 +158,53 @@
 
   const NUM = '(?<![\\d.,])(\\d{1,3}(?:[., ]\\d{3})+|\\d+(?:[.,]\\d+)?)';
   const EURO = '(?:€|ευρω|ευρο|eur\\b|euro|e\\b)';
-  const KM_UNIT = '(?:km|kms|klm|χλμ|χιλιομετρ[α-ω]*|χιλμ)';
+  // km written every way people do: km, kms, klm, χλμ, χλμ., χιλιόμετρα,
+  // Greek-kappa "κm"/"κμ", Greeklish "xlm"/"xiliometra", "χιλ." on its own.
+  const KM_UNIT = '(?:kms?\\b|klm|κm|κμ(?![α-ωa-z])|χλμ|χ\\.?λ\\.?μ\\.?|χιλιομετρ[α-ω]*|χιλμ|xlm|xiliometr[a-z]*|kilometr[a-z]*|χμ(?![α-ωa-z]))';
+  const KM_KEY = '(?:χιλιομετρ[α-ω]*|διανυθεντ[α-ω]*|οδομετρ[α-ω]*|κοντερ[α-ω]*|οδηγημεν[α-ω]*|οδηγηθηκε|χλμ|κm|κμ|kms?|klm|xlm|mileage|kilometers|driven)';
+
+  function kmValue(raw, mult) {
+    let v = /^\d+[.,]\d{1,2}$/.test(raw) ? toFloat(raw) : toInt(raw);
+    if (mult || v < 1000) v = Math.round(v * 1000);
+    return v >= 1000 && v <= 900000 ? v : null;
+  }
 
   function findKm(t) {
     const out = [];
-    // "120.000 km", "120k km", "120 χιλ. χλμ", "120 χιλιάδες χλμ"
-    const re = new RegExp(NUM + '\\s*(k|χιλ\\.?|χιλιαδεσ|χιλιαρικα)?\\s*' + KM_UNIT, 'g');
     let m;
+    // "120.000 km", "120k km", "120 χιλ. χλμ", "120 χιλιάδες χλμ", "120.000 χιλιόμετρα"
+    const re = new RegExp(NUM + '\\s*\\+?\\s*(k|χιλ\\.?|χιλιαδεσ|χιλιαδων|t)?\\s*' + KM_UNIT, 'g');
     while ((m = re.exec(t))) {
-      let v = /^\d+[.,]\d{1,2}$/.test(m[1]) ? toFloat(m[1]) : toInt(m[1]);
-      if (m[2] || v < 1000) v = Math.round(v * 1000);
-      if (v >= 1000 && v <= 900000) out.push({ v, i: m.index });
+      // "2012 Km 145000": the year sits right before the unit, not the km.
+      if (!m[2] && /^(19[89]\d|20[0-3]\d)$/.test(m[1])) continue;
+      const v = kmValue(m[1], m[2]);
+      if (v) out.push({ v, i: m.index, w: 3 });
     }
-    // "οδηγημένο 120.000", "χιλιόμετρα: 120.000"
-    const re2 = new RegExp('(?:χιλιομετρα|διανυθεντα|οδηγημεν[α-ω]*|οδηγηθηκε|χλμ|km)\\s*[:\\-]?\\s*' + NUM, 'g');
+    // "χιλιόμετρα: 120.000", "Km 120000", "οδόμετρο 🛣️ 120 χιλ", "διανυθέντα - 98.000"
+    const re2 = new RegExp(KM_KEY + '[^\\d\\n]{0,12}?' + NUM + '\\s*(k|χιλ\\.?|χιλιαδεσ)?', 'g');
     while ((m = re2.exec(t))) {
-      let v = toInt(m[1]);
-      if (v < 1000) v *= 1000;
-      if (v >= 1000 && v <= 900000) out.push({ v, i: m.index });
+      const after = t.slice(m.index + m[0].length, m.index + m[0].length + 8);
+      if (/^\s*(€|ευρ|eur)/.test(after)) continue;
+      const v = kmValue(m[1], m[2]);
+      if (v) out.push({ v, i: m.index, w: 2 });
     }
-    return out.length ? out[0].v : null;
+    // "120.000 χιλ." / "120χιλ" with no unit (not money): thousands of km
+    const re3 = new RegExp(NUM + '\\s*(χιλ\\.?|χιλιαδεσ)(?![α-ω])(?!\\s*(?:€|ευρ|eur|\\.?\\s*ευρ))', 'g');
+    while ((m = re3.exec(t))) {
+      const n = /^\d+[.,]\d{1,2}$/.test(m[1]) ? toFloat(m[1]) : toInt(m[1]);
+      if (n < 1000 && n <= 60) continue; // "8 χιλ." is more likely a price
+      const v = kmValue(m[1], n < 1000);
+      if (v) out.push({ v, i: m.index, w: 1 });
+    }
+    // "150k" alone (not money): km
+    const re4 = /(?:^|[^\d.,])(\d{2,3})\s*k(?![a-zα-ω])(?!\s*(?:€|ευρ|eur))/g;
+    while ((m = re4.exec(t))) {
+      const n = parseInt(m[1], 10);
+      if (n >= 60 && n <= 600) out.push({ v: n * 1000, i: m.index, w: 0 });
+    }
+    if (!out.length) return null;
+    out.sort((x, y) => y.w - x.w || x.i - y.i);
+    return out[0].v;
   }
 
   function priceCandidates(t) {

@@ -4,6 +4,7 @@
  * and shows today's new count on the toolbar icon.
  */
 'use strict';
+importScripts('parser.js');
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -136,6 +137,22 @@ chrome.runtime.onStartup.addListener(async () => {
 // Tabs that were already open before install/update don't get the content
 // script automatically: add it to them so there's no need to reload Facebook.
 chrome.runtime.onInstalled.addListener(async () => {
+  // Re-read saved ads with the current rules, so updates fix older rows too.
+  await serial(async () => {
+    const all = await chrome.storage.local.get(null);
+    const out = {};
+    for (const [k, p] of Object.entries(all)) {
+      if (!k.startsWith('p:') || !p.text) continue;
+      const r = globalThis.CCParser.parseAd(p.text);
+      const parsed = { ...p.parsed };
+      for (const [f, v] of Object.entries(r.fields)) if (v != null) parsed[f] = v;
+      p.parsed = parsed;
+      p.missing = ['make', 'year', 'km', 'price'].filter((f) => parsed[f] == null);
+      if (!p.prices.length && parsed.price != null) p.prices.push({ price: parsed.price, from: 'ad', at: p.firstSeen });
+      out[k] = p;
+    }
+    if (Object.keys(out).length) await chrome.storage.local.set(out);
+  });
   const tabs = await chrome.tabs.query({ url: ['https://*.facebook.com/*'] });
   for (const t of tabs) {
     try {
