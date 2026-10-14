@@ -129,3 +129,19 @@ test('label/value layout (Facebook vehicle post)', () => {
 test('label then value on next line, no unit', () => {
   assert.equal(parseAd('Clio 2015 6.000€\nΧιλιόμετρα\n135000').fields.km, 135000);
 });
+
+// Real posts from Greek Facebook car groups (Oct 2026)
+const realPosts = [
+  ['Πωλείτε SEAT IBIZA 1.2 TURBO ΠΕΤΡΈΛΑΙΟ ΜΕ 162 ΧΙΛΙΑΔΕΣ ΧΙΛΙΌΜΕΤΡΑ ΠΕΡΙΣΣΌΤΕΡΕΣ ΠΛΗΡΟΦΟΡΊΕΣ ΣΕ ΜΉΝΥΜΑ', { km: 162000, make: 'Seat', model: 'Ibiza', fuel: 'Πετρέλαιο' }],
+  ['Seat Ibiza FR look 1.4 16V 101hp – 2005 – ESP\nΤα λάστιχα είναι του 2025.\n🔷 1.400 cc – 101 hp\n🔷 Λάστιχα 2025\n🔷 Έτος 2005\n🔷 Τιμή: 2.299€', { year: 2005, price: 2299, cc: 1400, hp: 101 }],
+  ['Χιλιόμετρα 283.770!Το αυτοκίνητο είναι έτοιμο προς μεταβίβαση. Λάστιχα 2024.', { km: 283770, year: null }],
+  ['ΠΟΛΥ ΚΑΘΑΡΟ ΔΕΝ ΕΧΕΙ ΦΩΤΟΘΕΙ ΠΟΤΕ!\n210.000 χλμ\nTurbo Diesel\n1.900cc\n116 άλογα', { km: 210000, cc: 1900, hp: 116, fuel: 'Πετρέλαιο' }],
+  ['Audi A3 S Line\n1.400cc\n150hp\nΒενζίνη\n222.000 Γνήσια χιλιόμετρα\n2015\n δν χρειάζεται το παραμικρό', { km: 222000, year: 2015, cc: 1400, hp: 150 }],
+  ['Το αυτοκίνητο έχει 212 χιλιαδες χιλιόμετρα\nΈχει γίνει πρόσφατα αλλαγή σασμάν', { km: 212000 }],
+];
+for (const [text, want] of realPosts) {
+  test('real: ' + text.slice(0, 30), () => {
+    const f = parseAd(text).fields;
+    for (const [k, v] of Object.entries(want)) assert.equal(f[k], v, k);
+  });
+}

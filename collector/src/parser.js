@@ -173,7 +173,7 @@
     const out = [];
     let m;
     // "120.000 km", "120k km", "120 χιλ. χλμ", "120 χιλιάδες χλμ", "120.000 χιλιόμετρα"
-    const re = new RegExp(NUM + '[ \\t]*\\+?[ \\t]*(k|χιλ\\.?|χιλιαδεσ|χιλιαδων|t)?[ \\t]*' + KM_UNIT, 'g');
+    const re = new RegExp(NUM + '[ \\t]*\\+?[ \\t]*(k|χιλ\\.?|χιλιαδεσ|χιλιαδων|t)?[ \\t]*(?:(?:γνησια|πραγματικα|αληθινα|μονο|περιπου|original|real)[ \\t]+)?' + KM_UNIT, 'g');
     while ((m = re.exec(t))) {
       // "2012 Km 145000": the year sits right before the unit, not the km.
       if (!m[2] && /^(19[89]\d|20[0-3]\d)$/.test(m[1])) continue;
@@ -185,6 +185,8 @@
     while ((m = re2.exec(t))) {
       const after = t.slice(m.index + m[0].length, m.index + m[0].length + 8);
       if (/^\s*(€|ευρ|eur)/.test(after)) continue;
+      // "Χιλιόμετρα\n2015": a bare year after the label is not the km.
+      if (!m[2] && /^(19[89]\d|20[0-3]\d)$/.test(m[1])) continue;
       const v = kmValue(m[1], m[2]);
       if (v) out.push({ v, i: m.index, w: 2 });
     }
@@ -256,6 +258,9 @@
     // Bare 4-digit year not used as money, km or cc.
     const bare = /(^|[^\d.,])((?:19[89]\d|20[0-3]\d))(?![\d.,]*[ \t]*(?:€|ευρω|ευρο|eur|km|χλμ|cc|κ\.?εκ|κυβικ|χιλ))(?!\d)/g;
     while ((m = bare.exec(t))) {
+      // "Λάστιχα 2025", "ΚΤΕΟ έως 2026", "σέρβις 2024": a date of something else.
+      const before = t.slice(Math.max(0, m.index - 28), m.index + 1);
+      if (/(λαστιχ|ελαστικ|κτεο|σερβισ|service|μπαταρι|τελη|ασφαλ|αλλαγ|βαφ|βαμμεν|ισχυ|μεχρι|εωσ|πληρωμεν|αγορασ|καινουρ|τοποθετ)[^\n]*$/.test(before)) continue;
       const y = parseInt(m[2], 10);
       if (y >= 1980 && y <= THIS_YEAR + 1) return y;
     }

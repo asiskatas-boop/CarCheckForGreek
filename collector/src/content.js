@@ -4,9 +4,11 @@
  */
 (function () {
   'use strict';
-  // Guard against being injected twice (install-time injection + page load).
-  if (globalThis.__ccCollectorLoaded) return;
-  globalThis.__ccCollectorLoaded = true;
+  // After an update, Chrome leaves the old copy of this script running in
+  // open tabs. The newest copy takes over and older ones stop themselves.
+  const me = chrome.runtime.getManifest().version + ':' + Math.random();
+  globalThis.__ccCollectorActive = me;
+  const superseded = () => globalThis.__ccCollectorActive !== me || !(chrome.runtime && chrome.runtime.id);
   const P = globalThis.CCParser;
   const X = globalThis.CCExtract;
 
@@ -114,6 +116,7 @@
   let lastItems = [];
 
   function scanNow() {
+    if (superseded()) return;
     if (!enabled || document.hidden) return;
     let items;
     try {

@@ -19,6 +19,8 @@ function maybeGone(p, groups) {
   return new Date(groups[p.groupId].lastScan) - new Date(p.lastSeen) >= 3 * DAY;
 }
 
+document.querySelector('.sub').textContent += ', έκδοση ' + chrome.runtime.getManifest().version;
+
 async function render() {
   const { posts, stats, groups, settings } = await loadAll();
   $('enabled').checked = settings.enabled !== false;
