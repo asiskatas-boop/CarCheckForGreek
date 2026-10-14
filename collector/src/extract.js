@@ -56,28 +56,34 @@
     return /^(comment|reply|σχόλιο|απάντηση)/.test(label);
   }
 
-  // Post containers in a group feed (top-level only, comments excluded).
+  // Post containers in a group feed, one per post (comments excluded).
+  // Facebook marks each feed post with aria-posinset; the post itself is
+  // often also role="article", and its comments are nested role="article"s.
   function groupPosts(doc) {
-    const cand = new Set([
-      ...doc.querySelectorAll('[role="feed"] > div'),
-      ...doc.querySelectorAll('[aria-posinset]'),
-      ...doc.querySelectorAll('[role="article"]'),
-    ]);
-    const posts = [];
-    for (const el of cand) {
-      if (isCommentNode(el)) continue;
-      const up = el.parentElement && el.parentElement.closest('[aria-posinset], [role="article"]');
-      if (up && cand.has(up) && !isCommentNode(up)) continue;
-      if (posts.some((p) => p.contains(el))) continue;
-      for (let i = posts.length - 1; i >= 0; i--) if (el.contains(posts[i])) posts.splice(i, 1);
-      posts.push(el);
+    let posts = [...doc.querySelectorAll('[aria-posinset]')];
+    if (!posts.length) {
+      posts = [...doc.querySelectorAll('[role="article"]')].filter((a) => !isCommentNode(a) && !(a.parentElement && a.parentElement.closest('[role="article"]')));
     }
+    if (!posts.length) posts = [...doc.querySelectorAll('[role="feed"] > div')];
+    // Keep only outermost containers.
+    posts = posts.filter((el) => !posts.some((o) => o !== el && o.contains(el)));
     // A single opened post (permalink page) has no feed: use the main area.
     if (!posts.length) {
       const main = doc.querySelector('[role="main"]');
       if (main && /\/(posts|permalink)\//.test(location.pathname)) posts.push(main);
     }
     return posts;
+  }
+
+  // Comments inside a post: labelled as comments, or articles nested inside
+  // another article within the post. The post's own article is not a comment.
+  function commentsOf(el) {
+    return [...el.querySelectorAll('[role="article"]')].filter((c) => {
+      if (c === el) return false;
+      if (isCommentNode(c)) return true;
+      const up = c.parentElement && c.parentElement.closest('[role="article"]');
+      return !!up && up !== el && el.contains(up);
+    });
   }
 
   function commentAuthor(el) {
@@ -97,13 +103,15 @@
   }
 
   function readGroupPost(el, doc) {
-    const comments = [...el.querySelectorAll('[role="article"]')].filter((c) => c !== el);
-    let text = el.innerText || '';
+    const comments = commentsOf(el);
+    const full = el.innerText || '';
+    let text = full;
     for (const c of comments) {
       const ct = c.innerText || '';
       if (ct) text = text.split(ct).join('\n');
     }
-    text = cleanLines(text);
+    // Safety: never let comment removal wipe out the whole post.
+    text = cleanLines(text.trim().length > 10 ? text : full);
     const authorEl = el.querySelector('h2, h3, h4, strong');
     const author = authorEl ? authorEl.innerText.split('\n')[0].trim() : '';
     // Drop the author's name from the text we keep.
