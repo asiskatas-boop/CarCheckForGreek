@@ -6,3 +6,5 @@ coverage/
 *.log
 .env*
 !.env.example
+# Synthetic sample data is generated, not committed
+data/sample/*.csv

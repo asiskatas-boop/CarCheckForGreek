@@ -1,0 +1,3 @@
+id,url,make,model,version,year,km,price,fuel,gearbox,cc,hp,body,region,seller_type,origin,scraped_at
+40012345,https://www.car.gr/40012345,Toyota,Yaris,1.0 VVT-i,2014,98000,8900,Βενζίνη,Χειροκίνητο,998,69,Hatchback,Αθήνα,Ιδιώτης,Ελληνικό,2026-10-20
+40012346,https://www.car.gr/40012346,Volkswagen,Golf,1.6 TDI,2012,150000,7500,Πετρέλαιο,Αυτόματο,1598,105,Hatchback,Θεσσαλονίκη,Έμπορος,Εισαγωγής,2026-10-20
