@@ -12,7 +12,11 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "validate:data": "node scripts/validate-vehicle-import.mjs",
-    "images:pull": "node scripts/pull-carimages.mjs"
+    "images:pull": "node scripts/pull-carimages.mjs",
+    "test:pricing": "node --experimental-strip-types --no-warnings --test src/pricing/pricing.test.ts",
+    "test:collector": "node --test collector/test/parser.test.cjs",
+    "prices:sample": "node scripts/make-sample-listings.mjs data/sample/listings-synthetic.csv && node --experimental-strip-types --no-warnings scripts/build-price-index.ts data/sample/listings-synthetic.csv --synthetic",
+    "prices:build": "node --experimental-strip-types --no-warnings scripts/build-price-index.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "4.3.3",

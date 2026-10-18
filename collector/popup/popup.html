@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<title>ChekCAReto</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="../icons/128.png" alt="" width="36" height="36">
+    <div>
+      <h1>ChekCAReto</h1>
+      <p class="sub">Συλλογή αγγελιών</p>
+    </div>
+  </header>
+
+  <section class="card page" id="pagecard">
+    <p id="pagestatus" class="pagestatus">Άνοιξε ένα γκρουπ αυτοκινήτων ή το Marketplace στο Facebook.</p>
+    <button id="auto" class="filled" type="button" hidden>Έναρξη αυτόματης κύλισης</button>
+    <p id="autohint" class="foot" hidden>Κυλάει αργά και σταματά μόνο του αν το Facebook ζητήσει κάτι, αν αγγίξεις τη σελίδα ή αν φτάσει σε αγγελίες που έχεις ήδη.</p>
+  </section>
+
+  <section class="card stats" aria-label="Σύνοψη">
+    <div><strong id="s-today">0</strong><span>νέες σήμερα</span></div>
+    <div><strong id="s-total">0</strong><span>σύνολο</span></div>
+    <div><strong id="s-review">0</strong><span>θέλουν έλεγχο</span></div>
+    <div><strong id="s-sold">0</strong><span>πουλήθηκαν</span></div>
+  </section>
+
+  <h2>Ρυθμίσεις</h2>
+  <section class="card list">
+    <label class="row">
+      <span>Συλλογή ενεργή</span>
+      <input type="checkbox" class="switch" id="enabled" role="switch">
+    </label>
+    <label class="row">
+      <span>Ετικέτες πάνω στις αγγελίες</span>
+      <input type="checkbox" class="switch" id="chips" role="switch">
+    </label>
+  </section>
+
+  <h2>Τελευταίες</h2>
+  <section class="card list">
+    <ol id="recent" class="recent"></ol>
+    <p id="empty" class="empty">Δεν έχει αποθηκευτεί καμία αγγελία ακόμα.</p>
+  </section>
+
+  <section class="card list actions">
+    <button id="csv" type="button" class="row action">Λήψη CSV</button>
+    <button id="json" type="button" class="row action">Λήψη JSON</button>
+    <button id="diag" type="button" class="row action">Αντιγραφή διάγνωσης σελίδας</button>
+    <button id="clear" type="button" class="row action danger">Διαγραφή όλων</button>
+  </section>
+
+  <footer>Δεν αποθηκεύονται ονόματα, τηλέφωνα ή φωτογραφίες. Όλα μένουν σε αυτόν τον υπολογιστή μέχρι να τα κατεβάσεις.</footer>
+  <script src="popup.js"></script>
+</body>
+</html>
